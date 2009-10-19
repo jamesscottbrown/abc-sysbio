@@ -1,4 +1,6 @@
 from pylab import * 
+
+import matplotlib
 #import modelfunction
 import re
 from abc import abcodesolve
@@ -168,12 +170,12 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
         if g.match(integrationType): data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
 
         points_sim = abc.abcSMC_model.howToFitData(fit,data_sim)
-        plt.plot(timepoints_new,points_sim)
-    if plotdata==True: plt.plot(timepoints,data,'o')
+        matplotlib.pyplot.plot(timepoints_new,points_sim)
+    if plotdata==True: matplotlib.pyplot.plot(timepoints,data,'o')
         
         
     
-    plt.savefig(filename)
+    matplotlib.pyplot.savefig(filename)
     cla()
 
 def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', model=1):
