@@ -1,15 +1,20 @@
-This distribution of the Python package abc contains four folders.
+This is the distribution of the Python package abc-sysbio
+
+#################################
+# INSTALLATION
+python setup.py install ( --prefix=/path/to/custom/location/ )
+
+This command will place the module abc into the default	(custom) installation location.
+It also places two executable Python scripts (abc-sysbio and abc-sysbio-sbml-sum) into the
+default (custom) location.		   
+
+#################################
+# CONTENTS			 
 
 ##############
 
-abc is the package itself and should be copied in its entirety to a folder called abc on your Python path.
-
-If you use the recommended Enthought Python Disribution installed on Mac OS X, this path is:
-
-/Library/Frameworks/Python.framework/Versions/4.1.30101/lib/python2.5/site-packages/abc
-
-The package abc requires the following Python libraries. With the exception of libSBML, these are included in the Enthought Python Distribution
-
+abc is a module containing all the Approximate Bayesian Computation code
+The abc module requires the following Python libraries. With the exception of libSBML, these are included in the Enthought Python Distribution
 libSBML
 math
 matplotlib
@@ -20,12 +25,11 @@ re
 sys
 Scientific
 Scipy
-
 For information on how to use the package, refer to the package documentation.
 
 ##############
 
-Documentation contains the package documentation
+doc contains the package documentation
 
 ##############
 
@@ -33,7 +37,7 @@ Examples contains the SBML models, input files and (for Example 2) modified scri
 
 ##############
 
-Scripts contains two scripts, getSBMLsummary.py and abcScript.py, that enable easy use of the package for the most common applications. These scripts should be copied to the same working directory as your SBML models to use them.
+Scripts contains two scripts, abc-sysbio and abc-sysbio-sbml-sum, that enable easy use of the package for the most common applications.
 
 ##############
 
