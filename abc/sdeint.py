@@ -53,7 +53,7 @@ def sdeint(func,InitValues,parameter, timepoints,dt=0.01):
 			
 		if(solutions[i][k]<0.0):
 			solutions[i][k]=0.0
-			print "\nSDE simulation failed. Try smaller timestep.\n"
+			#print "\nSDE simulation failed. Try smaller timestep.\n"
 			return solutions_out
 
 		if(n>=len(timepoints)):
