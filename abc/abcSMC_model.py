@@ -1,18 +1,18 @@
 import re
-from numpy import *
-from scipy.integrate.odepack import odeint
-from abc.sdeint import *
-from abc.getResults import *
-from scipy.stats import *
-from abc import GillespieAlgorithm
-from abc import abcodesolve
-from math import *
-from numpy import random as rnd
-from abc import euclidian
-from abc.checkInputArguments import *
 import os
 import pickle
 
+from math import *
+from numpy import random as rnd
+from scipy.integrate.odepack import odeint
+
+from abc import GillespieAlgorithm
+from abc import abcodesolve
+from abc import sdeint
+from abc import euclidian
+
+from abc.checkInputArguments import *
+from abc.getResults import *
 
 def w_choice(item,weight):#http://snippets.dzone.com/posts/show/732 - modified for vectors
     n = rnd.random_sample()
