@@ -5,7 +5,7 @@ matplotlib.use('pdf')
 from matplotlib import pyplot as plt
 from pylab import *
 
-import abc
+import abcsysbio
 import numpy
 import sys
 import time
@@ -89,9 +89,9 @@ def main():
             sys.exit()
                 
     if (file_exist==True and simulate==False):            
-        restart,name,data,timepoints,numOutput,epsilon,InitValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,beta,dt, rtol, atol, constKernels=abc.parseInfo.getAlgorithmInfo(input_file)
+        restart,name,data,timepoints,numOutput,epsilon,InitValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,beta,dt, rtol, atol, constKernels=abcsysbio.parseInfo.getAlgorithmInfo(input_file)
         
-        #abc.importSBML(source,integrationType,name)
+        #abcsysbio.importSBML(source,integrationType,name)
    
         if plot==True:
             plt.plot(timepoints,data,'o')
@@ -105,30 +105,30 @@ def main():
 
 	start_time = time.time()
 
-        modelDistribution, inferred_parameter, rate=abc.abcSMC_model.abcSimulator(name, data, timepoints, numOutput, epsilon, InitValues, integrationType, modelWeight, prior, kernel, dt=dt,
+        modelDistribution, inferred_parameter, rate=abcsysbio.abcSMC_model.abcSimulator(name, data, timepoints, numOutput, epsilon, InitValues, integrationType, modelWeight, prior, kernel, dt=dt,
 			fit=fit, sampleFromPrior=sampleFromPrior, beta=beta, restart=restart, diagnostic=diagnostic, pickling=pickling, plotDataSeries=plotTimeSeries, full=full, constKernels=constKernels)
 
-	print "abc-sysbio total timing\t", time.time() - start_time
+	print "abcsysbio total timing\t", time.time() - start_time
 
 #####if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
 #####plots are made - do we want to do anythin else e.g. save the data to a text file?
         
     elif (file_exist==True and simulate==True):
-        name, timepoints, InitValues, integrationType, ConstantParameters, source, dt, rtol, atol =abc.parseInfo.getInfoForSimulation(input_file)
+        name, timepoints, InitValues, integrationType, ConstantParameters, source, dt, rtol, atol =abcsysbio.parseInfo.getInfoForSimulation(input_file)
 
-        modelCorrect, message=abc.checkInputArguments.checkInputSimulation(name, timepoints, InitValues, integrationType, ConstantParameters, source, dt)
+        modelCorrect, message=abcsysbio.checkInputArguments.checkInputSimulation(name, timepoints, InitValues, integrationType, ConstantParameters, source, dt)
 
         if modelCorrect == False:
             print message
             sys.exit()
 
-        abc.importSBML(source,integrationType,name)
+        abcsysbio.importSBML(source,integrationType,name)
 
         if synthetic!=True:
             timepoints=numpy.arange(timepoints[0], timepoints[-1]+dt, dt)
 
         for i in range(0, len(name)):
-            data=abc.abcSMC_model.simulateData(name,i,integrationType,InitValues,timepoints,ConstantParameters[i],dt)
+            data=abcsysbio.abcSMC_model.simulateData(name,i,integrationType,InitValues,timepoints,ConstantParameters[i],dt)
 
             if synthetic==True:
                 print name[i]
@@ -144,7 +144,7 @@ def main():
     else:
         print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
 ####plot data with final parameter
-#abc.getResults.plotTimeSeries(name[0],inferred_parameter,integrationType[0],InitValues[0],timepoints,populationNumber=5,amount=10,model=1)
+#abcsysbio.getResults.plotTimeSeries(name[0],inferred_parameter,integrationType[0],InitValues[0],timepoints,populationNumber=5,amount=10,model=1)
     
 
 main()
