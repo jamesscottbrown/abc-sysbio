@@ -1,4 +1,4 @@
-# The abc package @ 2009
+# The abc-sysbio package @ 2009
 # Erika Cule and Juliane Liepe
 # Centre for Bioinformatics
 # Imperial College London
@@ -17,7 +17,7 @@ from abcodesolve import *
 from relations import *
 
 __all__ = filter(lambda s:not s.startswith('_'),dir())
-from numpy.testing import NumpyTest
-test = NumpyTest().test
+#from numpy.testing import NumpyTest
+#test = NumpyTest().test
 
 

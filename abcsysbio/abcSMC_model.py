@@ -6,13 +6,13 @@ from math import *
 from numpy import random as rnd
 from scipy.integrate.odepack import odeint
 
-from abc import GillespieAlgorithm
-from abc import abcodesolve
-from abc import sdeint
-from abc import euclidian
+from abcsysbio import GillespieAlgorithm
+from abcsysbio import abcodesolve
+from abcsysbio import sdeint
+from abcsysbio import euclidian
 
-from abc.checkInputArguments import *
-from abc.getResults import *
+from abcsysbio.checkInputArguments import *
+from abcsysbio.getResults import *
 
 def w_choice(item,weight):#http://snippets.dzone.com/posts/show/732 - modified for vectors
     n = rnd.random_sample()
@@ -433,25 +433,27 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
               The default value is 'False'.
 
     """   
-    
-    modelCorrect,message=checkInputABC(ModelName,
-                                       data,
-                                       timepoints,
-                                       numOutput,
-                                       epsilon,
-                                       InitValues,
-                                       integrationType,
-                                       modelWeights,
-                                       priors,
-                                       kernel,
-                                       fit,
-                                       restart,
-                                       source,
-                                       constKernels)
 
-    if modelCorrect==False:
-        print message
-        sys.exit()
+    # if source is empty skip this bit
+    
+    #modelCorrect,message=checkInputABC(ModelName,
+    #                                   data,
+    #                                   timepoints,
+    #                                   numOutput,
+    #                                   epsilon,
+    #                                   InitValues,
+    #                                   integrationType,
+    #                                   modelWeights,
+    #                                   priors,
+    #                                   kernel,
+    #                                   fit,
+    #                                   restart,
+    #                                   source,
+    #                                   constKernels)
+
+    #if modelCorrect==False:
+    #    print message
+    #    sys.exit()
 
     modelDistribution=zeros([len(epsilon),len(ModelName)])
 

@@ -3,10 +3,10 @@ from pylab import *
 import matplotlib
 #import modelfunction
 import re
-from abc import abcodesolve
-from abc import sdeint
-from abc import GillespieAlgorithm
-import abc.abcSMC_model
+from abcsysbio import abcodesolve
+from abcsysbio import sdeint
+from abcsysbio import GillespieAlgorithm
+import abcsysbio.abcSMC_model
 from scipy.integrate.odepack import odeint
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from Scientific.Statistics import Histogram
@@ -169,7 +169,7 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
         if s.match(integrationType): data_sim=sdeint(module,InitValues,parameter,timepoints_new,dt=0.01)
         if g.match(integrationType): data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
 
-        points_sim = abc.abcSMC_model.howToFitData(fit,data_sim)
+        points_sim = abcsysbio.abcSMC_model.howToFitData(fit,data_sim)
         matplotlib.pyplot.plot(timepoints_new,points_sim)
     if plotdata==True: matplotlib.pyplot.plot(timepoints,data,'o')
         

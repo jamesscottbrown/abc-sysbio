@@ -2,7 +2,7 @@ from numpy import *
 from libsbml import *
 import re
 import os
-from abc.relations import *
+from abcsysbio.relations import *
 
 ##To call the parser:
 ##    SBMLparse.importSBML(source, integrationType, ModelName=None,method=None)
@@ -23,7 +23,7 @@ def write_GillespieFunctions(stoichiometricMatrix, kineticLaw, numSpecies, numRe
     p=re.compile('\s')
     out_file=open(name+".py","w")
 
-    out_file.write("from abc.relations import *\n\n#Functions\n")
+    out_file.write("from abcsysbio.relations import *\n\n#Functions\n")
 
     for i in range(0, len(listOfFunctions)):
         out_file.write("def ")
@@ -180,7 +180,7 @@ def write_ODEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
     #Open the outfile
     out_file=open(name+".py","w")
     #Import the necessaries
-    out_file.write("from math import *\nfrom numpy import *\nfrom abc.relations import *\n\n")
+    out_file.write("from math import *\nfrom numpy import *\nfrom abcsysbio.relations import *\n\n")
     #The user-defined functions used in the model must be written in the file
 
     for i in range(0, len(listOfFunctions)):
@@ -392,7 +392,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
     """ 
     p=re.compile('\s')
     out_file=open(name+".py","w")
-    out_file.write("from math import *\nfrom numpy import *\nimport random\nfrom abc.relations import *\n\n")
+    out_file.write("from math import *\nfrom numpy import *\nimport random\nfrom abcsysbio.relations import *\n\n")
 
     for i in range(0, len(listOfFunctions)):
         out_file.write("def ")
