@@ -13,6 +13,7 @@ import time
 def printOptions():
     
     print "\nList of possible options:"
+    print "-pm\t--pythonmodel\t do not import model from sbml intead use .py file"
     print "-d\t--diagnostic\t no printing of diagnostic plots"
     print "-s\t--save\t\t no backup after each population"
     print "-t\t--timeseries\t no plotting of simulation results after each population"
