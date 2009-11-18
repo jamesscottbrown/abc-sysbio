@@ -563,6 +563,11 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 #################count how many particles are accepted
 	while(i<numOutput):
             sampling[t]=sampling[t]+1
+            if(full == True and sampling[t]%100 ==0):
+                print "sampled: ", sampling[t] 
+                sys.stdout.flush()
+
+
 
 ################sample model from prior or intermediate distribution         
             if(sampleFromPrior==True or (t==0 and restart==False)): selected_model=w_choice(ModelNumber,modelDistrib0)
@@ -634,8 +639,10 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 hits[t]=hits[t]+1
                 if full == True and repeat == 1:
                     print "hits: "+repr(hits[t])+"\n"
+                    sys.stdout.flush()
                 else:
                     print "hits: "+repr(hits[t])+" : B = "+repr(BETA)+"\n"
+                    sys.stdout.flush()
 
                 rate[t]=hits[t]/sampling[t]
 
