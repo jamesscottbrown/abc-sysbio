@@ -110,7 +110,7 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
                 local=model.getReaction(i).getKineticLaw().getNumParameters()
                 numLocalParameters=numLocalParameters+local
                 for k in range(0,local):
-                    listOfParameter.append(model.getListOfReaction()[i].getKineticLaw().getParameter(k))
+                    listOfParameter.append(model.getListOfReactions()[i].getKineticLaw().getParameter(k))
                               
 
             numParameters=numLocalParameters+numGlobalParameters
