@@ -97,6 +97,12 @@ def main():
             print "\nunknown expression \""+sys.argv[i]+"\""
             printOptions()
             sys.exit()
+
+
+    # set the seed
+    if seed != None:
+	print "Seeding random number generator : ", seed
+        numpy.random.seed(seed)
                 
     if (file_exist==True and simulate==False):            
         restart,name,data,timepoints,numOutput,epsilon,InitValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,beta,dt, rtol, atol, constKernels = abcsysbio.parseInfo.getAlgorithmInfo(input_file)
@@ -106,6 +112,7 @@ def main():
             plt.savefig('_data')
             cla()
 
+	modelCorrect = False
         if usesbml == True : 
             abcsysbio.importSBML(source,integrationType,name)
             
@@ -121,18 +128,33 @@ def main():
                                                                              kernel,
                                                                              fit,
                                                                              restart,
-                                                                             source,
+                                                                             source,                            
                                                                              constKernels)
-            if modelCorrect==False:
-                print message
-                sys.exit()
-        
-#####run ABCSMC
+	else :
+	   
+            source = None
+            modelCorrect,message=abcsysbio.checkInputArguments.checkInputABC(name,
+                                                                             data,
+                                                                             timepoints,
+                                                                             numOutput,
+                                                                             epsilon,
+                                                                             InitValues,
+                                                                             integrationType,
+                                                                             modelWeight,
+                                                                             prior,
+                                                                             kernel,
+                                                                             fit,
+                                                                             restart,
+                                                                             source,
+                                                                             constKernels)         
+            
+	if modelCorrect==False:
+             print message
+             sys.exit()
 
-        # set the seed
-        if seed != None:
-            print "Seeding random number generator : ", seed
-            numpy.random.seed(seed)
+        
+
+#####run ABCSMC
 
 	start_time = time.time()
 
