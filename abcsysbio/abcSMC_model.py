@@ -629,12 +629,16 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
                     dist=True
                     BETA=BETA+1
-                    hits[t]=hits[t]+1
-                    if full == True:
-                        print "hits: "+repr(hits[t])+"\n"
-                    rate[t]=hits[t]/sampling[t]
-            
+                    
             if dist==True:
+                hits[t]=hits[t]+1
+                if full == True and repeat == 1:
+                    print "hits: "+repr(hits[t])+"\n"
+                else:
+                    print "hits: "+repr(hits[t])+" : B = "+repr(BETA)+"\n"
+
+                rate[t]=hits[t]/sampling[t]
+
                 for param in range(0,dim):
                     population[selected_model][t][param].append(sampleParameters[param])
 
