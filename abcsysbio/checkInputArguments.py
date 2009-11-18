@@ -92,15 +92,16 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
 
             numSpecies=model.getNumSpecies()
             numGlobalParameters=model.getNumParameters()
+            listOfParameter=[]
 
             NumCompartments=model.getNumCompartments()   
+            
             for i in range(0,NumCompartments):
                 if model.getCompartment(i).isSetVolume():
                     numGlobalParameters=numGlobalParameters+1
-                    comp = comp + 1
                     listOfParameter.append(model.getListOfCompartments()[i])
 
-            for i in range(0, numGlobalParameter-comp):
+            for i in range(0, numGlobalParameters-NumCompartments):
                 listOfParameter.append(model.getParameter(i))
 
 
