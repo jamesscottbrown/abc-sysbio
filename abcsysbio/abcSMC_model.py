@@ -432,29 +432,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
               population.
               The default value is 'False'.
 
-    """   
-
-    # if source is empty skip this bit
+    """
     
-    #modelCorrect,message=checkInputABC(ModelName,
-    #                                   data,
-    #                                   timepoints,
-    #                                   numOutput,
-    #                                   epsilon,
-    #                                   InitValues,
-    #                                   integrationType,
-    #                                   modelWeights,
-    #                                   priors,
-    #                                   kernel,
-    #                                   fit,
-    #                                   restart,
-    #                                   source,
-    #                                   constKernels)
-
-    #if modelCorrect==False:
-    #    print message
-    #    sys.exit()
-
     modelDistribution=zeros([len(epsilon),len(ModelName)])
 
 
