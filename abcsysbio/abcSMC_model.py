@@ -3,6 +3,7 @@ import os
 import pickle
 
 from math import *
+import numpy
 from numpy import random as rnd
 from scipy.integrate.odepack import odeint
 
@@ -13,6 +14,10 @@ from abcsysbio import euclidian
 
 from abcsysbio.checkInputArguments import *
 from abcsysbio.getResults import *
+
+__LARGE_DISTANCE__ = 1000000
+__FAST__ = True
+__XMAX__= 2000
 
 def w_choice(item,weight):#http://snippets.dzone.com/posts/show/732 - modified for vectors
     n = rnd.random_sample()
@@ -204,7 +209,55 @@ def computeParticleWeights(priors,sampleParameters,numbers1,numbers0,t,kernel,po
 
 
     return weights1
-     
+
+#############
+def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters, epsilon, fit, data ):
+    o=re.compile('ODE')
+    s=re.compile('SDE')
+    g=re.compile('Gillespie')
+
+    if( g.match(integrationType[selected_model]) == False): 
+        print "\n __FAST__ only implemented for Gillespie algorithm\n"
+        sys.exit()
+  
+    mdl = __import__(ModelName[selected_model])
+
+    #Set initial time
+    time = timepoints[0]
+
+    #set initial concentrations
+    concentrations = numpy.zeros([len(timepoints),len(initValues)])
+    current_concentrations = tuple(initValues)
+    
+    current_concentrations, parameters=mdl.events(current_concentrations, parameters,time)
+    current_concentrations, parameters=mdl.rules(current_concentrations, parameters,time)
+        
+    concentrations[0] = current_concentrations
+    
+    counter = 1
+    distance = __LARGE_DISTANCE__
+
+    while 1:
+        current_concentrations, time, flag = GillespieAlgorithm.GillespieInt_onestep(mdl, current_concentrations, time, timepoints[counter], parameters, __XMAX__)
+        #print "Main loop:", current_concentrations, time,  timepoints[counter], parameters
+
+        if flag == False:
+            distance = __LARGE_DISTANCE__
+            break
+
+        concentrations[counter] = current_concentrations
+        points = howToFitData(fit,concentrations[0:counter+1])
+        distance=euclidian.euclidianDistance(points,data[0:counter+1])
+
+        if(distance >= epsilon or distance < 0):
+            break
+
+        counter = counter + 1
+        if counter >= len(timepoints):
+            break
+
+    return distance
+
 
 ################normalize the weights
 def normalizeWeights(len_ModelName,priors,t,numbers,weights,restart):
@@ -622,15 +675,17 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 repeat=beta
             else: 
                 repeat=1
+
             for r in range(0,repeat):
-                samplePoints=simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol,atol)
 
-###########how to fit variable to the given data (if fit is None, data for all variables are available in order of the model)
-                points=howToFitData(fit[selected_model],samplePoints)
+                if __FAST__ == False :
+                    samplePoints=simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol,atol)
+                    points=howToFitData(fit[selected_model],samplePoints)
+                    distance=euclidian.euclidianDistance(points,data)
+                else :
+                    distance = realize_particles(  ModelName, selected_model, integrationType, InitValues[selected_model], timepoints, sampleParameters, epsilon[t], fit[selected_model], data )
 
-###########compute the distance and compare it with epsilon
-                distance=euclidian.euclidianDistance(points,data)
-                if(distance<=epsilon[t]):
+                if(distance<=epsilon[t] and distance>0 ):
                     distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
                     dist=True
                     BETA=BETA+1
