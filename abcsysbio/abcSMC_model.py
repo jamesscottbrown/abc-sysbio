@@ -129,7 +129,39 @@ def sampleTheParameter(priors,sampleParameters,numbers,t,population,weights,kern
         sampleParameters=sampleParametersFromPrevious(numbers,population,weights,kernel,priors,sampleParameters)
     return sampleParameters
 
+############sample model
+def sampleTheModel( sampleFromPrior, t, restart, ModelNumber, modelDistrib0, modelDistribution ) :
+    selected_model = 0
+    if(sampleFromPrior==True or (t==0 and restart==False) ):
+        selected_model=w_choice(ModelNumber,modelDistrib0)
+    else:
+        #restart and sample from previous
+        nmodel = len(ModelNumber)
+        
+        modelDistrib=zeros( nmodel )
+        if restart==True: 
+            weight=0
+            for mod in range(0, nmodel ):
+                weight=weight+num_pickled[mod]
+            
+            for mod in range(0, nmodel ):
+                modelDistrib[mod]=num_pickled[mod]/weight
 
+        #normal run (or t>0 for restarted run) and sample from previous
+        if restart==False: 
+            weight=0
+            for mod in range(0, nmodel ):
+                weight=weight+modelDistribution[t-1][mod]
+            
+            for mod in range(0, nmodel ):
+                modelDistrib[mod]=modelDistribution[t-1][mod]/weight
+
+        # sampleFromPrior is False AND t is larger than 0
+        selected_model=w_choice(ModelNumber,modelDistrib) 
+
+    return selected_model
+
+    
 ###########simulate data with sampled parameter set for the sampled model
 def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol=None,atol=None):
 
@@ -149,6 +181,53 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
 
     return samplePoints
 
+#############
+def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters, epsilon, fit, data ):
+    o=re.compile('ODE')
+    s=re.compile('SDE')
+    g=re.compile('Gillespie')
+
+    if( g.match(integrationType[selected_model]) == False): 
+        print "\n __FAST__ only implemented for Gillespie algorithm\n"
+        sys.exit()
+  
+    mdl = __import__(ModelName[selected_model])
+
+    #Set initial time
+    time = timepoints[0]
+
+    #set initial concentrations
+    concentrations = numpy.zeros([len(timepoints),len(initValues)])
+    current_concentrations = tuple(initValues)
+    
+    current_concentrations, parameters=mdl.events(current_concentrations, parameters,time)
+    current_concentrations, parameters=mdl.rules(current_concentrations, parameters,time)
+        
+    concentrations[0] = current_concentrations
+    
+    counter = 1
+    distance = __LARGE_DISTANCE__
+
+    while 1:
+        current_concentrations, time, flag = GillespieAlgorithm.GillespieInt_onestep(mdl, current_concentrations, time, timepoints[counter], parameters, __XMAX__)
+        #print "Main loop:", current_concentrations, time,  timepoints[counter], parameters
+
+        if flag == False:
+            distance = __LARGE_DISTANCE__
+            break
+
+        concentrations[counter] = current_concentrations
+        points = howToFitData(fit,concentrations[0:counter+1])
+        distance=euclidian.euclidianDistance(points,data[0:counter+1])
+
+        if(distance >= epsilon or distance < 0):
+            break
+
+        counter = counter + 1
+        if counter >= len(timepoints):
+            break
+
+    return distance
 
 ###########how to fit variable to the given data (if fit is None, data for all variables are available in order of the model)
 def howToFitData(fitting_instruction,samplePoints):
@@ -210,57 +289,11 @@ def computeParticleWeights(priors,sampleParameters,numbers1,numbers0,t,kernel,po
 
     return weights1
 
-#############
-def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters, epsilon, fit, data ):
-    o=re.compile('ODE')
-    s=re.compile('SDE')
-    g=re.compile('Gillespie')
-
-    if( g.match(integrationType[selected_model]) == False): 
-        print "\n __FAST__ only implemented for Gillespie algorithm\n"
-        sys.exit()
-  
-    mdl = __import__(ModelName[selected_model])
-
-    #Set initial time
-    time = timepoints[0]
-
-    #set initial concentrations
-    concentrations = numpy.zeros([len(timepoints),len(initValues)])
-    current_concentrations = tuple(initValues)
-    
-    current_concentrations, parameters=mdl.events(current_concentrations, parameters,time)
-    current_concentrations, parameters=mdl.rules(current_concentrations, parameters,time)
-        
-    concentrations[0] = current_concentrations
-    
-    counter = 1
-    distance = __LARGE_DISTANCE__
-
-    while 1:
-        current_concentrations, time, flag = GillespieAlgorithm.GillespieInt_onestep(mdl, current_concentrations, time, timepoints[counter], parameters, __XMAX__)
-        #print "Main loop:", current_concentrations, time,  timepoints[counter], parameters
-
-        if flag == False:
-            distance = __LARGE_DISTANCE__
-            break
-
-        concentrations[counter] = current_concentrations
-        points = howToFitData(fit,concentrations[0:counter+1])
-        distance=euclidian.euclidianDistance(points,data[0:counter+1])
-
-        if(distance >= epsilon or distance < 0):
-            break
-
-        counter = counter + 1
-        if counter >= len(timepoints):
-            break
-
-    return distance
-
 
 ################normalize the weights
 def normalizeWeights(len_ModelName,priors,t,numbers,weights,restart):
+    print weights
+
     for mod in range(0,len_ModelName):
         if numbers[mod][t]>0:
             for h in range(0,len(priors[mod])):
@@ -273,7 +306,192 @@ def normalizeWeights(len_ModelName,priors,t,numbers,weights,restart):
                     weights[mod][t][h][j]=weights[mod][t][h][j]/float(weight)
     return weights
 
+################create output folders
+def create_output_folders(Nmodel, ModelName, numOutput, restart, pickling):
+    if restart==True:
+        folder='_restart_results_'
+    else:
+        folder='_results_'
+    try:
+        os.mkdir(folder)
+        os.chdir(folder)
+    except:
+        print "\nThe folder "+ folder +" already exists!\n"
+        sys.exit()
+    for mod in range(0,len(ModelName)):
+        try:
+            os.mkdir('results_'+ModelName[mod])
+        except:
+            print "\nThe folder "+ folder + ModelName[mod]+" already exists!\n"
+            sys.exit()
 
+    os.chdir('..')
+
+            
+    rate_file=open(folder+'/rates.txt',"w")
+
+        
+    if pickling==True:
+        try:
+            os.chdir(folder)
+            os.mkdir('copy')
+            os.chdir('..')
+        except:
+            print "\nThe folder \'copy\' already exists!\n"
+            sys.exit()
+    
+        out_file=open(folder+'/copy/algorithm_parameter.dat',"w")
+        pickle.dump(numOutput,out_file)
+        out_file.close()
+
+    return [folder, rate_file]
+
+################read the stored data
+def read_pickled():
+    # pickle numbers selected model of previous population
+    # pickle population of selected model of previous population pop_pickled[selected_model][n][vectpos]
+    # pickle weights of selected model of previous population weights_pickled[selected_model][n][vectpos]
+        
+    try:
+        in_file=open('_results_/copy/numlast.dat',"r")
+        num_pickled=pickle.load(in_file)
+        in_file.close()
+    except:
+        print "\nCan not find file \'numlast.dat\' in folder \'copy\'!\n"
+        sys.exit()
+        
+    try:
+        in_file=open('_results_/copy/poplast.dat',"r")
+        pop_pickled=pickle.load(in_file)
+        in_file.close()
+    except:
+        print "\nCan not find file \'poplast.dat\' in folder \'copy\'!\n"
+        sys.exit()
+
+    try:
+        in_file=open('_results_/copy/weightslast.dat',"r")
+        weights_pickled=pickle.load(in_file)
+        in_file.close()
+    except:
+        print "\nCan not find file \'weightslast.dat\' in folder \'copy\'!\n"
+        sys.exit()
+        
+    try:
+        in_file=open('_results_/copy/kernelslast.dat',"r")
+        kernel=pickle.load(in_file)
+        in_file.close()
+    except:
+        print "\nCan not find file \'kernelslast.dat\' in folder \'copy\'!\n"
+        sys.exit()
+
+    print "\n\n\n"
+    print "num_pickled", num_pickled
+    print "pop_pickled", pop_pickled
+    print "weights_pickled", weights_pickled
+
+    return [num_pickled, pop_pickled, weights_pickled, kernel ]
+
+################write the stored data
+def write_pickled(folder, t, nmodel, population, numbers, weights, kernel ):
+
+    out_file=open(folder+'/copy/poplast.dat',"w")
+    x=[]
+    for mod in range(0,nmodel):
+        x.append(population[mod][t])
+    pickle.dump(x,out_file)
+    out_file.close()
+
+    out_file=open(folder+'/copy/numlast.dat',"w")
+    x=[]
+    for mod in range(0,len(numbers)):
+        x.append(numbers[mod][t])
+    pickle.dump(x,out_file)
+    out_file.close()
+
+    out_file=open(folder+'/copy/weightslast.dat',"w")
+    x=[]
+    for mod in range(0,nmodel):
+        x.append(weights[mod][t])
+    pickle.dump(x,out_file)
+    out_file.close()
+
+    out_file=open(folder+'/copy/kernelslast.dat',"w")
+    x=[]
+    for mod in range(0,nmodel):
+        x.append(kernel[mod])
+    pickle.dump(x,out_file)
+    out_file.close()
+
+################make some nice plots
+def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate ):
+    
+    for mod in range(0,nmodel):
+        try:
+            os.chdir(folder+'/results_'+ModelName[mod])
+            os.mkdir("Population_"+repr(t+1))
+            os.chdir("../..")
+        except:
+            print "\nCan not creat the folder Population_"+repr(t+1)+"!\n"
+            sys.exit()
+
+
+    for mod in range(0,nmodel):
+        weight_file=open(folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Weights'+repr(t+1)+".txt","w")
+        for g in range(0,len(weights[mod][t][0])):
+            for j in range(0, len(weights[mod][t])): #for each entry in the first parameter
+                weight_file.write(repr(weights[mod][t][j][g])+"\t")
+            weight_file.write("\n")
+        weight_file.close()
+
+            
+    population_mod=[]
+    weights_mod=[]
+    for mod in range(0,nmodel):
+        PlotName=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/ScatterPlots_Population'+repr(t+1)
+        filename1=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Population'+repr(t+1)
+        filename2=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Weights'+repr(t+1)
+        PlotName2=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/weightedHistograms_Population'+repr(t+1)
+           
+        MatrixToTextfile(population,filename=filename1,model=mod,eps=t)
+        if diagnostic==True:
+                
+            population_mod.append([])
+            weights_mod.append([])
+            for eps in range(0,len(population[0])):
+                population_mod[mod].append([])
+                weights_mod[mod].append([])
+                for param in range(0,len(priors[mod])):
+                    if not(priors[mod][param][0]==0):
+                        population_mod[mod][eps].append(population[mod][eps][param])
+                        weights_mod[mod][eps].append(weights[mod][eps][param])
+
+            getAllScatterPlots(population_mod,weights_mod,populations=arange(1,t+2,1),PlotName=PlotName,model=mod+1)
+            getAllHistograms(population_mod,weights_mod,population=t+1,PlotName=PlotName2, model=mod+1)
+
+    if nmodel>1:
+        printModelDistribution(modelDistribution,eps=t,filename=folder+'/ModelDistribution.txt')
+        if diagnostic==True:
+            getModelDistribution(modelDistribution,epsilon,rate,PlotName=folder+'/ModelDistribution')
+
+
+
+    if plotDataSeries==True:
+        for mod in range(0,nmodel):
+            x=10
+            if numbers[mod][t]<x: x=int(numbers[mod][t])
+            plotTimeSeries(ModelName[mod],
+                           population,
+                           integrationType[mod],
+                           InitValues[mod],
+                           timepoints,
+                           fit[mod],
+                           populationNumber=t+1,
+                           dt=dt,
+                           amount=x,
+                           model=mod,
+                           filename=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/Timeseries_Population'+repr(t+1),
+                           data=data,
+                           plotdata=True)
 
 
 
@@ -486,160 +704,85 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
               The default value is 'False'.
 
     """
+
+    #
+    # Define all variable and containers here
+    #
+
+    npop = len(epsilon)
+    nmodel = len(ModelName)
+
+    # model prior distribution is uniform over number of models
+    modelDistrib0=zeros([nmodel])
+    for mod in range(nmodel):
+        modelDistrib0[mod] = 1/float(nmodel)
+
+    # modelDistribution contains the marginal model distribution indexed via [population][model]
+    modelDistribution=zeros([npop,nmodel])
+
+    # numbers contains the marginal model distribution indexed via [model][population]
+    numbers=zeros([nmodel, npop])
     
-    modelDistribution=zeros([len(epsilon),len(ModelName)])
-
-
-###########################create a result folder for each model
-
-    if restart==True:
-        folder='_restart_results_'
-    else:
-        folder='_results_'
-    try:
-        os.mkdir(folder)
-        os.chdir(folder)
-    except:
-        print "\nThe folder "+ folder +" already exists!\n"
-        sys.exit()
-    for mod in range(0,len(ModelName)):
-        try:
-            os.mkdir('results_'+ModelName[mod])
-        except:
-            print "\nThe folder "+ folder + ModelName[mod]+" already exists!\n"
-            sys.exit()
-
-    os.chdir('..')
-
-            
-    rate_file=open(folder+'/rates.txt',"w")
-
-        
-    if pickling==True:
-        try:
-            os.chdir(folder)
-            os.mkdir('copy')
-            os.chdir('..')
-        except:
-            print "\nThe folder \'copy\' already exists!\n"
-            sys.exit()
+    # ModelNumber contains 
+    ModelNumber=arange(0, nmodel, 1)
     
-
-##########################save algorithm parameter via pickling
-    if pickling==True:
-        out_file=open(folder+'/copy/algorithm_parameter.dat',"w")
-        pickle.dump(numOutput,out_file)
-        out_file.close()
-
-
-# population=empty([len(ModelName),len(epsilon),parameternumber,numOutput for each parameter])
+  
+    # population contains the parameters indexed via [model][population][parameter]
+    # weights contains the weights indexed via [model][population][parameter]
     population=[]
     weights=[]
 
-    ModelNumber=arange(0,len(ModelName),1)
-    numbers=zeros([len(ModelName),len(epsilon)])
-    modelDistrib0=zeros([len(ModelName)])
-    modelDistrib=zeros([len(ModelName)])
-
-    hits=[]
-    sampling=[]
-    rate=[]
-    
-    for j in range(0,len(ModelName)):
+    for j in range(0,nmodel):
         population.append([])
         weights.append([])
-        for eps in range(0,len(epsilon)):
+        for eps in range(0,npop):
             population[j].append([])
             weights[j].append([])
             for param in range(0,len(priors[j])):
                 population[j][eps].append([])
                 weights[j][eps].append([])                              
-
-    for j in range(0,len(epsilon)):
+    
+    # hits, sampling, rate are arrays indexed population 
+    hits=[]
+    sampling=[]
+    rate=[]
+    
+    for j in range(0,npop):
         hits.append(0.0)
         sampling.append(0.0)
         rate.append(0.0)
 
-################normalize the prior model distribution
-    weight=0
+    
+    # Create results folder for each model and create the picking folder
+    folder, rate_file = create_output_folders(nmodel, ModelName, numOutput, restart, pickling) 
+
+    # Load the pickled data
     if restart==True:
-
-        # pickle numbers selected model of previous population
-        # pickle population of selected model of previous population pop_pickled[selected_model][n][vectpos]
-        # pickle weights of selected model of previous population weights_pickled[selected_model][n][vectpos]
-        
-        try:
-            in_file=open('_results_/copy/numlast.dat',"r")
-            num_pickled=pickle.load(in_file)
-            in_file.close()
-        except:
-            print "\nCan not find file \'numlast.dat\' in folder \'copy\'!\n"
-            sys.exit()
-        
-        try:
-            in_file=open('_results_/copy/poplast.dat',"r")
-            pop_pickled=pickle.load(in_file)
-            in_file.close()
-        except:
-            print "\nCan not find file \'poplast.dat\' in folder \'copy\'!\n"
-            sys.exit()
-
-        try:
-            in_file=open('_results_/copy/weightslast.dat',"r")
-            weights_pickled=pickle.load(in_file)
-            in_file.close()
-        except:
-            print "\nCan not find file \'weightslast.dat\' in folder \'copy\'!\n"
-            sys.exit()
-        
-
-        try:
-            in_file=open('_results_/copy/kernelslast.dat',"r")
-            kernel=pickle.load(in_file)
-            in_file.close()
-        except:
-            print "\nCan not find file \'kernelslast.dat\' in folder \'copy\'!\n"
-            sys.exit()
+        num_pickled,pop_pickled,weights_pickled,kernel =  read_pickled()
 
 
-    for mod in range(0,len(modelWeights)):
-        weight=weight+modelWeights[mod]
-    for mod in range(0,len(ModelName)):
-        modelDistrib0[mod]=modelWeights[mod]*weight**(-1)
-
-
-################start model selection with external loop
-    for t in range(0,len(epsilon)):
+    #
+    # Start of ABC-SMC algoritm
+    #
+    for t in range(0,npop):
 	i=0
         distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"w")
 
-#################count how many particles are accepted
+###count how many particles are accepted
 	while(i<numOutput):
+
             sampling[t]=sampling[t]+1
-            if(full == True and sampling[t]%100 ==0):
+            if(full == True and sampling[t]%100 == 0):
                 print "sampled: ", sampling[t] 
                 sys.stdout.flush()
 
 
 
-################sample model from prior or intermediate distribution         
-            if(sampleFromPrior==True or (t==0 and restart==False)): selected_model=w_choice(ModelNumber,modelDistrib0)
-            else: #sample from previous
-                if restart==True: #restart and sample from previous
-                    weight=0
-                    for mod in range(0,len(num_pickled)):
-                        weight=weight+num_pickled[mod]
-                    for mod in range(0,len(ModelName)):
-                        modelDistrib[mod]=num_pickled[mod]*weight**(-1)
-                
-                if restart==False: #normal run (or t>0 for restarted run) and sample from previous
-                    weight=0
-                    for mod in range(0,len(ModelName)):
-                        weight=weight+modelDistribution[t-1][mod]
-                    for mod in range(0,len(ModelName)):
-                        modelDistrib[mod]=modelDistribution[t-1][mod]/weight
-                
-                selected_model=w_choice(ModelNumber,modelDistrib) # sampleFromPrior is False AND t is larger than 0
+################sample model from prior or previous population       
+
+            sampleFromPrior = True
+            selected_model = sampleTheModel(sampleFromPrior, t, restart, ModelNumber, modelDistrib0, modelDistribution)
+
 
             dim=len(priors[selected_model])
             sampleParameters=[]
@@ -683,7 +826,15 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     points=howToFitData(fit[selected_model],samplePoints)
                     distance=euclidian.euclidianDistance(points,data)
                 else :
-                    distance = realize_particles(  ModelName, selected_model, integrationType, InitValues[selected_model], timepoints, sampleParameters, epsilon[t], fit[selected_model], data )
+                    distance = realize_particles(  ModelName,
+                                                   selected_model,
+                                                   integrationType,
+                                                   InitValues[selected_model],
+                                                   timepoints,
+                                                   sampleParameters,
+                                                   epsilon[t],
+                                                   fit[selected_model],
+                                                   data )
 
                 if(distance<=epsilon[t] and distance>0 ):
                     distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
@@ -737,140 +888,47 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 ########count how often a specific model was accepted
                 numbers[selected_model][t]=int(numbers[selected_model][t])+1
                 i=i+1
-
+                
+                # end of loop over particles
 
         distance_file.close()
 ##############normalize the weights
-        weights=normalizeWeights(len(ModelName),priors,t,numbers,weights,restart)
+        weights=normalizeWeights(nmodel,priors,t,numbers,weights,restart)
 
 ########compute new kernels in respect to the previous population
         if constKernels==False: ### numbers[lastpopulation]
-            for mod in range(0, len(ModelName)):
+            for mod in range(0, nmodel):
                 if numbers[mod][t]>numOutput*0.1:  ### only compute corrected kernels if the model was selected at least 10%
                     kernel[mod]=getKernel(kernel[mod],population[mod][t])
 
       
 #############get the model distribution           
-        for mod in range(0,len(ModelName)):
+        
+        for mod in range(0,nmodel):
+            #print "weights", mod, sum(weights[mod][t][0]), weights[mod][t][0]
             modelDistribution[t][mod]=int(numbers[mod][t])
 
+        #print "Model marginal:", modelDistribution[t]
 
 
 #############save last population and last model distribution in file via pickling
         if pickling==True:
-            out_file=open(folder+'/copy/poplast.dat',"w")
-            x=[]
-            for mod in range(0,len(ModelName)):
-                x.append(population[mod][t])
-            pickle.dump(x,out_file)
-            out_file.close()
-
-            out_file=open(folder+'/copy/numlast.dat',"w")
-            x=[]
-            for mod in range(0,len(numbers)):
-                x.append(numbers[mod][t])
-            pickle.dump(x,out_file)
-            out_file.close()
-
-            out_file=open(folder+'/copy/weightslast.dat',"w")
-            x=[]
-            for mod in range(0,len(ModelName)):
-                x.append(weights[mod][t])
-            pickle.dump(x,out_file)
-            out_file.close()
-
-            out_file=open(folder+'/copy/kernelslast.dat',"w")
-            x=[]
-            for mod in range(0,len(ModelName)):
-                x.append(kernel[mod])
-            pickle.dump(x,out_file)
-            out_file.close()
+            write_pickled(folder, t, nmodel, population, numbers, weights, kernel)
 
 ############print numerical parameters and measures
         if full == True:
             print "number of sampling steps in population",t+1,":", sampling[t]
             print "accepted model for iteration",t+1,":",hits[t]
-            print "acceptence rate:",rate[t],"\n"
+            print "acceptance rate:",rate[t],"\n"
 
         rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
 
 
 ###########print histograms and scatter plots (analytical plots)
-#WeightedHistogram(|data|, |weights|, |bins|, |range|=None)
 
-
-        
-        for mod in range(0,len(ModelName)):
-            try:
-                os.chdir(folder+'/results_'+ModelName[mod])
-                os.mkdir("Population_"+repr(t+1))
-                os.chdir("../..")
-            except:
-                print "\nCan not creat the folder Population_"+repr(t+1)+"!\n"
-                sys.exit()
-
-
-        for mod in range(0,len(ModelName)):
-            weight_file=open(folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Weights'+repr(t+1)+".txt","w")
-            for g in range(0,len(weights[mod][t][0])):
-                for j in range(0, len(weights[mod][t])): #for each entry in the first parameter
-                    weight_file.write(repr(weights[mod][t][j][g])+"\t")
-                weight_file.write("\n")
-            weight_file.close()
-
-            
-        population_mod=[]
-        weights_mod=[]
-        for mod in range(0,len(ModelName)):
-            PlotName=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/ScatterPlots_Population'+repr(t+1)
-            filename1=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Population'+repr(t+1)
-            filename2=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Weights'+repr(t+1)
-            PlotName2=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/weightedHistograms_Population'+repr(t+1)
-           
-            MatrixToTextfile(population,filename=filename1,model=mod,eps=t)
-            if diagnostic==True:
-                
-                population_mod.append([])
-                weights_mod.append([])
-                for eps in range(0,len(population[0])):
-                    population_mod[mod].append([])
-                    weights_mod[mod].append([])
-                    for param in range(0,len(priors[mod])):
-                        if not(priors[mod][param][0]==0):
-                            population_mod[mod][eps].append(population[mod][eps][param])
-                            weights_mod[mod][eps].append(weights[mod][eps][param])
-
-                getAllScatterPlots(population_mod,weights_mod,populations=arange(1,t+2,1),PlotName=PlotName,model=mod+1)
-                getAllHistograms(population_mod,weights_mod,population=t+1,PlotName=PlotName2, model=mod+1)
-
-        if len(ModelName)>1:
-            printModelDistribution(modelDistribution,eps=t,filename=folder+'/ModelDistribution.txt')
-            if diagnostic==True:
-                getModelDistribution(modelDistribution,epsilon,rate,PlotName=folder+'/ModelDistribution')
-
-
-
-        if plotDataSeries==True:
-            for mod in range(0,len(ModelName)):
-                x=10
-                if numbers[mod][t]<x: x=int(numbers[mod][t])
-                plotTimeSeries(ModelName[mod],
-                               population,
-                               integrationType[mod],
-                               InitValues[mod],
-                               timepoints,
-                               fit[mod],
-                               populationNumber=t+1,
-                               dt=dt,
-                               amount=x,
-                               model=mod,
-                               filename=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/Timeseries_Population'+repr(t+1),
-                               data=data,
-                               plotdata=True)
-
-            
+        make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
         restart=False
-       
+        # end of loop over populations
 
     rate_file.close()
 
