@@ -717,18 +717,18 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     for mod in range(nmodel):
         modelDistrib0[mod] = 1/float(nmodel)
 
-    # modelDistribution contains the marginal model distribution indexed via [population][model]
+    # modelDistribution contains the marginal model distribution indexed via [pop][model]
     modelDistribution=zeros([npop,nmodel])
 
-    # numbers contains the marginal model distribution indexed via [model][population]
+    # numbers contains the marginal model distribution indexed via [model][pop]
     numbers=zeros([nmodel, npop])
     
     # ModelNumber contains 
     ModelNumber=arange(0, nmodel, 1)
     
   
-    # population contains the parameters indexed via [model][population][parameter]
-    # weights contains the weights indexed via [model][population][parameter]
+    # population contains the parameters indexed via [model][pop][parameter]
+    # weights contains the weights indexed via [model][pop][parameter]
     population=[]
     weights=[]
 
@@ -742,7 +742,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 population[j][eps].append([])
                 weights[j][eps].append([])                              
     
-    # hits, sampling, rate are arrays indexed population 
+    # hits, sampling, rate are arrays indexed by population 
     hits=[]
     sampling=[]
     rate=[]
