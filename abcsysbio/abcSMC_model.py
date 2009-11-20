@@ -764,11 +764,17 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Start of ABC-SMC algoritm
     #
+
+    #
+    # Loop over models
+    #
     for t in range(0,npop):
 	i=0
         distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"w")
 
-###count how many particles are accepted
+        #
+        # Loop over accepted particles
+        #
 	while(i<numOutput):
 
             sampling[t]=sampling[t]+1
@@ -776,10 +782,10 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 print "sampled: ", sampling[t] 
                 sys.stdout.flush()
 
-
-
-################sample model from prior or previous population       
-
+     
+            #
+            # Sample the model
+            #
             sampleFromPrior = True
             selected_model = sampleTheModel(sampleFromPrior, t, restart, ModelNumber, modelDistrib0, modelDistribution)
 
@@ -789,7 +795,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             for z in range(0,dim):
                 sampleParameters.append(0)
 
-#############sample parameters from prior or from previous population
+            #
+            # Sample the parameters given the model
+            #
             dist=False
             BETA=0
             if restart==False:
@@ -811,7 +819,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                                     kernel[selected_model],
                                                     restart)
 
-############simulate data with sampled parameter set for the sampled model
+            #
+            # Realize the particles
+            #
             s=re.compile('SDE')
             g=re.compile('Gillespie')
             if s.search(integrationType[selected_model]) or g.search(integrationType[selected_model]):
@@ -855,7 +865,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 for param in range(0,dim):
                     population[selected_model][t][param].append(sampleParameters[param])
 
-############compute weights of particles
+                #
+                # Compute the weights of particles
+                #
                 if restart==False:
                     weights[selected_model][t]=computeParticleWeights(priors[selected_model],
                                                                       sampleParameters,
@@ -884,26 +896,33 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                                                       BETA,
                                                                       restart)
 
-
-########count how often a specific model was accepted
+                #
+                # Count how often a specific model was accepted
+                #
                 numbers[selected_model][t]=int(numbers[selected_model][t])+1
                 i=i+1
                 
                 # end of loop over particles
 
         distance_file.close()
-##############normalize the weights
+
+        #
+        # Calculate the weights
+        #
         weights=normalizeWeights(nmodel,priors,t,numbers,weights,restart)
 
-########compute new kernels in respect to the previous population
+        #
+        # Compute kernels
+        #
         if constKernels==False: ### numbers[lastpopulation]
             for mod in range(0, nmodel):
                 if numbers[mod][t]>numOutput*0.1:  ### only compute corrected kernels if the model was selected at least 10%
                     kernel[mod]=getKernel(kernel[mod],population[mod][t])
 
-      
-#############get the model distribution           
-        
+               
+        #
+        # Get the marginal model distribution
+        #  
         for mod in range(0,nmodel):
             #print "weights", mod, sum(weights[mod][t][0]), weights[mod][t][0]
             modelDistribution[t][mod]=int(numbers[mod][t])
@@ -911,11 +930,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #print "Model marginal:", modelDistribution[t]
 
 
-#############save last population and last model distribution in file via pickling
         if pickling==True:
             write_pickled(folder, t, nmodel, population, numbers, weights, kernel)
 
-############print numerical parameters and measures
         if full == True:
             print "number of sampling steps in population",t+1,":", sampling[t]
             print "accepted model for iteration",t+1,":",hits[t]
@@ -923,11 +940,12 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
         rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
 
-
-###########print histograms and scatter plots (analytical plots)
-
+        #
+        # Print histograms and scatter plots (analytical plots)
+        #
         make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
         restart=False
+
         # end of loop over populations
 
     rate_file.close()
