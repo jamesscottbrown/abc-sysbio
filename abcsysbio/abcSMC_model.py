@@ -237,7 +237,7 @@ def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart 
         if u > 0.7:
             # sample randomly from other (non dead) models
             not_available = dead_models[:]
-            not_available.append(selected_model)
+            not_available.append(sampled_model)
             ss = set( not_available )
             s = set( range(0,nmodel) )
 
@@ -250,9 +250,9 @@ def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart 
             rnd.shuffle( ar )
             perturbed_model = ar[0]
             #print "perturbation ", sampled_model, "->", perturbed_model
-           
             return perturbed_model
         else:
+            #print "perturbation ", sampled_model, "->", sampled_model
             return sampled_model         
 
 def getPdfModelKernel(m,m0,nmodel,dead_models):
