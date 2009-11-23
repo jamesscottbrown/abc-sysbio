@@ -76,92 +76,7 @@ def getPdfLognormal(mean,sigm,parameter):
     
     return x
 
-################ sample parameters from prior
-def sampleParametersFromPrior(priors):
-    sampleParameters=zeros([len(priors)])
-    for n in range(0,len(priors)):
-        if priors[n][0]==0: sampleParameters[n]=priors[n][1]
-    #   if priors[n][0]==1: sampleParameters[n]= sample from Jeffrey's prior
-        if priors[n][0]==2: sampleParameters[n]=rnd.uniform(low=priors[n][1],high=priors[n][2])
-        if priors[n][0]==3: sampleParameters[n]=rnd.lognormal(priors[n][1],priors[n][2])
-        
-    return sampleParameters
 
-################sample parameters from previous population with weights
-def sampleParametersFromPrevious(numbers,population,weights,kernel,priors,sampleParameters):
-
-    xEnd=array(0.0)
-    while(xEnd<=0):
-        xAll=array(1.0)
-        for n in range(0,len(priors)):
-            if not priors[n][0]==0:
-                line=w_choice(population[n],weights[n])
-                break
-        ###add pertubation to parameter:
-        for n in range(0,len(priors)):
-            if priors[n][0]==0: 
-                sampleParameters[n]=priors[n][1]
-                x=array(1.0)
-            else:
-                if kernel[n][0]==1:
-                    sampleParameters[n]=population[n][line]+rnd.uniform(low=kernel[n][1],high=kernel[n][2])
-                if kernel[n][0]==2: 
-                    sampleParameters[n]=population[n][line]+rnd.normal(kernel[n][1],kernel[n][2])
-
-                if priors[n][0]==2: 
-                    x=getPdfUniform(priors[n][1],priors[n][2],sampleParameters[n])
-                if priors[n][0]==3: 
-                    x=getPdfLognormal(priors[n][1],priors[n][2],sampleParameters[n])
-
-            xAll=xAll*x
-        xEnd=xEnd+xAll
-    
-    return sampleParameters
-
-
-
-############sample parameters
-def sampleTheParameter(priors,sampleParameters,numbers,t,population,weights,kernel,restart):
-    if ((restart==False and t==0) or numbers==0):
-        sampleParameters=sampleParametersFromPrior(priors)
-
-    else: 
-        sampleParameters=sampleParametersFromPrevious(numbers,population,weights,kernel,priors,sampleParameters)
-    return sampleParameters
-
-############sample model
-def sampleTheModel( sampleFromPrior, t, restart, ModelNumber, modelDistrib0, modelDistribution ) :
-    selected_model = 0
-    if(sampleFromPrior==True or (t==0 and restart==False) ):
-        selected_model=w_choice(ModelNumber,modelDistrib0)
-    else:
-        #restart and sample from previous
-        nmodel = len(ModelNumber)
-        
-        modelDistrib=zeros( nmodel )
-        if restart==True: 
-            weight=0
-            for mod in range(0, nmodel ):
-                weight=weight+num_pickled[mod]
-            
-            for mod in range(0, nmodel ):
-                modelDistrib[mod]=num_pickled[mod]/weight
-
-        #normal run (or t>0 for restarted run) and sample from previous
-        if restart==False: 
-            weight=0
-            for mod in range(0, nmodel ):
-                weight=weight+modelDistribution[t-1][mod]
-            
-            for mod in range(0, nmodel ):
-                modelDistrib[mod]=modelDistribution[t-1][mod]/weight
-
-        # sampleFromPrior is False AND t is larger than 0
-        selected_model=w_choice(ModelNumber,modelDistrib) 
-
-    return selected_model
-
-    
 ###########simulate data with sampled parameter set for the sampled model
 def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol=None,atol=None):
 
@@ -243,68 +158,197 @@ def howToFitData(fitting_instruction,samplePoints):
 
     return points
 
-############compute weights of particles
-def computeParticleWeights(priors,sampleParameters,numbers1,numbers0,t,kernel,population1,population0,weights1,weights0,BETA,restart):
-    if(((restart==False and t>0) or restart==True) and numbers0>0):
-        xAll=1.0
+def sample_particle(nparticle, selected_model, margins_prev, model_prev, weights_prev ):
+    u = rnd.uniform(low=0, high=margins_prev[selected_model])
+    F = 0
+
+    for i in range(0,nparticle):
+        if int(model_prev[i]) == int(selected_model) :
+            F = F + weights_prev[i]
+
+            if(F > u):
+                break
+
+    return i
+    
+############sample parameters
+def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ):
+    np = len( priors )
+    
+    if(restart==False and t==0):
+        sampleParameters = [ 0 for i in range(0,np) ]
+
+        # sample from prior
+        for n in range(0,np):
+            if priors[n][0] == 0: sampleParameters[n]=priors[n][1]
+            #if priors[n][0] == 1: sampleParameters[n]= sample from Jeffrey's prior
+            if priors[n][0] == 2: sampleParameters[n]=rnd.uniform(low=priors[n][1],high=priors[n][2])
+            if priors[n][0] == 3: sampleParameters[n]=rnd.lognormal(priors[n][1],priors[n][2])
+        
+    else:
+
+        prior_prob = -1
+        while prior_prob <= 0 :
+
+            # sample putative particle from previous population
+            p = sample_particle(nparticle, selected_model, margins_prev, model_prev, weights_prev )
+            sampleParameters = parameters_prev[ p ]
+            #print p, sampleParameters
+
+            # perturb particle
+            prior_prob = 1
+            
+            for n in range(0,np):
+         
+                if kernel[n][0]==1:
+                    #print sampleParameters[n], rnd.uniform(low=kernel[n][1],high=kernel[n][2])
+                    
+                    sampleParameters[n] = sampleParameters[n] + rnd.uniform(low=kernel[n][1],high=kernel[n][2])
+
+                if kernel[n][0]==2: 
+                    sampleParameters[n] = sampleParameters[n] + rnd.normal(kernel[n][1],kernel[n][2])
+
+                x = 1.0
+                if priors[n][0]==2: 
+                    x=getPdfUniform(priors[n][1],priors[n][2],sampleParameters[n])
+
+                if priors[n][0]==3: 
+                    x=getPdfLognormal(priors[n][1],priors[n][2],sampleParameters[n])
+
+                prior_prob = prior_prob*x
+
+    return sampleParameters
+
+  
+def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart ):
+    
+    selected_model = 0
+
+    if(restart == False and t == 0):
+        # sample from prior
+        selected_model=w_choice( range(0,nmodel), modelDistrib0 )
+        return selected_model
+
+    else:
+        sampled_model=w_choice( range(0,nmodel), margins_prev )
+        
+        # perturb model
+        u = rnd.uniform(low=0, high=1)
+        if u > 0.7:
+            # sample randomly from other (non dead) models
+            not_available = dead_models[:]
+            not_available.append(selected_model)
+            ss = set( not_available )
+            s = set( range(0,nmodel) )
+
+            #print "perturbing model ", set( range(0,nmodel) ), ss, s-ss, list(s-ss), numpy.array( list(s-ss) )
+
+            ar = numpy.array( list(s-ss) )
+            if len(ar) == 0:
+                perturbed_model = sampled_model
+
+            rnd.shuffle( ar )
+            perturbed_model = ar[0]
+            #print "perturbation ", sampled_model, "->", perturbed_model
+           
+            return perturbed_model
+        else:
+            return sampled_model         
+
+def getPdfModelKernel(m,m0,nmodel,dead_models):
+    ndead = len(dead_models)
+   
+    if(ndead == nmodel-1):
+        return 1.0
+    else:
+
+        if(m == m0):
+            return 0.7
+        else:
+            return 0.3/(nmodel-ndead)
+
+def getPdfParameterKernel(params, params0, priors, kernel):
+
+    prob = 1
+    for n in range(0,len(priors)):
+        kern = 0
+
+        if not(priors[n][0]==0):
+                       
+            if kernel[n][0]==1: 
+                scale = (kernel[n][2]-kernel[n][1])/2.0
+                scale1 = max( (params0[n] - scale), priors[n][1])
+                scale2 = min( (params0[n] + scale), priors[n][2])
+                kern = getPdfUniform(scale1,scale2, params[n])
+
+            if kernel[n][0]==2:
+                mean = params0[n]
+                scale = kernel[n][2]
+                CDF2 = norm.cdf(priors[n][2],mean,scale)
+                CDF1 = norm.cdf(priors[n][1],mean,scale)
+                CDF=(CDF2-CDF1)**(-1)
+                kern=getPdfGauss(mean,scale,params[n])
+                kern=kern*CDF
+
+        else: kern=1.0
+        prob=prob*kern
+
+    return prob
+
+
+def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutput, priors, kernel, model_prev, margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart):
+
+    if(restart==False and t == 0):
+        return BETA
+    else:
+        # calculate model prior probility = 1/nmodel
+        mprob = 1/float(nmodel)
+
+        # particle prior probability
+        pprob = 1
         for n in range(0,len(priors)):
+            x = 1.0
             if priors[n][0]==0:
                 x=1
             if priors[n][0]==2: 
                 x=getPdfUniform(priors[n][1],priors[n][2],sampleParameters[n])
             if priors[n][0]==3: 
                 x=getPdfLognormal(priors[n][1],priors[n][2],sampleParameters[n])
-            xAll=xAll*x
-        sum=0
-           
-       
-       
-        for p in range(0,int(numbers0)):
-            kernAll=0.0
-            for n in range(0,len(priors)):
-                if not(priors[n][0]==0):
 
-                    if kernel[n][0]==1: 
-                        scale=(kernel[n][2]-kernel[n][1])/2.0
-                        scale1=max((population0[n][p]-scale),priors[n][1])
-                        scale2=min((population0[n][p]+scale),priors[n][2])
-                        kern=getPdfUniform(scale1,scale2,population1[n][int(numbers1)])
+            pprob = pprob*x
 
-                    if kernel[n][0]==2:
-                        mean=population0[n][p]
-                        scale=kernel[n][2]
-                        CDF2 = norm.cdf(priors[n][2],mean,scale)
-                        CDF1 = norm.cdf(priors[n][1],mean,scale)
-                        CDF=(CDF2-CDF1)**(-1)
-                        kern=getPdfGauss(mean,scale,population1[n][int(numbers1)])
-                        kern=kern*CDF
+        numer = BETA * mprob * pprob
+        
+        denom_m = 0
+        for i in range(nmodel):
+            denom_m = denom_m + margins_prev[i]*getPdfModelKernel(selected_model, i, nmodel, dead_models)
 
-                else: kern=1.0
-                kernAll=kernAll+kern
-            sum=sum+weights0[0][p]*kernAll
-        for n in range(0,len(priors)):
-            weights1[n].append(xAll*BETA/sum)
+        denom = 0
+        for j in range(numOutput):
 
+            if(int(selected_model) == int(model_prev[j]) ):
+                denom = denom + weights_prev[j] * getPdfParameterKernel(sampleParameters, parameters_prev[j], priors, kernel )
 
+        #print "numer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, margins_prev[selected_model]
 
-    return weights1
+        return numer/(denom_m*denom/margins_prev[selected_model])
 
+def normalizeWeights(numOutput, weights_curr):
+    n = sum( weights_curr )
+    for i in range(numOutput):
+        weights_curr[i] = weights_curr[i]/float(n)
 
-################normalize the weights
-def normalizeWeights(len_ModelName,priors,t,numbers,weights,restart):
-    print weights
+    return weights_curr
 
-    for mod in range(0,len_ModelName):
-        if numbers[mod][t]>0:
-            for h in range(0,len(priors[mod])):
-                weight=0
-                for j in range(0,int(numbers[mod][t])):
-                    if (t==0 or numbers[mod][t-1]==0) and restart==False: weights[mod][t][h].append(1.0)
-                    weight=weight+weights[mod][t][h][j]
+def modelMarginals(nmodel, numOutput, model_curr, weights_curr):
+    ret  = [0 for i in range(nmodel)]
 
-                for j in range(0,int(numbers[mod][t])):
-                    weights[mod][t][h][j]=weights[mod][t][h][j]/float(weight)
-    return weights
+    for i in range(nmodel):
+        for j in range(numOutput):
+            if int(model_curr[j]) == int(i):
+                ret[i] = ret[i] + weights_curr[j]
+            
+    return ret
 
 ################create output folders
 def create_output_folders(Nmodel, ModelName, numOutput, restart, pickling):
@@ -351,71 +395,80 @@ def read_pickled():
     # pickle numbers selected model of previous population
     # pickle population of selected model of previous population pop_pickled[selected_model][n][vectpos]
     # pickle weights of selected model of previous population weights_pickled[selected_model][n][vectpos]
-        
+
     try:
-        in_file=open('_results_/copy/numlast.dat',"r")
-        num_pickled=pickle.load(in_file)
+        in_file=open('_results_/copy/model_last.dat',"r")
+        model_pickled=pickle.load(in_file)
         in_file.close()
     except:
-        print "\nCan not find file \'numlast.dat\' in folder \'copy\'!\n"
-        sys.exit()
-        
-    try:
-        in_file=open('_results_/copy/poplast.dat',"r")
-        pop_pickled=pickle.load(in_file)
-        in_file.close()
-    except:
-        print "\nCan not find file \'poplast.dat\' in folder \'copy\'!\n"
+        print "\nCan not find file \'model_last.dat\' in folder \'copy\'!\n"
         sys.exit()
 
     try:
-        in_file=open('_results_/copy/weightslast.dat',"r")
+        in_file=open('_results_/copy/weights_last.dat',"r")
         weights_pickled=pickle.load(in_file)
         in_file.close()
     except:
-        print "\nCan not find file \'weightslast.dat\' in folder \'copy\'!\n"
+        print "\nCan not find file \'weights_last.dat\' in folder \'copy\'!\n"
         sys.exit()
-        
+
     try:
-        in_file=open('_results_/copy/kernelslast.dat',"r")
+        in_file=open('_results_/copy/params_last.dat',"r")
+        parameters_pickled=pickle.load(in_file)
+        in_file.close()
+    except:
+        print "\nCan not find file \'params_last.dat\' in folder \'copy\'!\n"
+        sys.exit()
+
+    try:
+        in_file=open('_results_/copy/margins_last.dat',"r")
+        margins_pickled=pickle.load(in_file)
+        in_file.close()
+    except:
+        print "\nCan not find file \'margins_last.dat\' in folder \'copy\'!\n"
+        sys.exit()
+    
+    try:
+        in_file=open('_results_/copy/kernels_last.dat',"r")
         kernel=pickle.load(in_file)
         in_file.close()
     except:
-        print "\nCan not find file \'kernelslast.dat\' in folder \'copy\'!\n"
+        print "\nCan not find file \'kernels_last.dat\' in folder \'copy\'!\n"
         sys.exit()
 
-    print "\n\n\n"
-    print "num_pickled", num_pickled
-    print "pop_pickled", pop_pickled
-    print "weights_pickled", weights_pickled
+    print "\n\n\n Reading previous population"
 
-    return [num_pickled, pop_pickled, weights_pickled, kernel ]
+    print "model_pickled", model_pickled, "\n\n\n"
+    print "weights_pickled", weights_pickled, "\n\n\n"
+    print "parameters_pickled", parameters_pickled, "\n\n\n"
+    print "margins_pickled", margins_pickled, "\n\n\n"
+
+    return [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
 
 ################write the stored data
-def write_pickled(folder, t, nmodel, population, numbers, weights, kernel ):
+def write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, parameters_prev, margins_prev, kernel):
 
-    out_file=open(folder+'/copy/poplast.dat',"w")
-    x=[]
-    for mod in range(0,nmodel):
-        x.append(population[mod][t])
+    out_file=open(folder+'/copy/model_last.dat',"w")
+    x = model_prev[:]
     pickle.dump(x,out_file)
     out_file.close()
 
-    out_file=open(folder+'/copy/numlast.dat',"w")
-    x=[]
-    for mod in range(0,len(numbers)):
-        x.append(numbers[mod][t])
+    out_file=open(folder+'/copy/weights_last.dat',"w")
+    x = weights_prev[:]
     pickle.dump(x,out_file)
     out_file.close()
 
-    out_file=open(folder+'/copy/weightslast.dat',"w")
-    x=[]
-    for mod in range(0,nmodel):
-        x.append(weights[mod][t])
+    out_file=open(folder+'/copy/params_last.dat',"w")
+    x= parameters_prev
     pickle.dump(x,out_file)
     out_file.close()
-
-    out_file=open(folder+'/copy/kernelslast.dat',"w")
+    
+    out_file=open(folder+'/copy/margins_last.dat',"w")
+    x = margins_prev[:]
+    pickle.dump(x,out_file)
+    out_file.close()
+ 
+    out_file=open(folder+'/copy/kernels_last.dat',"w")
     x=[]
     for mod in range(0,nmodel):
         x.append(kernel[mod])
@@ -437,10 +490,8 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 
     for mod in range(0,nmodel):
         weight_file=open(folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/data_Weights'+repr(t+1)+".txt","w")
-        for g in range(0,len(weights[mod][t][0])):
-            for j in range(0, len(weights[mod][t])): #for each entry in the first parameter
-                weight_file.write(repr(weights[mod][t][j][g])+"\t")
-            weight_file.write("\n")
+        for g in range(0,len(weights[mod][t])):
+            weight_file.write(repr(weights[mod][t][g])+"\n")
         weight_file.close()
 
             
@@ -463,7 +514,7 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
                 for param in range(0,len(priors[mod])):
                     if not(priors[mod][param][0]==0):
                         population_mod[mod][eps].append(population[mod][eps][param])
-                        weights_mod[mod][eps].append(weights[mod][eps][param])
+                        weights_mod[mod][eps].append(weights[mod][eps])
 
             getAllScatterPlots(population_mod,weights_mod,populations=arange(1,t+2,1),PlotName=PlotName,model=mod+1)
             getAllHistograms(population_mod,weights_mod,population=t+1,PlotName=PlotName2, model=mod+1)
@@ -708,7 +759,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Define all variable and containers here
     #
-
     npop = len(epsilon)
     nmodel = len(ModelName)
 
@@ -722,13 +772,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
     # numbers contains the marginal model distribution indexed via [model][pop]
     numbers=zeros([nmodel, npop])
-    
-    # ModelNumber contains 
-    ModelNumber=arange(0, nmodel, 1)
-    
-  
+     
     # population contains the parameters indexed via [model][pop][parameter]
-    # weights contains the weights indexed via [model][pop][parameter]
+    # weights contains the weights indexed via [model][pop]
     population=[]
     weights=[]
 
@@ -739,9 +785,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             population[j].append([])
             weights[j].append([])
             for param in range(0,len(priors[j])):
-                population[j][eps].append([])
-                weights[j][eps].append([])                              
-    
+                population[j][eps].append([])                              
+
     # hits, sampling, rate are arrays indexed by population 
     hits=[]
     sampling=[]
@@ -752,14 +797,44 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         sampling.append(0.0)
         rate.append(0.0)
 
+    #
+    # containers for joint space (m, theta) inference
+    #
+    model_prev      = [0  for i in range(0,numOutput)]
+    weights_prev    = [0  for i in range(0,numOutput)]
+    parameters_prev = [[] for i in range(0,numOutput)]
+    margins_prev    = [0  for i in range(0,nmodel)] 
+
+    model_curr      = [0  for i in range(0,numOutput)]
+    weights_curr    = [0  for i in range(0,numOutput)]
+    parameters_curr = [[] for i in range(0,numOutput)]
+    margins_curr    = [0  for i in range(0,nmodel)] 
+
+    dead_models = []
+
     
-    # Create results folder for each model and create the picking folder
+    # Create results folder for each model and create the pickling folder
     folder, rate_file = create_output_folders(nmodel, ModelName, numOutput, restart, pickling) 
 
     # Load the pickled data
     if restart==True:
-        num_pickled,pop_pickled,weights_pickled,kernel =  read_pickled()
+        model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel =  read_pickled()
+        
+        # Load the data into the previous population containers
+        for p in range(0,numOutput):
+            model_prev[p] = model_pickled[p]
+            weights_prev[p] = weights_pickled[p]
 
+            parameters_prev[p] = parameters_pickled[p][ : ]
+
+        for m in range(0,nmodel):
+            margins_prev[m] = margins_pickled[m]
+
+        # Check for dead models
+        dead_models = []
+        for j in range(nmodel):
+            if margins_prev[j] < 1e-6:
+                dead_models.append(j)
 
     #
     # Start of ABC-SMC algoritm
@@ -782,42 +857,20 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 print "sampled: ", sampling[t] 
                 sys.stdout.flush()
 
-     
             #
-            # Sample the model
+            # Sample and perturb the model
             #
-            sampleFromPrior = True
-            selected_model = sampleTheModel(sampleFromPrior, t, restart, ModelNumber, modelDistrib0, modelDistribution)
-
-
+            selected_model = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart)
+            
             dim=len(priors[selected_model])
             sampleParameters=[]
             for z in range(0,dim):
                 sampleParameters.append(0)
 
             #
-            # Sample the parameters given the model
+            # Sample and perturb the parameters given the model
             #
-            dist=False
-            BETA=0
-            if restart==False:
-                sampleParameters=sampleTheParameter(priors[selected_model],
-                                                    sampleParameters,
-                                                    numbers[selected_model][t-1],
-                                                    t,
-                                                    population[selected_model][t-1],
-                                                    weights[selected_model][t-1],
-                                                    kernel[selected_model],
-                                                    restart)
-            else:
-                sampleParameters=sampleTheParameter(priors[selected_model],
-                                                    sampleParameters,
-                                                    num_pickled[selected_model],
-                                                    t,
-                                                    pop_pickled[selected_model],
-                                                    weights_pickled[selected_model],
-                                                    kernel[selected_model],
-                                                    restart)
+            sampleParameters = sampleTheParameter(t, numOutput, priors[selected_model], kernel[selected_model], selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ) 
 
             #
             # Realize the particles
@@ -829,6 +882,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             else: 
                 repeat=1
 
+            dist=False
+            BETA=0
             for r in range(0,repeat):
 
                 if __FAST__ == False :
@@ -862,40 +917,20 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
                 rate[t]=hits[t]/sampling[t]
 
-                for param in range(0,dim):
-                    population[selected_model][t][param].append(sampleParameters[param])
+                #
+                # Fill accepted values
+                #
+                model_curr[i] = selected_model
+
+                for p in range(0,dim):
+                    parameters_curr[i].append(sampleParameters[p])
 
                 #
-                # Compute the weights of particles
+                # Compute the weight of particle
                 #
-                if restart==False:
-                    weights[selected_model][t]=computeParticleWeights(priors[selected_model],
-                                                                      sampleParameters,
-                                                                      numbers[selected_model][t],
-                                                                      numbers[selected_model][t-1],
-                                                                      t,
-                                                                      kernel[selected_model],
-                                                                      population[selected_model][t],
-                                                                      population[selected_model][t-1],
-                                                                      weights[selected_model][t],
-                                                                      weights[selected_model][t-1],
-                                                                      BETA,
-                                                                      restart)
-                    
-                else:
-                    weights[selected_model][t]=computeParticleWeights(priors[selected_model],
-                                                                      sampleParameters,
-                                                                      numbers[selected_model][t],
-                                                                      num_pickled[selected_model],
-                                                                      t,
-                                                                      kernel[selected_model],
-                                                                      population[selected_model][t],
-                                                                      pop_pickled[selected_model],
-                                                                      weights[selected_model][t],
-                                                                      weights_pickled[selected_model],
-                                                                      BETA,
-                                                                      restart)
+                weights_curr[i] = computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutput, priors[selected_model], kernel[selected_model], model_prev, margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart)
 
+        
                 #
                 # Count how often a specific model was accepted
                 #
@@ -907,36 +942,69 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         distance_file.close()
 
         #
-        # Calculate the weights
+        # Normalize the weights
         #
-        weights=normalizeWeights(nmodel,priors,t,numbers,weights,restart)
+        weights_curr = normalizeWeights(numOutput, weights_curr)
+
+        #
+        # Get the marginal model distribution
+        #  
+        margins_curr = modelMarginals(nmodel, numOutput, model_curr, weights_curr)
+
+
+        #
+        # Prepare for next population
+        # 
+        margins_prev = margins_curr
+        weights_prev = weights_curr
+        model_prev = model_curr
+        parameters_prev = parameters_curr
+
+        model_curr      = [0  for j in range(0,numOutput)]
+        weights_curr    = [0  for j in range(0,numOutput)]
+        parameters_curr = [[] for j in range(0,numOutput)]
+        margins_curr    = [0  for j in range(0,nmodel)] 
+
+        #
+        # Check for dead models
+        #
+        dead_models = []
+        for j in range(nmodel):
+            if margins_prev[j] < 1e-6:
+                dead_models.append(j)
+
+
+        #
+        # Fill global containers
+        #
+        for mod in range(nmodel):
+            for part in range(numOutput):
+                if int(model_prev[part]) == mod:
+                    weights[mod][t].append( weights_prev[part] )
+
+                    # Marginals
+                    modelDistribution[t][mod] = modelDistribution[t][mod] + weights_prev[part]
+                    numbers[mod][t] = numbers[mod][t] + weights_prev[part]
+
+                    for param in range(len(priors[mod])):
+                        population[mod][t][param].append( parameters_prev[part][param] )
 
         #
         # Compute kernels
         #
         if constKernels==False: ### numbers[lastpopulation]
             for mod in range(0, nmodel):
-                if numbers[mod][t]>numOutput*0.1:  ### only compute corrected kernels if the model was selected at least 10%
-                    kernel[mod]=getKernel(kernel[mod],population[mod][t])
-
-               
-        #
-        # Get the marginal model distribution
-        #  
-        for mod in range(0,nmodel):
-            #print "weights", mod, sum(weights[mod][t][0]), weights[mod][t][0]
-            modelDistribution[t][mod]=int(numbers[mod][t])
-
-        #print "Model marginal:", modelDistribution[t]
-
-
+                if margins_prev[mod] > 0.1:  ### only compute corrected kernels if the model was selected at least 10%
+                    kernel[mod] = getKernel(kernel[mod], population[mod][t])
+                    
         if pickling==True:
-            write_pickled(folder, t, nmodel, population, numbers, weights, kernel)
+            write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, parameters_prev, margins_prev, kernel)
 
         if full == True:
             print "number of sampling steps in population",t+1,":", sampling[t]
-            print "accepted model for iteration",t+1,":",hits[t]
+            print "model marginals for iteration",t+1,":",margins_prev
             print "acceptance rate:",rate[t],"\n"
+            if(len(dead_models) > 0): print "dead_models:", dead_models
 
         rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
 
