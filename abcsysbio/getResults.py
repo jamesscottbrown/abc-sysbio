@@ -577,10 +577,11 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
             xmin=0
             xmax=matrix.shape[1]+1
             ymin,ymax=ylim()
-            axis([math.floor(xmin), math.ceil(xmax),0, math.ceil(ymax)+1 ])
+            axis([math.floor(xmin), math.ceil(xmax),0,ymax + ymax*0.1])
             yticks(size='xx-small')
             xticks(left,size='xx-small')
-            yticks(arange(0,ymax+2,ymax*0.4),size='xx-small')
+            #yticks(arange(0,ymax+2,ymax*0.4),size='xx-small')
+
             title("("+repr(i+1)+") "+str(epsilon[i])+"\n"+str(rate[i]),size='xx-small')
             savefig(PlotName+'_'+repr(p+1))
         cla()
