@@ -174,10 +174,10 @@ def sample_particle(nparticle, selected_model, margins_prev, model_prev, weights
 ############sample parameters
 def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ):
     np = len( priors )
+    sampleParameters = [ 0 for i in range(0,np) ]
     
     if(restart==False and t==0):
-        sampleParameters = [ 0 for i in range(0,np) ]
-
+        
         # sample from prior
         for n in range(0,np):
             if priors[n][0] == 0: sampleParameters[n]=priors[n][1]
@@ -192,7 +192,8 @@ def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_pre
 
             # sample putative particle from previous population
             p = sample_particle(nparticle, selected_model, margins_prev, model_prev, weights_prev )
-            sampleParameters = parameters_prev[ p ]
+            for nn in range(np):
+                sampleParameters[nn] = parameters_prev[ p ][nn]
             #print p, sampleParameters
 
             # perturb particle
@@ -324,9 +325,11 @@ def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutpu
             denom_m = denom_m + margins_prev[i]*getPdfModelKernel(selected_model, i, nmodel, dead_models)
 
         denom = 0
+        #print "Calculating denom\t", selected_model, sampleParameters
         for j in range(numOutput):
 
             if(int(selected_model) == int(model_prev[j]) ):
+                #print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
                 denom = denom + weights_prev[j] * getPdfParameterKernel(sampleParameters, parameters_prev[j], priors, kernel )
 
         #print "numer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, margins_prev[selected_model]
@@ -551,7 +554,8 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 # The ABC SMC algorithm for model selection                           #
 #######################################################################
 
-def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,full=False, rtol=None, atol=None, constKernels=False):   
+def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,
+                 sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,full=False, rtol=None, atol=None, constKernels=False):   
 
     """
 
@@ -847,6 +851,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 	i=0
         distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"w")
 
+        beta_values = zeros( [numOutput] )
+
         #
         # Loop over accepted particles
         #
@@ -862,11 +868,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             #
             selected_model = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart)
             
-            dim=len(priors[selected_model])
-            sampleParameters=[]
-            for z in range(0,dim):
-                sampleParameters.append(0)
-
             #
             # Sample and perturb the parameters given the model
             #
@@ -883,7 +884,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 repeat=1
 
             dist=False
-            BETA=0
+            #BETA=0
             for r in range(0,repeat):
 
                 if __FAST__ == False :
@@ -904,7 +905,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 if(distance<=epsilon[t] and distance>0 ):
                     distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
                     dist=True
-                    BETA=BETA+1
+                    beta_values[i] = beta_values[i] + 1
                     
             if dist==True:
                 hits[t]=hits[t]+1
@@ -922,15 +923,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 #
                 model_curr[i] = selected_model
 
-                for p in range(0,dim):
+                for p in range(0, len(priors[selected_model]) ):
                     parameters_curr[i].append(sampleParameters[p])
 
-                #
-                # Compute the weight of particle
-                #
-                weights_curr[i] = computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutput, priors[selected_model], kernel[selected_model], model_prev, margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart)
-
-        
                 #
                 # Count how often a specific model was accepted
                 #
@@ -940,6 +935,15 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 # end of loop over particles
 
         distance_file.close()
+
+        #
+        # Compute the weights
+        #  
+        for i in range(numOutput):
+            selected_model = model_curr[i]
+            weights_curr[i] = computeParticleWeights(t, parameters_curr[i], selected_model, nmodel, numOutput, priors[selected_model], kernel[selected_model],
+                                                     model_prev, margins_prev, weights_prev, parameters_prev, beta_values[i], dead_models, restart)
+
 
         #
         # Normalize the weights
@@ -955,15 +959,22 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
         # Prepare for next population
         # 
-        margins_prev = margins_curr
-        weights_prev = weights_curr
-        model_prev = model_curr
-        parameters_prev = parameters_curr
+        margins_prev = margins_curr[ : ]
+        weights_prev = weights_curr[ : ]
+        model_prev = model_curr[ : ]
+        parameters_prev = []
+        for i in range(numOutput):
+            parameters_prev.append(parameters_curr[i][ : ])
 
         model_curr      = [0  for j in range(0,numOutput)]
         weights_curr    = [0  for j in range(0,numOutput)]
         parameters_curr = [[] for j in range(0,numOutput)]
         margins_curr    = [0  for j in range(0,nmodel)] 
+
+        #print "margins_prev", margins_prev 
+        #print "previous particles \n",
+        #for i in range(numOutput):
+        #    print "\t", i, model_prev[i], weights_prev[i], parameters_prev[i]
 
         #
         # Check for dead models
@@ -996,7 +1007,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             for mod in range(0, nmodel):
                 if margins_prev[mod] > 0.1:  ### only compute corrected kernels if the model was selected at least 10%
                     kernel[mod] = getKernel(kernel[mod], population[mod][t])
-                    
+
+        pickling = False
         if pickling==True:
             write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, parameters_prev, margins_prev, kernel)
 
