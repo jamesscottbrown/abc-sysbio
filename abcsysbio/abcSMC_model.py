@@ -297,7 +297,8 @@ def getPdfParameterKernel(params, params0, priors, kernel):
     return prob
 
 
-def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutput, priors, kernel, model_prev, margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart):
+def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutput, priors, kernel, model_prev,
+                           margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart):
 
     if(restart==False and t == 0):
         return BETA
@@ -479,7 +480,8 @@ def write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, p
     out_file.close()
 
 ################make some nice plots
-def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate ):
+def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType,
+                        InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate ):
     
     for mod in range(0,nmodel):
         try:
@@ -555,7 +557,8 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 #######################################################################
 
 def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,
-                 sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,full=False, rtol=None, atol=None, constKernels=False):   
+                 sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,
+                 full=False, rtol=None, atol=None, constKernels=False):   
 
     """
 
@@ -871,7 +874,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             #
             # Sample and perturb the parameters given the model
             #
-            sampleParameters = sampleTheParameter(t, numOutput, priors[selected_model], kernel[selected_model], selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ) 
+            sampleParameters = sampleTheParameter(t, numOutput, priors[selected_model], kernel[selected_model],
+                                                  selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ) 
 
             #
             # Realize the particles
@@ -1023,7 +1027,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
         # Print histograms and scatter plots (analytical plots)
         #
-        make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
+        make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
+                            integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
         restart=False
 
         # end of loop over populations
