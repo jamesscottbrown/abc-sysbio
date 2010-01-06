@@ -1,6 +1,7 @@
 import re
 import os
 import pickle
+import time
 
 from math import *
 import numpy
@@ -16,13 +17,7 @@ from abcsysbio.checkInputArguments import *
 from abcsysbio.getResults import *
 
 __LARGE_DISTANCE__ = 1000000
-__FAST__ = True
 __XMAX__= 2000
-
-__CUDA__ = True
-__nthread__ = 512
-__nblock__ = 4
-
 
 def w_choice(item,weight):#http://snippets.dzone.com/posts/show/732 - modified for vectors
     n = rnd.random_sample()
@@ -563,7 +558,7 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 
 def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,
                  sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,
-                 full=False, rtol=None, atol=None, constKernels=False):   
+                 full=False, rtol=None, atol=None, constKernels=False, runmode=0, timing=False, nthread=None, nblock=None):   
 
     """
 
@@ -852,9 +847,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Read, compile cuda code. Initialize RNGs 
     #
-    if __CUDA__ == True:
+    if runmode == 2:
         import abccuda
-        ptrs = abccuda.compile_cuda_gillespie( "app.txt", "MersenneTwister.dat", __nthread__, __nblock__ )
+        ptrs = abccuda.compile_cuda_gillespie( "app.txt", "MersenneTwister.dat", nthread, nblock )
 
         model_np = []
         model_nx = []
@@ -871,6 +866,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Start of ABC-SMC algoritm
     #
+    if timing == True:
+        start_time = time.time()
 
     #
     # Loop over populations
@@ -886,7 +883,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
 	while(i<numOutput):
 
-            if __CUDA__ == False:
+            if runmode != 2:
                 sampling[t]=sampling[t]+1
                 if(full == True and sampling[t]%100 == 0):
                     print "sampled: ", sampling[t] 
@@ -916,7 +913,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 dist=False
                 for r in range(0,repeat):
 
-                    if __FAST__ == False :
+                    if runmode == 0 :
                         samplePoints=simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol,atol)
                         points=howToFitData(fit[selected_model],samplePoints)
                         distance=euclidian.euclidianDistance(points,data)
@@ -961,8 +958,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     numbers[selected_model][t]=int(numbers[selected_model][t])+1
                     i=i+1
 
-            if __CUDA__ == True:
-                nt = __nthread__ * __nblock__
+            if runmode == 2:
+                nt = nthread * nblock 
                 sampling[t]=sampling[t] + nt
                 print "population", t, ", cuda batch:", sampling[t], i
 
@@ -991,8 +988,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     print "beta:", r
                     
                     # run the gillespie
-                    simulated_data = abccuda.run_gillespie( ptrs, nt, nmodel, pmax, xmax, __nthread__,
-                                                             __nblock__, batch_model, batch_param, timepoints, InitValues )
+                    simulated_data = abccuda.run_gillespie( ptrs, nt, nmodel, pmax, xmax, nthread,
+                                                            nblock, batch_model, batch_param, timepoints, InitValues )
 
                     # calculate distances and fill beta_values
                     for k in range(nt):
@@ -1114,19 +1111,22 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             print "model marginals for iteration",t+1,":",margins_prev
             print "acceptance rate:",rate[t]
             if(len(dead_models) > 0): print "dead_models:", dead_models
-            print "\n"
 
         rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
 
         #
         # Print histograms and scatter plots (analytical plots)
         #
-        make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
-                            integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
+        if timing == False:
+            make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
+                                integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
         restart=False
 
         # end of loop over populations
 
+    if timing == True:
+        print "#### abcSimulator runmode:", runmode, "total timing\t", time.time() - start_time
+        
     rate_file.close()
 
     return(modelDistribution,population,rate)
