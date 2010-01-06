@@ -355,11 +355,11 @@ def modelMarginals(nmodel, numOutput, model_curr, weights_curr):
     return ret
 
 ################create output folders
-def create_output_folders(Nmodel, ModelName, numOutput, restart, pickling):
+def create_output_folders(fname, Nmodel, ModelName, numOutput, restart, pickling):
     if restart==True:
-        folder='_restart_results_'
+        folder=fname + '_restart'
     else:
-        folder='_results_'
+        folder=fname
     try:
         os.mkdir(folder)
         os.chdir(folder)
@@ -370,7 +370,7 @@ def create_output_folders(Nmodel, ModelName, numOutput, restart, pickling):
         try:
             os.mkdir('results_'+ModelName[mod])
         except:
-            print "\nThe folder "+ folder + ModelName[mod]+" already exists!\n"
+            print "\nThe folder "+ folder + "/results_" + ModelName[mod]+" already exists!\n"
             sys.exit()
 
     os.chdir('..')
@@ -395,13 +395,13 @@ def create_output_folders(Nmodel, ModelName, numOutput, restart, pickling):
     return [folder, rate_file]
 
 ################read the stored data
-def read_pickled():
+def read_pickled(fname):
     # pickle numbers selected model of previous population
     # pickle population of selected model of previous population pop_pickled[selected_model][n][vectpos]
     # pickle weights of selected model of previous population weights_pickled[selected_model][n][vectpos]
 
     try:
-        in_file=open('_results_/copy/model_last.dat',"r")
+        in_file=open(fname + '/copy/model_last.dat',"r")
         model_pickled=pickle.load(in_file)
         in_file.close()
     except:
@@ -409,7 +409,7 @@ def read_pickled():
         sys.exit()
 
     try:
-        in_file=open('_results_/copy/weights_last.dat',"r")
+        in_file=open(fname + '/copy/weights_last.dat',"r")
         weights_pickled=pickle.load(in_file)
         in_file.close()
     except:
@@ -417,7 +417,7 @@ def read_pickled():
         sys.exit()
 
     try:
-        in_file=open('_results_/copy/params_last.dat',"r")
+        in_file=open(fname + '/copy/params_last.dat',"r")
         parameters_pickled=pickle.load(in_file)
         in_file.close()
     except:
@@ -425,7 +425,7 @@ def read_pickled():
         sys.exit()
 
     try:
-        in_file=open('_results_/copy/margins_last.dat',"r")
+        in_file=open(fname + '/copy/margins_last.dat',"r")
         margins_pickled=pickle.load(in_file)
         in_file.close()
     except:
@@ -433,7 +433,7 @@ def read_pickled():
         sys.exit()
     
     try:
-        in_file=open('_results_/copy/kernels_last.dat',"r")
+        in_file=open(fname + '/copy/kernels_last.dat',"r")
         kernel=pickle.load(in_file)
         in_file.close()
     except:
@@ -489,7 +489,7 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
             os.mkdir("Population_"+repr(t+1))
             os.chdir("../..")
         except:
-            print "\nCan not creat the folder Population_"+repr(t+1)+"!\n"
+            print "\nCan not create the folder Population_"+repr(t+1)+"!\n"
             sys.exit()
 
 
@@ -558,7 +558,7 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 
 def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,
                  sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,
-                 full=False, rtol=None, atol=None, constKernels=False, runmode=0, timing=False, nthread=None, nblock=None):   
+                 full=False, rtol=None, atol=None, constKernels=False, runmode=0, timing=False, nthread=None, nblock=None, fname="_results_"):   
 
     """
 
@@ -821,11 +821,11 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
     
     # Create results folder for each model and create the pickling folder
-    folder, rate_file = create_output_folders(nmodel, ModelName, numOutput, restart, pickling) 
+    folder, rate_file = create_output_folders(fname, nmodel, ModelName, numOutput, restart, pickling) 
 
     # Load the pickled data
     if restart==True:
-        model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel =  read_pickled()
+        model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel =  read_pickled( fname )
         
         # Load the data into the previous population containers
         for p in range(0,numOutput):
@@ -1102,7 +1102,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 if margins_prev[mod] > 0.1:  ### only compute corrected kernels if the model was selected at least 10%
                     kernel[mod] = getKernel(kernel[mod], population[mod][t])
 
-        pickling = False
         if pickling==True:
             write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, parameters_prev, margins_prev, kernel)
 
