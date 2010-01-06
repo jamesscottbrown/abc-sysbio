@@ -8,23 +8,31 @@ from pylab import *
 import abcsysbio
 import numpy
 import sys
-import time
 import re
 
 def printOptions():
     
     print "\nList of possible options:"
-    print "-pm\t--pythonmodel\t do not import model from sbml intead use .py file"
-    print "-d\t--diagnostic\t no printing of diagnostic plots"
-    print "-s\t--save\t\t no backup after each population"
-    print "-t\t--timeseries\t no plotting of simulation results after each population"
-    print "-p\t--plotdata\t no plotting of given data points""-p"
+    print "\n Input options:"
     print "-i\t--infile\t declaration of the input file. This input file has to be provided to run the program!"
+    print "-pm\t--pythonmodel\t do not import model from sbml intead use .py file"
+    print "\n Algorithmic options:"
+    print "-sd\t--setseed\t seed the random number generator in numpy with an integer eg -sd=2, --setseed=2"
+    print "-rm\t--runmode\t integer specifying standard (0), fast (1), cuda (2) eg -rm=2, --runmode=2. default 0."
+    print "-cb\t--cudablocks\t number of thread blocks to run eg -cb=4, --cudablocks=4"
+    print "-ct\t--cudathreads\t number of threads per thread block to run eg -ct=512, --cudathreads=512"
+    print "-tm\t--timing\t print timing information"
+    print "\n Output options:"  
+    print "-f\t--fulloutput\t print epsilon, sampling steps and acceptence rates after each population"
+    print "-s\t--save\t\t no backup after each population"
+    print "\n Simulate options:"
     print "-y\t--synthetic\t print a synthetic data set at the timepoints given in the input file, using initial conditions and constant parameters"
     print "-S\t--simulate\t simulate the model over the range of timepoints, using initial conditions and constant parameters"
-    print "-f\t--fulloutput\t print epsilon, sampling steps and acceptence rates after each population"
-    print "-sd\t--setseed\t seed the random number generator in numpy with an integer eg -sd=2 --setseed=2"
-    print "-h\t--help\t print this list of options."
+    print "\n Plotting options:"
+    print "-d\t--diagnostic\t no printing of diagnostic plots"
+    print "-t\t--timeseries\t no plotting of simulation results after each population"
+    print "-p\t--plotdata\t no plotting of given data points"
+    print "\n-h\t--help\t\t print this list of options."
 
     print "\n"
 
@@ -41,6 +49,10 @@ def main():
     full=False
     usesbml=True
     seed = None
+    runmode = 0
+    timing = False
+    nblock = None
+    nthread = None
 
     for i in range(1,len(sys.argv)):
 
@@ -61,7 +73,11 @@ def main():
                 synthetic=True
 	    elif option == 'pythonmodel' : usesbml = False 
             elif option[0:8] == 'setseed=' : seed = int( option[8:] )
-            elif option == 'infile': 
+            elif option[0:8] == 'runmode=' : runmode = int( option[8:] )
+	    elif option[0:12] == 'cudathreads=' : nthread = int( option[12:] )
+	    elif option[0:11] == 'cudablocks=' : nblock = int( option[11:] )
+	    elif option == 'timing' : timing = True 
+	    elif option == 'infile': 
                 input_file=sys.argv[i+1]
                 file_exist=True
 	    elif not(sys.argv[i-1][2:] == 'infile'): 
@@ -86,6 +102,10 @@ def main():
                 synthetic=True
 	    elif option == 'pm' : usesbml = False
             elif option[0:3] == 'sd=' : seed = int( option[3:] )
+            elif option[0:3] == 'rm=' : runmode = int( option[3:] )
+	    elif option[0:3] == 'cb=' : nblock = int( option[3:] )
+	    elif option[0:3] == 'ct=' : nthread = int( option[3:] )
+            elif option == 'tm' : timing = True
             elif option == 'i': 
                 input_file=sys.argv[i+1]
                 file_exist=True
@@ -98,15 +118,39 @@ def main():
             printOptions()
             sys.exit()
 
+    # check arguments
+    if runmode == 2:
+	if nthread == None or nblock == None:
+	    print "Must specify block and thread numbers in cuda mode" 
+            sys.exit()	
 
     # set the seed
     if seed != None:
-	print "Seeding random number generator : ", seed
+	print "#### Seeding random number generator : ", seed
         numpy.random.seed(seed)
                 
     if (file_exist==True and simulate==False):            
-        restart,name,data,timepoints,numOutput,epsilon,InitValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,beta,dt, rtol, atol, constKernels = abcsysbio.parseInfo.getAlgorithmInfo(input_file)
-        
+	info = abcsysbio.parseInfo.getAlgorithmInfo(input_file)        
+	restart = 	info[0]
+	name = 		info[1]
+	data = 		info[2]
+	timepoints = 	info[3]
+	numOutput = 	info[4]
+	epsilon = 	info[5]
+	InitValues = 	info[6]	
+	integrationType = info[7]
+	modelWeight = 	info[8]
+	prior = 	info[9]
+	kernel = 	info[10]
+	sampleFromPrior = info[11]
+	source = 	info[12]
+	fit = 		info[13]
+	beta = 		info[14]
+	dt = 		info[15]
+	rtol = 		info[16]
+	atol = 		info[17]
+	constKernels = 	info[18]
+
         if plot==True:
             plt.plot(timepoints,data,'o')
             plt.savefig('_data')
@@ -147,7 +191,17 @@ def main():
                                                                              restart,
                                                                              source,
                                                                              constKernels)         
-            
+	    # temporary check
+	    s=re.compile('Gillespie')
+	    fail=0
+	    if runmode != 0 :
+		for m in range( len(integrationType) ):
+                    if not s.search(integrationType[m]):
+                        fail = 1
+	    if fail == 1:
+		print "Only Gillespie implemented for runmodes 2,3"
+		sys.exit()
+
 	if modelCorrect==False:
              print message
              sys.exit()
@@ -156,7 +210,7 @@ def main():
 
 #####run ABCSMC
 
-	start_time = time.time()
+	
 
         modelDistribution, inferred_parameter, rate = abcsysbio.abcSMC_model.abcSimulator(name, 
                                                                                           data, 		
@@ -177,10 +231,13 @@ def main():
                                                                                           pickling=pickling, 
                                                                                           plotDataSeries=plotTimeSeries, 
                                                                                           full=full, 
-                                                                                          constKernels=constKernels)
+                                                                                          constKernels=constKernels,
+											  runmode=runmode,
+											  timing=timing,
+											  nthread=nthread,
+											  nblock=nblock)
 
-	print "abcsysbio total timing\t", time.time() - start_time
-
+	
 #####if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
 #####plots are made - do we want to do anythin else e.g. save the data to a text file?
         
