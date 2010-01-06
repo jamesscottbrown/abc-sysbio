@@ -2,7 +2,7 @@ import pickle
 from libsbml import *
 import re
 
-def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels):
+def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to run the abc-SMC algorithm.
@@ -186,7 +186,7 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
     if restart==True:
 
         try:
-            in_file=open('_results_/copy/algorithm_parameter.dat',"r")
+            in_file=open(fname + '/copy/algorithm_parameter.dat',"r")
             numOutput_pickled=pickle.load(in_file)
             in_file.close()
         except:
