@@ -159,7 +159,7 @@ _gillespie_source_="""
     }
     """
 
-def initialise_twisters( mt_data, seed, mod, nthread, nblock ):
+def initialise_twisters( mt_data, mod, nthread, nblock ):
 
     print "\n#### initialise_twisters"
     print "#### obtaining MT  pointer of size", mod.get_global("MT")[1], "bytes" 
@@ -177,7 +177,6 @@ def initialise_twisters( mt_data, seed, mod, nthread, nblock ):
     cuda.memcpy_htod( pMT, np.array(tup).astype(np.uint32) )
 
     # Seed the MT
-    np.random.seed(seed)
     for i in range(MT_RNG_COUNT):
         place = i*16 + 12
         cuda.memcpy_htod( pMT + place, np.uint32( np.random.randint(100000000)) )
@@ -186,7 +185,7 @@ def initialise_twisters( mt_data, seed, mod, nthread, nblock ):
     InitialiseAllMersenneTwisters( block=(nthread,1,1), grid=(nblock,1) )
     
 
-def compile_cuda_gillespie( application_code, mt_data, seed, nthread, nblock ):
+def compile_cuda_gillespie( application_code, mt_data, nthread, nblock ):
 
     print "\n#### GPU info"
     print "#### max threads / registers / blocks :", tools.DeviceData().max_threads, tools.DeviceData().registers, tools.DeviceData().thread_blocks_per_mp
@@ -203,7 +202,7 @@ def compile_cuda_gillespie( application_code, mt_data, seed, nthread, nblock ):
     print "#### obtaining tmax pointer of size", compiled.get_global("tmax")[1], "bytes, value :", compiled.get_global("tmax")[0] 
     print "#### obtaining vxp pointer of size", compiled.get_global("vxp")[1], "bytes, value :", compiled.get_global("vxp")[0]  
 
-    initialise_twisters( mt_data, seed, compiled, nthread, nblock )
+    initialise_twisters( mt_data, compiled, nthread, nblock )
 
     Gillespie_one_step = compiled.get_function("Gillespie_one_step")
     model_tex = compiled.get_texref("model_tex")
