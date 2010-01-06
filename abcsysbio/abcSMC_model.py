@@ -20,7 +20,6 @@ __FAST__ = True
 __XMAX__= 2000
 
 __CUDA__ = True
-__seed__ = 10
 __nthread__ = 512
 __nblock__ = 4
 
@@ -854,8 +853,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     # Read, compile cuda code. Initialize RNGs 
     #
     if __CUDA__ == True:
-        import abc_cuda
-        ptrs = abc_cuda.compile_cuda_gillespie( "app.txt", "MersenneTwister.dat", __seed__, __nthread__, __nblock__ )
+        import abccuda
+        ptrs = abccuda.compile_cuda_gillespie( "app.txt", "MersenneTwister.dat", __nthread__, __nblock__ )
 
         model_np = []
         model_nx = []
@@ -867,8 +866,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
         pmax = max(model_np)
         xmax = max(model_nx)
-
-        print "Built cuda code. pmax/xmax : ", pmax, xmax
+        print "#### built cuda code. pmax/xmax : ", pmax, xmax
 
     #
     # Start of ABC-SMC algoritm
@@ -944,7 +942,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         print "hits: "+repr(hits[t])+"\n"
                         sys.stdout.flush()
                     else:
-                        print "hits: "+repr(hits[t])+" : B = "+repr(BETA)+"\n"
+                        print "hits: "+repr(hits[t])+" : B = "+repr(beta_values[i])+"\n"
                         sys.stdout.flush()
 
                     rate[t]=hits[t]/sampling[t]
@@ -966,7 +964,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if __CUDA__ == True:
                 nt = __nthread__ * __nblock__
                 sampling[t]=sampling[t] + nt
-                print "cuda batch:", sampling[t], i
+                print "population", t, ", cuda batch:", sampling[t], i
 
                 # sample nt models
                 batch_model = numpy.zeros( [nt], dtype=numpy.int32 )
@@ -982,58 +980,54 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
                     for kk in range( model_np[m] ):
                         batch_param[k,kk] = params[kk]
-                        #print batch_param[k,kk], "\t",
+                        #print batch_param[k,kk],
                     #print ""
-                
-                # run the gillespie
-                simulated_data = abc_cuda.run_gillespie( ptrs, nt, nmodel, pmax, xmax, __nthread__,
-                                                         __nblock__, batch_model, batch_param, timepoints, InitValues )
+                #print "min/max:", batch_param.min(axis=0), batch_param.max(axis=0)
 
+                # Loop over B
                 accept = [0 for k in range(0,nt)]
-
-                # calculate distances and fill beta_values
-                for k in range(nt):
-                    m = batch_model[k]
-                    d = simulated_data[k, :, 0:model_nx[m] ]
+                batch_beta = [0 for k in range(0,nt)]
+                for r in range(beta):
+                    print "beta:", r
                     
-                    points=howToFitData( fit[m], d )
-                    distance=euclidian.euclidianDistance(points,data)
-                    print "\nsim:", batch_model[k], batch_param[k]
-                    for kk in range(11):
-                        print data[kk], points[kk]
+                    # run the gillespie
+                    simulated_data = abccuda.run_gillespie( ptrs, nt, nmodel, pmax, xmax, __nthread__,
+                                                             __nblock__, batch_model, batch_param, timepoints, InitValues )
 
-                    print "dist:", distance
+                    # calculate distances and fill beta_values
+                    for k in range(nt):
+                        m = batch_model[k]
+                        d = simulated_data[k, :, 0:model_nx[m] ]
                     
-                    if(distance<=epsilon[t] and distance>0 ):
-                        #distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
-                        print "accepted"
-                        accept[k] = 1
-                        #beta_values[i] = beta_values[i] + 1
+                        points=howToFitData( fit[m], d )
+                        distance=euclidian.euclidianDistance(points,data)
+                        
+                        if(distance<=epsilon[t] and distance>0 ):
+                            #distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
+                            accept[k] = 1
+                            batch_beta[k] = batch_beta[k] + 1
 
+                # end of loop over beta
 
                 # copy accepted particles over
                 for k in range(nt):
                     if accept[k] == 1:
-                        #hits[t]=hits[t]+1
-                        #if full == True and repeat == 1:
-                        #    print "hits: "+repr(hits[t])+"\n"
-                        #    sys.stdout.flush()
-                        #else:
-                        #    print "hits: "+repr(hits[t])+" : B = "+repr(BETA)+"\n"
-                        #    sys.stdout.flush()
-
-                        #rate[t]=hits[t]/sampling[t]
-                        m = batch_model[k]
-
+                        hits[t]=hits[t]+1
+                        rate[t]=hits[t]/sampling[t]
+                        
                         if i < numOutput:
+                            m = batch_model[k]
                             model_curr[i] = m
+                            
                             for p in range(model_np[m]):
-                                parameters_curr[i].append( batch_param[i,p] )
+                                parameters_curr[i].append( batch_param[k,p] )
 
-                            print parameters_curr[i]
+                            beta_values[i] = batch_beta[k]
+                            
+                            #print parameters_curr[i]
                             numbers[m][t]=numbers[m][t] + 1
                             i=i+1
-            
+
             # end of loop over particles
 
         distance_file.close()
@@ -1046,6 +1040,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             weights_curr[i] = computeParticleWeights(t, parameters_curr[i], selected_model, nmodel, numOutput, priors[selected_model], kernel[selected_model],
                                                      model_prev, margins_prev, weights_prev, parameters_prev, beta_values[i], dead_models, restart)
 
+            #print selected_model, parameters_curr[i], weights_curr[i]
 
         #
         # Normalize the weights
@@ -1117,16 +1112,17 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         if full == True:
             print "number of sampling steps in population",t+1,":", sampling[t]
             print "model marginals for iteration",t+1,":",margins_prev
-            print "acceptance rate:",rate[t],"\n"
+            print "acceptance rate:",rate[t]
             if(len(dead_models) > 0): print "dead_models:", dead_models
+            print "\n"
 
         rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
 
         #
         # Print histograms and scatter plots (analytical plots)
         #
-        #make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
-        #                    integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
+        make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
+                            integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
         restart=False
 
         # end of loop over populations
