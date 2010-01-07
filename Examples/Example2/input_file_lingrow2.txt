@@ -4,7 +4,7 @@
 
 #Restart from previous (pickled) population?
 
-<restart> False
+<restart> True
 
 #Series of epsilons. (Comma-delimited list)
 #If the length of the epsilon series is one and you have only one model
@@ -54,7 +54,7 @@ variable1: 2.0, 6.95179937, 8.56370876, 8.98447127, 9.83093446, 9.62018385, 9.62
 //
 
 <model1>
-name: model2
+name: LinearGrowthModelModified
 source: model_lingrow.xml
 
 #type: the method used to simulate your model. ODE, SDE or Gillespie.
