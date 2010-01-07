@@ -224,6 +224,8 @@ def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_pre
 def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart ):
     
     selected_model = 0
+    if nmodel == 1:
+        return selected_model
 
     if(restart == False and t == 0):
         # sample from prior
@@ -239,6 +241,9 @@ def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart 
             # sample randomly from other (non dead) models
             not_available = dead_models[:]
             not_available.append(sampled_model)
+            if len(not_available) == 1:
+                return sampled_model
+            
             ss = set( not_available )
             s = set( range(0,nmodel) )
 
