@@ -558,7 +558,8 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 
 def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,
                  sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,
-                 full=False, rtol=None, atol=None, constKernels=False, runmode=0, timing=False, nthread=None, nblock=None, fname="_results_"):   
+                 full=False, rtol=None, atol=None, constKernels=False,
+                 runmode=0, timing=False, nthread=None, nblock=None, fname="_results_", mt_data="MersenneTwister.dat",app_file="app.txt"):   
 
     """
 
@@ -849,7 +850,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     if runmode == 2:
         import abccuda
-        ptrs = abccuda.compile_cuda_gillespie( "app.txt", "MersenneTwister.dat", nthread, nblock )
+        ptrs = abccuda.compile_cuda_gillespie( app_file, mt_data, nthread, nblock )
 
         model_np = []
         model_nx = []
