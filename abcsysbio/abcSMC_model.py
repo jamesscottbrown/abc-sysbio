@@ -967,7 +967,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if runmode == 2:
                 nt = nthread * nblock 
                 sampling[t]=sampling[t] + nt
-                print "population", t, ", cuda batch:", sampling[t], i
+                if full == True:
+                    print "population", t, ", cuda batch:", sampling[t], i
 
                 # sample nt models
                 batch_model = numpy.zeros( [nt], dtype=numpy.int32 )
@@ -991,7 +992,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 accept = [0 for k in range(0,nt)]
                 batch_beta = [0 for k in range(0,nt)]
                 for r in range(beta):
-                    print "beta:", r
+                    #print "beta:", r
                     
                     # run the gillespie
                     simulated_data = abccuda.run_gillespie( ptrs, nt, nmodel, pmax, xmax, nthread,
