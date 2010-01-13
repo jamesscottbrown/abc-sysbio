@@ -83,6 +83,10 @@ _mersenne_twister_source_ = """
     return a + (b-a)*u;
     }
 
+    __device__ float rexp(float lambda, MersenneTwisterState &state, const unsigned int& threadID) {
+    return -log( runif(0, 1, state, threadID) )/lambda;
+    }
+
     __device__ void MersenneTwisterInitialise(MersenneTwisterState &state, const unsigned int& threadID) {
     state.mt[0] = MT[threadID].seed;
     for(int i = 1; i < MT_NN; ++ i) {
@@ -98,32 +102,75 @@ _mersenne_twister_source_ = """
     //MersenneTwisterBurnIn(MTS[tid], tid);
     }
 
-    __device__ float rexp(float& lambda, MersenneTwisterState &state, const unsigned int& threadID) {
-    return -log( runif(0, 1, state, threadID) )/lambda;
+    __global__ void TestMersenneTwistersUniform(float *z, int *r) {
+    const int tid = blockDim.x * blockIdx.x + threadIdx.x;
+    int n = r[tid];
+    for(int i=0; i<n; ++i){
+    z[ i + tid*n ] = runif(0, 1, MTS[tid], tid);
+    }
+    }
+
+    __global__ void TestMersenneTwistersExponential(float *z, int *r) {
+    const int tid = blockDim.x * blockIdx.x + threadIdx.x;
+    int n = r[tid];
+    for(int i=0; i<n; ++i){
+    z[ i + tid*n ] = rexp(1, MTS[tid], tid);
+    }
     }
     """
 
 _textures_="""
-texture<int, 1, cudaReadModeElementType> model_tex;
-texture<float, 2, cudaReadModeElementType> param_tex;
+
+    texture<int, 1, cudaReadModeElementType> model_tex;
+    texture<float, 2, cudaReadModeElementType> param_tex;
+
+    __global__ void TestTextureAccess(int *m, float *p, int* pitch) {
+    const int tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+    m[tid] = tex1Dfetch(model_tex, tid);
+
+    int vxp = pitch[tid];
+    for(int i=0; i<5; ++i){
+       ((float*)( (char*) p + tid * vxp))[i] = tex2D(param_tex, i, tid);
+    }
+
+    
+    }
 """
 
 _sample_="""
-__device__ int sample(int& nh, float& h0, float* h, MersenneTwisterState &state, const unsigned int& threadID){
-int i;
-float u = runif(0, h0, state, threadID);
-float F = 0;
-for(i=0; i<nh; ++i){
-F += h[i];
-if(F > u) break;
-}
-return i;
-}
+    __device__ int sample(int& nh, float& h0, float* h, MersenneTwisterState &state, const unsigned int& threadID){
+         
+         float u = runif(0, h0, state, threadID);
+         int i = 0;
+
+         for(i=0; i<nh; ++i){
+             if( u < h[i] ) break;
+             u = u - h[i];
+         }
+         return i;
+    }
+
+    __global__ void TestSample(int *z, int *r){
+         const int tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+         int nh = 3;
+         float h[] = {0.0,0.0,0.0};
+
+         h[0] = 0.1;
+         h[1] = 0.4;
+         h[2] = 0.5;
+         float h0 = h[0] + h[1] + h[2];
+       
+         int n = r[tid];
+         for(int i=0; i<n; ++i){
+             z[ i + tid*n ] = sample(nh,h0,h,MTS[tid],tid);
+         }
+    }
+
 """
 
 _gillespie_source_="""
-    //__constant__ float tmax[1];
-    //__constant__ int vxp[1];
     __constant__ float tmax;
     __constant__ int vxp;
 
@@ -134,16 +181,13 @@ _gillespie_source_="""
     int model = tex1Dfetch(model_tex, tid);
 
     float x[ NXMAX ];
-    //for(i=0; i<nx[model]; ++i){
-    for(i=0; i<2; ++i){
-       //x[i] = ((float*)( (char*) vx + tid * vxp[0]))[i];
+    for(i=0; i<nx[model]; ++i){
        x[i] = ((float*)( (char*) vx + tid * vxp))[i];
     }
     
     float t  = vt[ tid ];
     float h0;
     
-    //while( t < tmax[0] ){
     while( t < tmax ){
        hazards(h0, x, model, MTS[tid], tid);
        if(h0 <= 0.0) break;
@@ -151,9 +195,7 @@ _gillespie_source_="""
     }
 
     vt[tid] = t;
-    //for(i=0; i<nx[model]; ++i){
-    for(i=0; i<2; ++i){
-       //((float*)( (char*) vx + tid * vxp[0]))[i] = x[i];
+    for(i=0; i<nx[model]; ++i){
        ((float*)( (char*) vx + tid * vxp))[i] = x[i];
     }
     }
@@ -183,7 +225,150 @@ def initialise_twisters( mt_data, mod, nthread, nblock ):
 
     InitialiseAllMersenneTwisters = mod.get_function("InitialiseAllMersenneTwisters")
     InitialiseAllMersenneTwisters( block=(nthread,1,1), grid=(nblock,1) )
+
+def compile_mersenne_twister_test( mt_data, nr, nthread, nblock ):
+
+    print "\n#### GPU info"
+    print "#### max threads / registers / blocks :", tools.DeviceData().max_threads, tools.DeviceData().registers, tools.DeviceData().thread_blocks_per_mp
+
+    _code_ = _mersenne_twister_source_
+    compiled = pycuda.compiler.SourceModule( _code_ )
+    initialise_twisters( mt_data, compiled, nthread, nblock )
+
+    twister_test_u = compiled.get_function("TestMersenneTwistersUniform")
+    twister_test_e = compiled.get_function("TestMersenneTwistersExponential")
+
+    return [twister_test_u, twister_test_e]
+
+def run_mersenne_twister_test( ptr, nr, nthread, nblock ):
+    nrandom = nr*nthread*nblock
+
+    a = np.zeros(nrandom).astype(np.float32)
+    d_a = cuda.mem_alloc(a.size*a.dtype.itemsize)
+    cuda.memcpy_htod(d_a, a)
+
+    r = (np.ones(nthread*nblock)*nr).astype(np.int32)
+    d_r = cuda.mem_alloc(r.size*r.dtype.itemsize)
+    cuda.memcpy_htod(d_r, r)
     
+    ptr( d_a, d_r, block=(nthread,1,1), grid=(nblock,1) )
+    cuda.memcpy_dtoh(a, d_a)
+
+    return a
+
+def compile_sample_test( mt_data, nr, nthread, nblock ):
+
+    print "\n#### GPU info"
+    print "#### max threads / registers / blocks :", tools.DeviceData().max_threads, tools.DeviceData().registers, tools.DeviceData().thread_blocks_per_mp
+
+    _code_ = _mersenne_twister_source_ + _sample_
+    compiled = pycuda.compiler.SourceModule( _code_ )
+    initialise_twisters( mt_data, compiled, nthread, nblock )
+
+    sample_test = compiled.get_function("TestSample")
+
+    return sample_test
+
+def run_sample_test( ptr, nr, nthread, nblock ):
+    nrandom = nr*nthread*nblock
+
+    a = np.zeros(nrandom).astype(np.int32)
+    d_a = cuda.mem_alloc(a.size*a.dtype.itemsize)
+    cuda.memcpy_htod(d_a, a)
+
+    r = (np.ones(nthread*nblock)*nr).astype(np.int32)
+    d_r = cuda.mem_alloc(r.size*r.dtype.itemsize)
+    cuda.memcpy_htod(d_r, r)
+    
+    ptr( d_a, d_r, block=(nthread,1,1), grid=(nblock,1) )
+    cuda.memcpy_dtoh(a, d_a)
+
+    return a
+
+def compile_texture_test():
+    _code_ = _textures_
+    compiled = pycuda.compiler.SourceModule( _code_ )
+    tex_test = compiled.get_function("TestTextureAccess")
+    model_tex = compiled.get_texref("model_tex")
+    param_tex = compiled.get_texref("param_tex")
+
+    return [ tex_test, model_tex, param_tex ]
+
+def run_texture_test(ptrs, nthread, nblock, m_in, p_in):
+
+    fun, model_tex, param_tex = ptrs[0], ptrs[1], ptrs[2]
+
+    nt = nblock*nthread
+    pmax = 5
+
+    # input model 1D array
+    d_m = cuda.mem_alloc(m_in.size*m_in.dtype.itemsize)
+    cuda.memcpy_htod(d_m, m_in.astype(np.int32) )
+    model_tex.set_address(d_m, m_in.size*m_in.dtype.itemsize, allow_offset=False)
+
+    # input parameters 2D array 
+    descr = cuda.ArrayDescriptor()
+    descr.width = pmax
+    descr.height = nt
+    descr.format = cuda.dtype_to_array_format(p_in.dtype)
+    descr.num_channels = 1
+    descr.flags = 0
+
+    ary = cuda.Array(descr)
+
+    copy = cuda.Memcpy2D()
+    copy.set_src_host(p_in)
+    copy.set_dst_array(ary)
+    copy.height = nt
+    copy.width_in_bytes = copy.src_pitch = pmax*4
+    copy(aligned=True)
+
+    param_tex.set_array(ary)
+
+    # output model 1D array
+    a = np.zeros(nt).astype(np.int32)
+    d_a = cuda.mem_alloc(a.size*a.dtype.itemsize)
+    cuda.memcpy_htod(d_a, a)
+
+    # output model 2D array
+    b = np.zeros( [nt,pmax], order="C", dtype=np.float32)
+    vxw = pmax*4
+    alloc_tup = cuda.mem_alloc_pitch(width=vxw, height=nt, access_size=4 )
+    vxp = alloc_tup[1]
+    d_b = alloc_tup[0]
+
+    copy = cuda.Memcpy2D()
+    copy.set_src_host(b)
+    copy.set_dst_device(d_b)
+    copy.src_pitch = vxw
+    copy.dst_pitch = vxp
+    copy.width_in_bytes = vxw
+    copy.height = nt
+    copy(aligned=True)
+
+    # output model 2D array pitch
+    pitch = ( np.ones( [nt] )*vxp ).astype(np.int32)
+    d_pitch = cuda.mem_alloc(pitch.size*pitch.dtype.itemsize)
+    cuda.memcpy_htod(d_pitch, pitch)
+
+    # run the kernel
+    fun(d_a, d_b, d_pitch, block=(nthread,1,1), grid=(nblock,1) )
+
+    # copy the relevant results back
+    cuda.memcpy_dtoh(a, d_a)
+
+    copy = cuda.Memcpy2D()
+    copy.set_src_device(d_b)
+    copy.set_dst_host(b)
+    copy.src_pitch = vxp
+    copy.dst_pitch = vxw
+    copy.width_in_bytes = vxw
+    copy.height = nt
+    copy(aligned=True)
+    
+    return [a, b]
+    
+
 
 def compile_cuda_gillespie( application_code, mt_data, nthread, nblock ):
 
@@ -198,6 +383,9 @@ def compile_cuda_gillespie( application_code, mt_data, nthread, nblock ):
     ptmax = int(compiled.get_global("tmax")[0])
     pvxp = int(compiled.get_global("vxp")[0])
 
+    #pnx = int(compiled.get_global("nx")[0])
+    #cuda.memcpy_htod(pnx, np.array( [1] ).astype(np.float32) )
+    
     print "\n#### compile_cuda_gillespie"
     print "#### obtaining tmax pointer of size", compiled.get_global("tmax")[1], "bytes, value :", compiled.get_global("tmax")[0] 
     print "#### obtaining vxp pointer of size", compiled.get_global("vxp")[1], "bytes, value :", compiled.get_global("vxp")[0]  
@@ -237,8 +425,6 @@ def run_gillespie( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, time
     model_tex.set_address(d_m, model.size*model.dtype.itemsize, allow_offset=False)
 
     # parameters 2D array 
-    #print "cuda params", type(param)
-
     descr = cuda.ArrayDescriptor()
     descr.width = pmax
     descr.height = nt
@@ -262,10 +448,8 @@ def run_gillespie( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, time
     for i in range(nt):
         for j in range(nm):
             if model[i] == j:
-                h_x[i,:] = init[j][:]
-
-    #print np.shape(h_x), h_x
-    #print init[0][0], init[0][1]
+                for k in range(len(init[j])):
+                    h_x[i,k] = init[j][k]
 
     vxw = xmax*4
     alloc_tup = cuda.mem_alloc_pitch(width=vxw, height=nt, access_size=4 )
@@ -283,7 +467,10 @@ def run_gillespie( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, time
     copy.height = nt
     copy(aligned=True)
 
-    xt_h[:,0,:] = h_x[:,:]
+    for i in range(nt):
+        for k in range(xmax):
+            xt_h[i,0,k] = h_x[i,k]
+
     #print "Running Gillespie"
     for i in range(1,len(times)):
         
@@ -300,11 +487,11 @@ def run_gillespie( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, time
         copy.height = nt
         copy(aligned=True)
 
-        #print "t:", times[i], "x0 min:", h_x[:,0].min(), "x0 max:", h_x[:,0].max(), "x1 min:", h_x[:,1].min(), "x1 max:", h_x[:,1].max()  
-
         #for k in range(nt):
         #    print k, model[k], param[k], h_x[k,0], h_x[k,1]
 
-        xt_h[:,i,:] = h_x[:,:]
+        for j in range(nt):
+            for k in range(xmax):
+                xt_h[j,i,k] = h_x[j,k]
 
     return xt_h
