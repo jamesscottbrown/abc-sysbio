@@ -946,7 +946,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     if full == True and repeat == 1:
                         print "hits: "+repr(hits[t])+"\n"
                         sys.stdout.flush()
-                    else:
+                    elif full == True and repeat > 1:
                         print "hits: "+repr(hits[t])+" : B = "+repr(beta_values[i])+"\n"
                         sys.stdout.flush()
 
