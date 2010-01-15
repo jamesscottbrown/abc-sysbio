@@ -853,9 +853,11 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Read, compile cuda code. Initialize RNGs 
     #
-    if runmode == 2:
+    if runmode > 1:
         import abccuda
-        ptrs = abccuda.compile_cuda_gillespie( app_file, mt_data, nthread, nblock )
+
+        if runmode == 2 : ptrs = abccuda.compile_cuda_gillespie ( app_file, mt_data, nthread, nblock )
+        if runmode == 3 : ptrs = abccuda.compile_cuda_gillespie2( app_file, mt_data, nthread, nblock )
 
         model_np = []
         model_nx = []
@@ -889,7 +891,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
 	while(i<numOutput):
 
-            if runmode != 2:
+            if runmode < 2:
                 sampling[t]=sampling[t]+1
                 if(full == True and sampling[t]%100 == 0):
                     print "sampled: ", sampling[t] 
@@ -1032,8 +1034,27 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                             numbers[m][t]=numbers[m][t] + 1
                             i=i+1
 
-            # end of loop over particles
+            if runmode == 3:
+                
+                abccuda.realize_particles(ptrs, nthread, nblock, xmax, pmax,
+                                          numOutput, nmodel, model_np, model_nx, dead_models,
+                                          sampleTheModel, sampleTheParameter, t, priors, kernel, restart, modelDistrib0, beta,
+                                          euclidian.euclidianDistance, howToFitData, integrationType, InitValues, timepoints, epsilon, fit, data,
+                                          margins_prev, model_prev, weights_prev, parameters_prev,
+                                          model_curr, parameters_curr, beta_values, hits, sampling) # output into these variables
+                i = numOutput
+                rate[t] = hits[t]/float(sampling[t])
 
+                for k in range(numOutput):
+                    #print parameters_curr[k]
+
+                    for m in range(nmodel):
+                        if(model_curr[k] == m):
+                            numbers[m][t]=numbers[m][t] + 1
+
+                #print model_curr
+                
+            # end of loop over particles
         distance_file.close()
 
         #
@@ -1055,7 +1076,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         # Get the marginal model distribution
         #  
         margins_curr = modelMarginals(nmodel, numOutput, model_curr, weights_curr)
-
 
         #
         # Prepare for next population
@@ -1131,7 +1151,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         # end of loop over populations
 
     if timing == True:
-        print "#### abcSimulator runmode:", runmode, "total timing\t", time.time() - start_time
+        print "####abcSimulator:runmode/time:", runmode, time.time() - start_time
         
     rate_file.close()
 
