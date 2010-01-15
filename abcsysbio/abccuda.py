@@ -557,6 +557,35 @@ def compile_cuda_gillespie2( application_code, mt_data, nthread, nblock ):
     
     return [ Gillespie_one_step, pvxp, model_tex, param_tex ]
 
+def copy2D_host_to_device(host, dev, src_pitch, dst_pitch, width, height ):
+    copy = cuda.Memcpy2D()
+    copy.set_src_host(host)
+    copy.set_dst_device(dev)
+    copy.src_pitch = src_pitch
+    copy.dst_pitch = dst_pitch
+    copy.width_in_bytes = width
+    copy.height = height
+    copy(aligned=True)
+
+def copy2D_device_to_host(dev, host, src_pitch, dst_pitch, width, height ):
+    copy = cuda.Memcpy2D()
+    copy.set_src_device(dev)
+    copy.set_dst_host(host)
+    copy.src_pitch = src_pitch
+    copy.dst_pitch = dst_pitch
+    copy.width_in_bytes = width
+    copy.height = height
+    copy(aligned=True)
+
+def copy2D_host_to_array(host, arr, width, height ):
+    copy = cuda.Memcpy2D()
+    copy.set_src_host(host)
+    copy.set_dst_array(arr)
+    copy.height = height
+    copy.width_in_bytes = copy.src_pitch = width
+    copy.height = height
+    copy(aligned=True)
+
 def realize_particles(ptrs, nthread, nblock, xmax, pmax,
                       numOutput, nmodel, model_np, model_nx, dead_models,
                       sampleTheModel, sampleTheParameter, t, priors, kernel, restart, modelDistrib0, nrepeat,
@@ -564,11 +593,8 @@ def realize_particles(ptrs, nthread, nblock, xmax, pmax,
                       margins_prev, model_prev, weights_prev, parameters_prev, 
                       model_curr, parameters_curr, beta_values, hits, sampling):
 
-    nthread = 10
-    nblock = 1
     nt = nthread*nblock
 
-    #print "\n#### run_gillespie"
     Gillespie_one_step, pvxp, model_tex, param_tex = ptrs[0], ptrs[1], ptrs[2], ptrs[3]
     #print "pointer values, ptmax / pvxp : ", ptmax, pvxp
 
@@ -577,11 +603,13 @@ def realize_particles(ptrs, nthread, nblock, xmax, pmax,
     xt = np.zeros( [nt,ntimes,xmax] )
 
     # times array
-    h_t = np.zeros( [nt] ).astype(np.float32)
+    #h_t = np.zeros( [nt] ).astype(np.float32)
+    h_t = cuda.pagelocked_zeros( [nt], dtype=np.float32)
     d_t = cuda.mem_alloc(h_t.size*h_t.dtype.itemsize)
 
     # max array
-    h_tmax = np.zeros( [nt] ).astype(np.float32)
+    #h_tmax = np.zeros( [nt] ).astype(np.float32)
+    h_tmax = cuda.pagelocked_zeros( [nt], dtype=np.float32)
     d_tmax = cuda.mem_alloc(h_tmax.size*h_tmax.dtype.itemsize)
 
     # model 1D array
@@ -599,41 +627,12 @@ def realize_particles(ptrs, nthread, nblock, xmax, pmax,
     d_p = cuda.Array(descr)
 
     # values 2D matrix
-    h_x = np.zeros( [nt,xmax], order="C", dtype=np.float32)
+    #h_x = np.zeros( [nt,xmax], order="C", dtype=np.float32)
+    h_x = cuda.pagelocked_zeros( [nt,xmax], order="C", dtype=np.float32)
     vxw = xmax*4 #32 bit = 4bytes
     alloc_tup = cuda.mem_alloc_pitch(width=vxw, height=nt, access_size=4 )
     vxp = alloc_tup[1]
     d_x = alloc_tup[0]
-
-    def copy2D_host_to_device(host, dev, src_pitch, dst_pitch, width, height ):
-        copy = cuda.Memcpy2D()
-        copy.set_src_host(host)
-        copy.set_dst_device(dev)
-        copy.src_pitch = src_pitch
-        copy.dst_pitch = dst_pitch
-        copy.width_in_bytes = width
-        copy.height = height
-        copy(aligned=True)
-
-    def copy2D_device_to_host(dev, host, src_pitch, dst_pitch, width, height ):
-        copy = cuda.Memcpy2D()
-        copy.set_src_device(dev)
-        copy.set_dst_host(host)
-        copy.src_pitch = src_pitch
-        copy.dst_pitch = dst_pitch
-        copy.width_in_bytes = width
-        copy.height = height
-        copy(aligned=True)
-
-    def copy2D_host_to_array(host, arr, width, height ):
-        copy = cuda.Memcpy2D()
-        copy.set_src_host(host)
-        copy.set_dst_array(arr)
-        copy.height = height
-        copy.width_in_bytes = copy.src_pitch = width
-        copy.height = height
-        copy(aligned=True)
-
 
     # Gillespie + distance calculation algorithm
     passed = 0
