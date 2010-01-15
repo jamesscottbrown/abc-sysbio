@@ -201,6 +201,39 @@ _gillespie_source_="""
     }
     """
 
+_gillespie2_source_="""
+    __constant__ int vxp;
+
+    __global__ void Gillespie_one_step(float* vt, float* vx, float* vtmax) {
+    const unsigned int tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+    int i;
+    int model = tex1Dfetch(model_tex, tid);
+
+    float tmax = vtmax[ tid ];
+
+    float x[ NXMAX ];
+    for(i=0; i<nx[model]; ++i){
+       x[i] = ((float*)( (char*) vx + tid * vxp))[i];
+    }
+    
+    float t  = vt[ tid ];
+    float h0;
+    
+    while( t < tmax ){
+       hazards(h0, x, model, MTS[tid], tid);
+       if(h0 <= 0.0) break;
+       t = t + rexp( h0, MTS[tid], tid );
+    }
+
+    vt[tid] = t;
+    for(i=0; i<nx[model]; ++i){
+       ((float*)( (char*) vx + tid * vxp))[i] = x[i];
+    }
+    }
+    """
+
+
 def initialise_twisters( mt_data, mod, nthread, nblock ):
 
     print "\n#### initialise_twisters"
@@ -368,8 +401,6 @@ def run_texture_test(ptrs, nthread, nblock, m_in, p_in):
     
     return [a, b]
     
-
-
 def compile_cuda_gillespie( application_code, mt_data, nthread, nblock ):
 
     print "\n#### GPU info"
@@ -495,3 +526,286 @@ def run_gillespie( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, time
                 xt_h[j,i,k] = h_x[j,k]
 
     return xt_h
+
+def compile_cuda_gillespie2( application_code, mt_data, nthread, nblock ):
+
+    print "\n#### GPU info"
+    print "#### max threads / registers / blocks :", tools.DeviceData().max_threads, tools.DeviceData().registers, tools.DeviceData().thread_blocks_per_mp
+
+    f = open(application_code,'r')
+
+    _code_ = _mersenne_twister_source_ + _textures_ + _sample_ + f.read() + _gillespie2_source_
+    
+    compiled = pycuda.compiler.SourceModule( _code_ )
+    pvxp = int(compiled.get_global("vxp")[0])
+
+    print "\n#### compile_cuda_gillespie"
+    print "#### obtaining vxp pointer of size", compiled.get_global("vxp")[1], "bytes, value :", compiled.get_global("vxp")[0]  
+
+    initialise_twisters( mt_data, compiled, nthread, nblock )
+
+    Gillespie_one_step = compiled.get_function("Gillespie_one_step")
+    model_tex = compiled.get_texref("model_tex")
+    param_tex = compiled.get_texref("param_tex")
+
+    print "\n#### kernel info" 
+    print "#### kernel mem local / shared / registers : ", Gillespie_one_step.local_size_bytes, Gillespie_one_step.shared_size_bytes, Gillespie_one_step.num_regs
+
+    print "\n#### occupancy info"
+    occ = tools.OccupancyRecord( tools.DeviceData(), threads=nthread, shared_mem=Gillespie_one_step.shared_size_bytes, registers=Gillespie_one_step.num_regs )
+    print "#### threadblocks per mp / limit / occupancy :", occ.tb_per_mp, occ.limited_by, occ.occupancy 
+    
+    return [ Gillespie_one_step, pvxp, model_tex, param_tex ]
+
+def realize_particles(ptrs, nthread, nblock, xmax, pmax,
+                      numOutput, nmodel, model_np, model_nx, dead_models,
+                      sampleTheModel, sampleTheParameter, t, priors, kernel, restart, modelDistrib0, nrepeat,
+                      euclidianDistance, howToFitData, integrationType, InitValues, timepoints, epsilon, fit, data,
+                      margins_prev, model_prev, weights_prev, parameters_prev, 
+                      model_curr, parameters_curr, beta_values, hits, sampling):
+
+    nthread = 10
+    nblock = 1
+    nt = nthread*nblock
+
+    #print "\n#### run_gillespie"
+    Gillespie_one_step, pvxp, model_tex, param_tex = ptrs[0], ptrs[1], ptrs[2], ptrs[3]
+    #print "pointer values, ptmax / pvxp : ", ptmax, pvxp
+
+    # output array
+    ntimes = len(timepoints)
+    xt = np.zeros( [nt,ntimes,xmax] )
+
+    # times array
+    h_t = np.zeros( [nt] ).astype(np.float32)
+    d_t = cuda.mem_alloc(h_t.size*h_t.dtype.itemsize)
+
+    # max array
+    h_tmax = np.zeros( [nt] ).astype(np.float32)
+    d_tmax = cuda.mem_alloc(h_tmax.size*h_tmax.dtype.itemsize)
+
+    # model 1D array
+    h_m = np.zeros( [nt], dtype=np.int32 )
+    d_m = cuda.mem_alloc(h_m.size*h_m.dtype.itemsize)
+   
+    # parameters 2D array 
+    h_p = np.zeros( [nt,pmax], dtype=np.float32)
+    descr = cuda.ArrayDescriptor()
+    descr.width = pmax
+    descr.height = nt
+    descr.format = cuda.dtype_to_array_format(np.float32)
+    descr.num_channels = 1
+    descr.flags = 0
+    d_p = cuda.Array(descr)
+
+    # values 2D matrix
+    h_x = np.zeros( [nt,xmax], order="C", dtype=np.float32)
+    vxw = xmax*4 #32 bit = 4bytes
+    alloc_tup = cuda.mem_alloc_pitch(width=vxw, height=nt, access_size=4 )
+    vxp = alloc_tup[1]
+    d_x = alloc_tup[0]
+
+    def copy2D_host_to_device(host, dev, src_pitch, dst_pitch, width, height ):
+        copy = cuda.Memcpy2D()
+        copy.set_src_host(host)
+        copy.set_dst_device(dev)
+        copy.src_pitch = src_pitch
+        copy.dst_pitch = dst_pitch
+        copy.width_in_bytes = width
+        copy.height = height
+        copy(aligned=True)
+
+    def copy2D_device_to_host(dev, host, src_pitch, dst_pitch, width, height ):
+        copy = cuda.Memcpy2D()
+        copy.set_src_device(dev)
+        copy.set_dst_host(host)
+        copy.src_pitch = src_pitch
+        copy.dst_pitch = dst_pitch
+        copy.width_in_bytes = width
+        copy.height = height
+        copy(aligned=True)
+
+    def copy2D_host_to_array(host, arr, width, height ):
+        copy = cuda.Memcpy2D()
+        copy.set_src_host(host)
+        copy.set_dst_array(arr)
+        copy.height = height
+        copy.width_in_bytes = copy.src_pitch = width
+        copy.height = height
+        copy(aligned=True)
+
+
+    # Gillespie + distance calculation algorithm
+    passed = 0
+    failed = 0 
+    accepted = 0
+    iterations = 0
+
+    attempts = np.zeros([nt], dtype=np.int32)
+    status = np.zeros([nt], dtype=np.int32)
+    step = np.zeros([nt], dtype=np.int32)
+    betas = np.zeros([nt], dtype=np.int32)
+    distance = np.zeros([nt], dtype=np.float32)
+
+    while( accepted < numOutput ):
+        # refill/reset particles
+        # status = 0 : resample particle 
+        # status = 1 : reset particle time series
+        # status = 2 : particle still valid
+        # status = 3 : accepted particle
+
+        #print "iteration:", iterations
+
+        for i in range(nt):
+            if(status[i] == 0):
+                attempts[i] = 0
+                betas[i] = 0
+                step[i] = 1
+                status[i] = 0
+                h_p[i,:] = 0
+                h_x[i,:] = 0
+                xt[i,:,:] = 0
+
+                m = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart )
+                p = sampleTheParameter(t, numOutput, priors[m], kernel[m], m, margins_prev, model_prev, weights_prev, parameters_prev, restart ) 
+
+                h_m[i] = m
+                for k in range(model_np[m]):
+                    h_p[i,k] = p[k]
+
+                #print "sampled h_p:", h_p[i]
+                #print "thread:", i, "newparticle"
+
+                for k in range(model_nx[m]):
+                    h_x[i,k] = InitValues[m][k]
+                    xt[i,0,k] = h_x[i,k]
+
+                h_t[i] = timepoints[0]
+                
+            if(status[i] == 1):
+                step[i] = 1
+                status[i] = 0
+                h_x[i,:] = 0
+                xt[i,:,:] = 0
+
+                for k in range(model_nx[m]):
+                    h_x[i,k] = InitValues[m][k]
+                    xt[i,0,k] = h_x[i,k]
+                
+                h_t[i] = timepoints[0]
+                
+            h_tmax[i] = timepoints[step[i]]
+            #print "particle:", h_m[i], h_p[i], h_t[i], h_tmax[i]
+ 
+        cuda.memcpy_htod(d_m, h_m)
+        model_tex.set_address(d_m, h_m.size*h_m.dtype.itemsize, allow_offset=False)
+
+        copy2D_host_to_array(h_p, d_p, pmax*4, nt )
+        param_tex.set_array(d_p)
+
+        copy2D_host_to_device(h_x, d_x, vxw, vxp, vxw, nt )
+        cuda.memcpy_htod(d_t, h_t)
+        cuda.memcpy_htod(d_tmax, h_tmax)
+        cuda.memcpy_htod(pvxp, np.array([vxp], dtype=np.int32) )
+
+        #print "Running cuda"
+        #print h_t
+        #print h_x
+        #print h_tmax
+        Gillespie_one_step( d_t, d_x, d_tmax, block=(nthread,1,1), grid=(nblock,1) );
+
+        copy2D_device_to_host(d_x, h_x, vxp, vxw, vxw, nt )
+        cuda.memcpy_dtoh(h_t, d_t)
+
+        # Do the distance calculation
+        for i in range(nt):
+
+            m = h_m[i]
+            for k in range(xmax):
+                xt[i,step[i],k] = h_x[i,k]
+                
+            sim = xt[i,0:step[i],0:model_nx[m] ]            
+            dat = data[0:step[i]]
+
+            #print "sim:\t", sim.transpose()
+            #print "dat:\t", dat.transpose()
+
+            points=howToFitData( fit[m], sim )
+            distance[i] = euclidianDistance(points, dat)            
+            #print "dist:\t", distance[i]
+
+            # process particle and set the status
+            good = False
+            if(distance[i] < epsilon[t] and distance[i] >= 0):
+                good = True
+
+            end = False
+            if( step[i] == ntimes-1 ):
+                end = True
+
+            last_attempt = False
+            if( attempts[i] == nrepeat-1 ):
+                last_attempt = True
+
+            #print "thread:", i, "good / end / last:", good, end, last_attempt
+
+            if(good and not end):
+                step[i] = step[i] + 1
+                status[i] = 2
+                
+            elif(good and end and last_attempt):
+                attempts[i] = attempts[i] + 1
+                betas[i] = betas[i] + 1
+                status[i] = 3
+
+            elif(good and end and not last_attempt):
+                attempts[i] = attempts[i] + 1
+                betas[i] = betas[i] + 1
+                status[i] = 1
+
+            elif(not good and last_attempt and betas[i] > 0):
+                attempts[i] = attempts[i] + 1
+                status[i] = 3
+
+            elif(not good and last_attempt and betas[i] == 0):
+                attempts[i] = attempts[i] + 1
+                status[i] = 0
+                failed = failed + 1
+
+            elif(not good and not last_attempt):
+                attempts[i] = attempts[i] + 1
+                status[i] = 1
+
+            else:
+                print "ABORT: CASE NOT CAUGHT"
+                sys.exit()
+
+            #print i, "results pos:", h_tmax[i], h_t[i], h_x[i,:], distance[i], step[i], status[i]
+            #print "\n\n"
+
+            # Copy good particles over
+            if(status[i] == 3):
+                passed = passed + 1
+
+                if(accepted < numOutput):
+                    model_curr[accepted] = h_m[i]
+                    for k in range(model_np[h_m[i]]):
+                        parameters_curr[accepted].append(h_p[i,k])
+
+                    beta_values[accepted] = betas[i]
+                    #print "Accepted particle, thread:",i, accepted, model_curr[accepted], parameters_curr[accepted], beta_values[accepted], attempts[i]
+
+                accepted = accepted + 1
+                status[i] = 0
+
+        iterations = iterations + 1
+    # main loop
+
+    hits[t] = passed
+    sampling[t] = passed + failed
+    #print "rate:", accepted, sampled, accepted/float(sampled)
+
+    
+
+
+
