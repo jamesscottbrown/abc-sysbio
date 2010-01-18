@@ -105,7 +105,7 @@ def GillespieInt(func, initValues, parameters, outputtimes):
         return concentrations
 
 
-def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, max):
+def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, xmax):
 	#print current_concentrations, t1,  t2, parameters
 
 	time = t1
@@ -120,7 +120,7 @@ def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, max):
 		list_of_hazards = func.Hazards((current_concentrations),parameters)
 		total_hazard = sum(list_of_hazards)
 
-		if sum( current_concentrations ) > max :
+		if sum( current_concentrations ) > xmax :
 			return[ current_concentrations, time, False ] 
 
 		if total_hazard <= 0.0:
