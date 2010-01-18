@@ -1151,9 +1151,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
         # Print histograms and scatter plots (analytical plots)
         #
-        if timing == False:
-            make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
-                                integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
+        
+        make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
+                            integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
         restart=False
 
         # end of loop over populations
