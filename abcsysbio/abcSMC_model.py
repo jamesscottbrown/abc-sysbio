@@ -135,6 +135,10 @@ def realize_particles( ModelName, selected_model, integrationType, initValues, t
         points = howToFitData(fit,concentrations[0:counter+1])
         distance=euclidian.euclidianDistance(points,data[0:counter+1])
 
+        #print data[0:counter+1].transpose()
+        #print points.transpose()
+        #print "len:",counter+1, distance
+
         if(distance >= epsilon or distance < 0):
             break
 
@@ -891,7 +895,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
 	while(i<numOutput):
 
-            if runmode < 2:
+            if runmode == 0 or runmode == 1:
                 sampling[t]=sampling[t]+1
                 if(full == True and sampling[t]%100 == 0):
                     print "sampled: ", sampling[t] 
@@ -936,11 +940,15 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                                        fit[selected_model],
                                                        data )
 
-                    if(distance<=epsilon[t] and distance>0 ):
+                        #print selected_model, sampleParameters, r, distance 
+
+                    if(distance<epsilon[t] and distance>0 ):
                         distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
                         dist=True
                         beta_values[i] = beta_values[i] + 1
-                    
+
+                # end of loop over B
+                
                 if dist==True:
                     hits[t]=hits[t]+1
                     if full == True and repeat == 1:
