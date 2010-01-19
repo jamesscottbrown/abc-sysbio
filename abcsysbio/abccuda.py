@@ -20,6 +20,10 @@ from struct import unpack
 
 
 _mersenne_twister_source_ = """
+    // This mersenne twister code is derived from the code at 
+    // http://www.jcornwall.me.uk/2009/04/mersenne-twisters-in-cuda/
+    // which in turn is derived from the NVIDIA CUDA SDK example 'MersenneTwister'.
+
     #define MT_RNG_COUNT 32768
     #define MT_MM     9
     #define MT_NN     19
@@ -603,13 +607,13 @@ def realize_particles(ptrs, nthread, nblock, xmax, pmax,
     xt = np.zeros( [nt,ntimes,xmax] )
 
     # times array
-    #h_t = np.zeros( [nt] ).astype(np.float32)
-    h_t = cuda.pagelocked_zeros( [nt], dtype=np.float32)
+    h_t = np.zeros( [nt] ).astype(np.float32)
+    #h_t = cuda.pagelocked_zeros( [nt], dtype=np.float32)
     d_t = cuda.mem_alloc(h_t.size*h_t.dtype.itemsize)
 
     # max array
-    #h_tmax = np.zeros( [nt] ).astype(np.float32)
-    h_tmax = cuda.pagelocked_zeros( [nt], dtype=np.float32)
+    h_tmax = np.zeros( [nt] ).astype(np.float32)
+    #h_tmax = cuda.pagelocked_zeros( [nt], dtype=np.float32)
     d_tmax = cuda.mem_alloc(h_tmax.size*h_tmax.dtype.itemsize)
 
     # model 1D array
@@ -627,12 +631,13 @@ def realize_particles(ptrs, nthread, nblock, xmax, pmax,
     d_p = cuda.Array(descr)
 
     # values 2D matrix
-    #h_x = np.zeros( [nt,xmax], order="C", dtype=np.float32)
-    h_x = cuda.pagelocked_zeros( [nt,xmax], order="C", dtype=np.float32)
+    h_x = np.zeros( [nt,xmax], order="C", dtype=np.float32)
+    #h_x = cuda.pagelocked_zeros( [nt,xmax], order="C", dtype=np.float32)
     vxw = xmax*4 #32 bit = 4bytes
     alloc_tup = cuda.mem_alloc_pitch(width=vxw, height=nt, access_size=4 )
     vxp = alloc_tup[1]
     d_x = alloc_tup[0]
+    cuda.memcpy_htod(pvxp, np.array([vxp], dtype=np.int32) )
 
     # Gillespie + distance calculation algorithm
     passed = 0
@@ -705,8 +710,7 @@ def realize_particles(ptrs, nthread, nblock, xmax, pmax,
         copy2D_host_to_device(h_x, d_x, vxw, vxp, vxw, nt )
         cuda.memcpy_htod(d_t, h_t)
         cuda.memcpy_htod(d_tmax, h_tmax)
-        cuda.memcpy_htod(pvxp, np.array([vxp], dtype=np.int32) )
-
+        
         #print "Running cuda"
         #print h_t
         #print h_x
