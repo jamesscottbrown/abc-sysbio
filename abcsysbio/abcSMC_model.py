@@ -227,9 +227,8 @@ def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_pre
   
 def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart ):
     
-    selected_model = 0
     if nmodel == 1:
-        return selected_model
+        return 0
 
     if(restart == False and t == 0):
         # sample from prior
@@ -238,25 +237,23 @@ def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart 
 
     else:
         sampled_model=w_choice( range(0,nmodel), margins_prev )
+
+        if( len(dead_models) == nmodel-1 ):
+            return sampled_model
         
         # perturb model
         u = rnd.uniform(low=0, high=1)
         if u > 0.7:
+
             # sample randomly from other (non dead) models
             not_available = dead_models[:]
             not_available.append(sampled_model)
-            if len(not_available) == 1:
-                return sampled_model
-            
             ss = set( not_available )
             s = set( range(0,nmodel) )
 
             #print "perturbing model ", set( range(0,nmodel) ), ss, s-ss, list(s-ss), numpy.array( list(s-ss) )
 
             ar = numpy.array( list(s-ss) )
-            if len(ar) == 0:
-                perturbed_model = sampled_model
-
             rnd.shuffle( ar )
             perturbed_model = ar[0]
             #print "perturbation ", sampled_model, "->", perturbed_model
