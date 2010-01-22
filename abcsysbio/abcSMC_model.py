@@ -97,7 +97,7 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
     return samplePoints
 
 #############
-def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters, epsilon, fit, data ):
+def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters, epsilon, fit, data, distancefn ):
     o=re.compile('ODE')
     s=re.compile('SDE')
     g=re.compile('Gillespie')
@@ -133,7 +133,7 @@ def realize_particles( ModelName, selected_model, integrationType, initValues, t
 
         concentrations[counter] = current_concentrations
         points = howToFitData(fit,concentrations[0:counter+1])
-        distance=euclidian.euclidianDistance(points,data[0:counter+1])
+        distance = distancefn(points,data[0:counter+1])
 
         #print data[0:counter+1].transpose()
         #print points.transpose()
@@ -565,7 +565,8 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
 def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit=None,
                  sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,
                  full=False, rtol=None, atol=None, constKernels=False,
-                 runmode=0, timing=False, nthread=None, nblock=None, fname="_results_", mt_data="MersenneTwister.dat",app_file="app.txt"):   
+                 runmode=0, timing=False, nthread=None, nblock=None, fname="_results_", mt_data="MersenneTwister.dat",app_file="app.txt",
+                 custom_kernel=False, custom_distance=False):   
 
     """
 
@@ -872,6 +873,25 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         xmax = max(model_nx)
         print "#### built cuda code. pmax/xmax : ", pmax, xmax
 
+
+    #
+    # Set distance function
+    #
+    if custom_distance == False:
+        distancefn = euclidian.euclidianDistance
+    else:
+        import distance
+        distancefn = distance.distance
+
+    #
+    # Set kernel function
+    #
+    if custom_kernel == False:
+        kernelfn = getKernel
+    else:
+        import abckernel
+        kernelfn = abckernel.getKernel
+
     #
     # Start of ABC-SMC algoritm
     #
@@ -925,7 +945,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     if runmode == 0 :
                         samplePoints=simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol,atol)
                         points=howToFitData(fit[selected_model],samplePoints)
-                        distance=euclidian.euclidianDistance(points,data)
+                        distance=distancefn(points,data)
                     else :
                         distance = realize_particles(  ModelName,
                                                        selected_model,
@@ -935,7 +955,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                                        sampleParameters,
                                                        epsilon[t],
                                                        fit[selected_model],
-                                                       data )
+                                                       data,
+                                                       distancefn )
 
                         #print selected_model, sampleParameters, r, distance 
 
@@ -1011,7 +1032,13 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         d = simulated_data[k, :, 0:model_nx[m] ]
                     
                         points=howToFitData( fit[m], d )
-                        distance=euclidian.euclidianDistance(points,data)
+                        distance=distancefn(points,data)
+
+                        if custom_kernel == True:
+                            print t,",",
+                            for kk in range( model_np[m] ):
+                                print batch_param[k,kk],",",
+                            print distance
                         
                         if(distance<=epsilon[t] and distance>0 ):
                             #distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
@@ -1044,7 +1071,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 abccuda.realize_particles(ptrs, nthread, nblock, xmax, pmax,
                                           numOutput, nmodel, model_np, model_nx, dead_models,
                                           sampleTheModel, sampleTheParameter, t, priors, kernel, restart, modelDistrib0, beta,
-                                          euclidian.euclidianDistance, howToFitData, integrationType, InitValues, timepoints, epsilon, fit, data,
+                                          distancefn, howToFitData, integrationType, InitValues, timepoints, epsilon, fit, data,
                                           margins_prev, model_prev, weights_prev, parameters_prev,
                                           model_curr, parameters_curr, beta_values, hits, sampling) # output into these variables
                 i = numOutput
@@ -1132,7 +1159,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         if constKernels==False: ### numbers[lastpopulation]
             for mod in range(0, nmodel):
                 if margins_prev[mod] > 0.1:  ### only compute corrected kernels if the model was selected at least 10%
-                    kernel[mod] = getKernel(kernel[mod], population[mod][t])
+                    kernel[mod] = kernelfn(kernel[mod], population[mod][t])
 
         if pickling==True:
             write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, parameters_prev, margins_prev, kernel)
