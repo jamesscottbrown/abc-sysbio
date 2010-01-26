@@ -174,9 +174,32 @@ def sample_particle(nparticle, selected_model, margins_prev, model_prev, weights
                 break
 
     return i
+
+def perturbParticle(params, priors, kernel):
+    np = len( priors )
+    prior_prob = 1
+            
+    for n in range(0,np):
+         
+        if kernel[n][0]==1:
+            params[n] = params[n] + rnd.uniform(low=kernel[n][1],high=kernel[n][2])
+
+        if kernel[n][0]==2: 
+            params[n] = params[n] + rnd.normal(kernel[n][1],kernel[n][2])
+
+        x = 1.0
+        if priors[n][0]==2: 
+            x=getPdfUniform(priors[n][1],priors[n][2],params[n])
+
+        if priors[n][0]==3: 
+            x=getPdfLognormal(priors[n][1],priors[n][2],params[n])
+            
+        prior_prob = prior_prob*x
+
+    return prior_prob
     
 ############sample parameters
-def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ):
+def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart, perturbfn ):
     np = len( priors )
     sampleParameters = [ 0 for i in range(0,np) ]
     
@@ -198,29 +221,8 @@ def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_pre
             p = sample_particle(nparticle, selected_model, margins_prev, model_prev, weights_prev )
             for nn in range(np):
                 sampleParameters[nn] = parameters_prev[ p ][nn]
-            #print p, sampleParameters
-
-            # perturb particle
-            prior_prob = 1
-            
-            for n in range(0,np):
-         
-                if kernel[n][0]==1:
-                    #print sampleParameters[n], rnd.uniform(low=kernel[n][1],high=kernel[n][2])
-                    
-                    sampleParameters[n] = sampleParameters[n] + rnd.uniform(low=kernel[n][1],high=kernel[n][2])
-
-                if kernel[n][0]==2: 
-                    sampleParameters[n] = sampleParameters[n] + rnd.normal(kernel[n][1],kernel[n][2])
-
-                x = 1.0
-                if priors[n][0]==2: 
-                    x=getPdfUniform(priors[n][1],priors[n][2],sampleParameters[n])
-
-                if priors[n][0]==3: 
-                    x=getPdfLognormal(priors[n][1],priors[n][2],sampleParameters[n])
-
-                prior_prob = prior_prob*x
+          
+            prior_prob = perturbfn( sampleParameters, priors, kernel )
 
     return sampleParameters
 
@@ -293,9 +295,9 @@ def getPdfParameterKernel(params, params0, priors, kernel):
                 scale = kernel[n][2]
                 CDF2 = norm.cdf(priors[n][2],mean,scale)
                 CDF1 = norm.cdf(priors[n][1],mean,scale)
-                CDF=(CDF2-CDF1)**(-1)
-                kern=getPdfGauss(mean,scale,params[n])
-                kern=kern*CDF
+                CDF = (CDF2-CDF1)**(-1)
+                kern = getPdfGauss(mean,scale,params[n])
+                kern = kern*CDF
 
         else: kern=1.0
         prob=prob*kern
@@ -304,7 +306,7 @@ def getPdfParameterKernel(params, params0, priors, kernel):
 
 
 def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutput, priors, kernel, model_prev,
-                           margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart):
+                           margins_prev, weights_prev, parameters_prev, BETA, dead_models, restart, kernelpdffn):
 
     if(restart==False and t == 0):
         return BETA
@@ -330,14 +332,13 @@ def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutpu
         denom_m = 0
         for i in range(nmodel):
             denom_m = denom_m + margins_prev[i]*getPdfModelKernel(selected_model, i, nmodel, dead_models)
-
         denom = 0
         #print "Calculating denom\t", selected_model, sampleParameters
         for j in range(numOutput):
 
             if(int(selected_model) == int(model_prev[j]) ):
                 #print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
-                denom = denom + weights_prev[j] * getPdfParameterKernel(sampleParameters, parameters_prev[j], priors, kernel )
+                denom = denom + weights_prev[j] * kernelpdffn(sampleParameters, parameters_prev[j], priors, kernel )
 
         #print "numer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, margins_prev[selected_model]
 
@@ -880,18 +881,22 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     if custom_distance == False:
         distancefn = euclidian.euclidianDistance
     else:
-        import distance
-        distancefn = distance.distance
+        import customABC
+        distancefn = customABC.distance
 
     #
     # Set kernel function
     #
     if custom_kernel == False:
         kernelfn = getKernel
-    else:
-        import abckernel
-        kernelfn = abckernel.getKernel
+        kernelpdffn = getPdfParameterKernel
+        perturbfn = perturbParticle
 
+    else:
+        import customABC
+        kernelfn = customABC.getKernel
+        kernelpdffn = customABC.getPdfParameterKernel
+        perturbfn = customABC.perturbParticle
     #
     # Start of ABC-SMC algoritm
     #
@@ -927,7 +932,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 # Sample and perturb the parameters given the model
                 #
                 sampleParameters = sampleTheParameter(t, numOutput, priors[selected_model], kernel[selected_model],
-                                                      selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart ) 
+                                                      selected_model, margins_prev, model_prev, weights_prev, parameters_prev, restart, perturbfn ) 
 
                 #
                 # Realize the particles
@@ -1008,7 +1013,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 for k in range(nt):
                     m = batch_model[k]
                     params = sampleTheParameter(t, numOutput, priors[m], kernel[m],
-                                                m, margins_prev, model_prev, weights_prev, parameters_prev, restart ) 
+                                                m, margins_prev, model_prev, weights_prev, parameters_prev, restart, perturbfn ) 
 
                     for kk in range( model_np[m] ):
                         batch_param[k,kk] = params[kk]
@@ -1095,7 +1100,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         for i in range(numOutput):
             selected_model = model_curr[i]
             weights_curr[i] = computeParticleWeights(t, parameters_curr[i], selected_model, nmodel, numOutput, priors[selected_model], kernel[selected_model],
-                                                     model_prev, margins_prev, weights_prev, parameters_prev, beta_values[i], dead_models, restart)
+                                                     model_prev, margins_prev, weights_prev, parameters_prev, beta_values[i], dead_models, restart, kernelpdffn)
 
             #print selected_model, parameters_curr[i], weights_curr[i]
 
