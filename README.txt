@@ -33,11 +33,15 @@ doc contains the package documentation
 
 ##############
 
-Examples contains the SBML models, input files and (for Example 2) modified scripts required to reproduce Examples 1, 2 and 3 in the package documentation.
+Examples contains the SBML models, input files and (for Example 2) modified scripts required to reproduce Examples 1, 2, 3 and 4 in the package documentation.
 
 ##############
 
-Scripts contains two scripts, abc-sysbio and abc-sysbio-sbml-sum, that enable easy use of the package for the most common applications.
+scripts contains two scripts, abc-sysbio and abc-sysbio-sbml-sum, that enable easy use of the package for the most common applications.
+
+##############
+
+data contains MersenneTwister.dat which is an initialization file for the parallel Mersenne Twister obtained from (http://www.jcornwall.me.uk)
 
 ##############
 
