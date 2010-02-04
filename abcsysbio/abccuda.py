@@ -205,6 +205,31 @@ _gillespie_source_="""
     }
     """
 
+_test_hazards_source_="""
+    __constant__ int vxp;
+
+    __global__ void test_hazards(int* vh, float* vx){
+    const unsigned int tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+    int i;
+    int model = tex1Dfetch(model_tex, tid);
+
+    float x[ NXMAX ];
+    for(i=0; i<nx[model]; ++i){
+       x[i] = ((float*)( (char*) vx + tid * vxp))[i];
+    }
+
+    float h0;
+    int r = hazards(h0, x, model, MTS[tid], tid);
+    
+    for(i=0; i<nx[model]; ++i){
+       ((float*)( (char*) vx + tid * vxp))[i] = x[i];
+    }
+
+    vh[tid] = r;
+    }
+    """
+
 _gillespie2_source_="""
     __constant__ int vxp;
 
@@ -530,6 +555,103 @@ def run_gillespie( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, time
                 xt_h[j,i,k] = h_x[j,k]
 
     return xt_h
+
+def compile_hazards_test( application_code, mt_data, nthread, nblock ):
+
+    print "\n#### GPU info"
+    print "#### max threads / registers / blocks :", tools.DeviceData().max_threads, tools.DeviceData().registers, tools.DeviceData().thread_blocks_per_mp
+
+    f = open(application_code,'r')
+
+    _code_ = _mersenne_twister_source_ + _textures_ + _sample_ + f.read() + _test_hazards_source_
+    
+    compiled = pycuda.compiler.SourceModule( _code_ )
+    pvxp = int(compiled.get_global("vxp")[0])
+    
+    print "\n#### compile_hazards_test"
+    print "#### obtaining vxp pointer of size", compiled.get_global("vxp")[1], "bytes, value :", compiled.get_global("vxp")[0]  
+
+    initialise_twisters( mt_data, compiled, nthread, nblock )
+
+    hazards_test = compiled.get_function("test_hazards")
+    model_tex = compiled.get_texref("model_tex")
+    param_tex = compiled.get_texref("param_tex")
+ 
+    return [ hazards_test, pvxp, model_tex, param_tex ]
+
+def run_hazards_test( ptrs, nt, nm, pmax, xmax, nthread, nblock, model, param, xin, hout, xout ):
+    
+    hazards_test, pvxp, model_tex, param_tex = ptrs[0], ptrs[1], ptrs[2], ptrs[3]
+
+    # model 1D array
+    d_m = cuda.mem_alloc(model.size*model.dtype.itemsize)
+    cuda.memcpy_htod(d_m, model)
+    model_tex.set_address(d_m, model.size*model.dtype.itemsize, allow_offset=False)
+
+    # parameters 2D array 
+    descr = cuda.ArrayDescriptor()
+    descr.width = pmax
+    descr.height = nt
+    descr.format = cuda.dtype_to_array_format(param.dtype)
+    descr.num_channels = 1
+    descr.flags = 0
+
+    ary = cuda.Array(descr)
+
+    copy = cuda.Memcpy2D()
+    copy.set_src_host(param)
+    copy.set_dst_array(ary)
+    copy.height = nt
+    copy.width_in_bytes = copy.src_pitch = pmax*4
+    copy(aligned=True)
+
+    param_tex.set_array(ary)
+
+    # values 2D array, fill with initial conditions
+    h_x = np.zeros( [nt,xmax], order="C", dtype=np.float32)
+    for i in range(nt):
+        for k in range( len(xin) ):
+                    h_x[i,k] = xin[k]
+
+    vxw = xmax*4
+    alloc_tup = cuda.mem_alloc_pitch(width=vxw, height=nt, access_size=4 )
+    vxp = alloc_tup[1]
+    d_x = alloc_tup[0]
+    cuda.memcpy_htod(pvxp, np.array([vxp], dtype=np.int32) )
+
+    copy = cuda.Memcpy2D()
+    copy.set_src_host(h_x)
+    copy.set_dst_device(d_x)
+    copy.src_pitch = vxw
+    copy.dst_pitch = vxp
+    copy.width_in_bytes = vxw
+    copy.height = nt
+    copy(aligned=True)
+
+    # hazards 1D array
+    h_h = np.zeros( [nt], dtype=np.int32)
+    d_h = cuda.mem_alloc(h_h.size*h_h.dtype.itemsize)
+    cuda.memcpy_htod(d_h, h_h)
+
+    hazards_test( d_h, d_x, block=(nthread,1,1), grid=(nblock,1) );
+
+    # copy the x values over
+    copy = cuda.Memcpy2D()
+    copy.set_src_device(d_x)
+    copy.set_dst_host(h_x)
+    copy.src_pitch = vxp
+    copy.dst_pitch = vxw
+    copy.width_in_bytes = vxw
+    copy.height = nt
+    copy(aligned=True)
+
+    # copy the reactions over
+    cuda.memcpy_dtoh(h_h, d_h)
+    
+    for i in range(nt):
+        hout[i] = h_h[i]
+        for j in range(xmax):
+            xout[i,j] = h_x[i,j]
 
 def compile_cuda_gillespie2( application_code, mt_data, nthread, nblock ):
 
