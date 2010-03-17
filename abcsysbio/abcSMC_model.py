@@ -18,6 +18,7 @@ from abcsysbio.getResults import *
 
 __LARGE_DISTANCE__ = 1000000
 __XMAX__= 2000
+__DUMP__ = False
 
 def w_choice(item,weight):#http://snippets.dzone.com/posts/show/732 - modified for vectors
     n = rnd.random_sample()
@@ -43,7 +44,7 @@ def getKernel(kern,priors,population):
     for param in range(0, len(population)):
         minimum=min(population[param])
         maximum=max(population[param])
-        scale=(maximum-minimum)/4.0
+        scale=(maximum-minimum)
         if kern[param][0]==1: 
             kern[param][1]=-scale/2.0
             kern[param][2]=scale/2.0
@@ -58,7 +59,7 @@ def getPdfUniform(scale1,scale2,parameter):
     if ((parameter>scale2) or (parameter<scale1)): x=0.0
     else:
         scale=scale2-scale1
-        x=(scale*2)**(-1)
+        x=(scale)**(-1)
 
     return x
 
@@ -276,7 +277,7 @@ def getPdfModelKernel(m,m0,nmodel,dead_models):
         else:
             return 0.3/(nmodel-ndead)
 
-def getPdfParameterKernel(params, params0, priors, kernel):
+def getPdfParameterKernel(params, params0, priors, kernel, id):
 
     prob = 1
     for n in range(0,len(priors)):
@@ -338,7 +339,7 @@ def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutpu
 
             if(int(selected_model) == int(model_prev[j]) ):
                 #print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
-                denom = denom + weights_prev[j] * kernelpdffn(sampleParameters, parameters_prev[j], priors, kernel )
+                denom = denom + weights_prev[j] * kernelpdffn(sampleParameters, parameters_prev[j], priors, kernel, j )
 
         #print "numer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, margins_prev[selected_model]
 
@@ -1039,7 +1040,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         points=howToFitData( fit[m], d )
                         distance=distancefn(points,data)
 
-                        if custom_kernel == True:
+                        if __DUMP__ == True:
                             print t,",",
                             for kk in range( model_np[m] ):
                                 print batch_param[k,kk],",",
@@ -1162,6 +1163,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         # Compute kernels
         #
         if constKernels==False: ### numbers[lastpopulation]
+            #print "computing kernels", margins_prev[mod]
             for mod in range(0, nmodel):
                 if margins_prev[mod] > 0.1:  ### only compute corrected kernels if the model was selected at least 10%
                     kernel[mod] = kernelfn(kernel[mod], priors[mod], population[mod][t])
