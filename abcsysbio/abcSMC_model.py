@@ -1001,8 +1001,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if runmode == 2:
                 nt = nthread * nblock 
                 sampling[t]=sampling[t] + nt
-                if full == True:
-                    print "population", t, ", cuda batch:", sampling[t], i
+                #if full == True:
+                #    print "population", t, ", cuda batch:", sampling[t], i
 
                 # sample nt models
                 batch_model = numpy.zeros( [nt], dtype=numpy.int32 )
