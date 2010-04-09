@@ -105,9 +105,8 @@ Examples 1, 2, 3 and 4 in the package documentation.
 scripts/ contains two scripts run-abc-sysbio and abc-sysbio-sbml-sum, 
 that enable easy use of the package for the most common applications.
 
-data/ contains MersenneTwister.dat which is an initialization 
-file for the parallel MersenneTwister obtained 
-from http://www.jcornwall.me.uk
+MersenneTwister.dat is an initialization file for the parallel 
+MersenneTwister obtained from http://www.jcornwall.me.uk
 
 For more details, refer to the package documentation.
 
