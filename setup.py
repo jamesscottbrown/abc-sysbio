@@ -4,12 +4,20 @@ from distutils.core import setup
 setup(name='abc-sysbio',
       version='0.2',
       description='Approximate Bayesian Computation for systems biology',
-      author='Juliane Liepe, Erika Cule, Chris Barnes',
-      author_email='juliane.liepe08@imperial.ac.uk, christopher.barnes@imperial.ac.uk',
+
+      author='Juliane Liepe, Chris Barnes, Erika Cule',
+
+      author_email='christopher.barnes@imperial.ac.uk,juliane.liepe08@imperial.ac.uk',
+
       url='http://abc-sysbio.sourceforge.net/',
+
       packages=['abcsysbio'],
+
       scripts=['scripts/run-abc-sysbio', 
                'scripts/abc-sysbio-sbml-sum'],
+
+      package_data={'abcsysbio': ['data/MersenneTwister.dat']},
+      
       requires=['libSBML', 
                 'math',
                 'matplotlib',
