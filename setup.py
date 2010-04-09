@@ -16,7 +16,7 @@ setup(name='abc-sysbio',
       scripts=['scripts/run-abc-sysbio', 
                'scripts/abc-sysbio-sbml-sum'],
 
-      package_data={'abcsysbio': ['data/MersenneTwister.dat']},
+      package_data={ 'abcsysbio': ['../README.txt','../data/MersenneTwister.dat'] },
       
       requires=['libSBML', 
                 'math',
