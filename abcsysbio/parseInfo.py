@@ -29,6 +29,7 @@ def getAlgorithmInfo(filename):
     rtolRE=re.compile('<rtol>')
     atolRE=re.compile('<atol>')
     constKernels = re.compile('<consant kernels>')
+    modelKernel = re.compile('<model kernel>')
     
     plus=re.compile('\+')
     minus=re.compile('\-')
@@ -127,7 +128,23 @@ def getAlgorithmInfo(filename):
         print "\n No value for modelnumber  <modelnumber> is given in file '"+filename+"'\n"
         sys.exit()
 
-    
+
+#####model kernel
+    modelkernel=0.7
+    if modelnumber>1:
+        f_info=open(filename)
+        for line in f_info.readlines():
+            if commentRE.match(line): continue
+            elif modelKernel.match(line):
+                try:
+                    modelkernel=float(modnum.sub('',line))
+                except:
+                    print "\n Please provide an float value for model kernel <model kernel> in file '"+filename+"'\n"
+                    sys.exit()
+                break;
+        f_info.close()
+
+
 
 
 #####get epsilon
@@ -431,7 +448,7 @@ def getAlgorithmInfo(filename):
     f_info.close()
         
 
-    return restart,name,data,timepoints,numOutput,epsilon,initValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,BETA,dt, rtol, atol,constKern
+    return restart,name,data,timepoints,numOutput,epsilon,initValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,BETA,dt, rtol, atol,constKern,modelkernel
 
 
 
