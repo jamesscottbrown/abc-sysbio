@@ -1,4 +1,3 @@
-import scipy
 import numpy
 import math
 import sys
@@ -21,9 +20,8 @@ def euclidianDistance(data1, data2):
         sys.exit()
     else:
         z = (data1 - data2)**2
-        distance = math.sqrt(scipy.sum(z))
-	#distance = scipy.sum(z)/30
-
+        distance = math.sqrt(numpy.sum(z))
+	
     if distance < 0:
         return None
     else:
