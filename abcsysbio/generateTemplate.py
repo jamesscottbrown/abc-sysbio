@@ -45,6 +45,8 @@ def generateTemplate(source,filename="input_file_template.txt"):
 
     out_file.write("#Number of models for which details are described in this input file\n\n")
     out_file.write("<modelnumber> "+repr(len(source))+"\n\n")
+    out_file.write("#Probability of perturbing the sampled model (ignored when modelnumber = 1)\n\n")
+    out_file.write("<model kernel> 0.7 \n\n")
     out_file.write("#Restart from previous (pickled) population?\n\n")
     out_file.write("<restart> False\n\n")
     out_file.write("#Series of epsilons. (Comma-delimited list)\n#If the length of the epsilon series is one and you have only one model\n#you are effectively doing abc Rejection\n\n")                   
