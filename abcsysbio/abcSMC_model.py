@@ -90,7 +90,7 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
     if o.match(integrationType[selected_model]):
         samplePoints=abcodesolve.abcodeint(module, InitValues[selected_model], timepoints, sampleParameters, dt, rtol, atol)
     if s.match(integrationType[selected_model]): 
-        samplePoints=sdeint(module,InitValues[selected_model],sampleParameters,timepoints,dt)
+        samplePoints=sdeint.sdeint(module,InitValues[selected_model],sampleParameters,timepoints,dt)
     if g.match(integrationType[selected_model]): 
         samplePoints=GillespieAlgorithm.GillespieInt(module, InitValues[selected_model], sampleParameters,timepoints)
 
