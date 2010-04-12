@@ -1,14 +1,14 @@
 from pylab import * 
 
-import matplotlib
-#import modelfunction
 import re
-from abcsysbio import abcodesolve
+import matplotlib
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+#import modelfunction
+
 from abcsysbio import sdeint
 from abcsysbio import GillespieAlgorithm
-import abcsysbio.abcSMC_model
-from scipy.integrate.odepack import odeint
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+#import abcsysbio.abcSMC_model
+#from scipy.integrate.odepack import odeint
 from Scientific.Statistics import Histogram
 
 def MatrixToTextfile(matrix,filename,model,eps):
@@ -165,7 +165,9 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
         for j in range(0,len(matrix[int(model)][populationNumber-1])):
             parameter.append(matrix[int(model)][int(populationNumber)-1][j][i])
 
-        if o.match(integrationType): data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
+        if o.match(integrationType):
+            from abcsysbio import abcodesolve
+            data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
         if s.match(integrationType): data_sim=sdeint(module,InitValues,parameter,timepoints_new,dt=0.01)
         if g.match(integrationType): data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
 
