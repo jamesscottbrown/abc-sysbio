@@ -1,7 +1,8 @@
 import pickle
+#from libsbml import *
 import re
 
-def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname):
+def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname,modelKernel):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to run the abc-SMC algorithm.
@@ -75,11 +76,13 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
     
     if not len(priors)==len(kernel):
 	return False,"\nPlease provide a pertubation kernel for each prior distribution!\n"
+
+    if not modelKernel>0.0:
+	return False,"\nPlease provide a model Kernel larger than 0!\n"
     
 
     ### check model specific properties (comparing with SBML model)
     if not source==None:
-        from libsbml import *
 
         if not len(source)==len(ModelName): 
             return False,"\nPlease provide the same amount of model sources and model names!\n"
@@ -121,7 +124,6 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
                     numParameters=numParameters+1
                     numSpecies=numSpecies-1
 
-            listOfRules = model.getListOfRules()
             for k in range (0, len(listOfParameter)):
                 if listOfParameter[k].getConstant()==False:
                     for j in range(0, len(listOfRules)):
@@ -245,7 +247,6 @@ def checkInputSimulation(name, timepoints, InitValues, IntegrationType, Constant
 
     ### check model specific properties (comparing with SBML model)
     if not source==None:
-        from libsbml import *
 
         if not len(source)==len(name): 
             return False,"\nPlease provide the same amount of model sources and model names!\n"
