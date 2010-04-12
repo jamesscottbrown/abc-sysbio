@@ -179,14 +179,14 @@ def main():
 	modelKernel = 	info[19]
 
         if plot==True:
-            plt.plot(timepoints,data,'o-')
+            figure(figsize=(10,7))
+            lines=plt.plot(timepoints,data,'o-')
 	    xlabel('time')
             ylabel('Unit')
 	    specLeg = range(0,shape(data)[1])
 	    for leg in range(0,len(specLeg)):
-	    	specLeg[leg] = 'species'+str(specLeg[leg]+1)
-	    print specLeg
-	    legend(specLeg,loc=0)
+	    	specLeg[leg] = 'variable'+str(specLeg[leg]+1)
+	    figlegend((lines,),specLeg,'upper left')
 
 				
             plt.savefig('_data')
