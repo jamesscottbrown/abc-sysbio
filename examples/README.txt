@@ -2,7 +2,15 @@ This folder contains the models and user input files required to reproduce the e
 
 ##############
 
-Example 1 - Three SBML models and a user input file.
-Example 2 - One SBML model, one Python function to represent the model, one input file to simulate the model, two input files to run ABC-SMC, one modified abcScript to run the algorithm without importing the xml model.
-Example 3 - One SBML model and one user input file.
-Example 4 - One cuda application file and one input file
+Example 1 - SIR model selection using ODEs. There should be three SBML models and a user input file.
+	This example requires both scipy and libsbml installed in addition to the minmimum packages (numpy, ScientificPython, matplotlib)
+
+Example 2 - Linear growth model using SDEs. There should be three input *.txt files and a python model file.
+	No import of SBML is performed and as such this example requires only the minmimum packages (numpy, ScientificPython, matplotlib)
+
+Example 3 - Dimerisation reaction using Markov jump process and Gillespie algorithm. There should be one SBML model and a user input file.
+	This example requires libsbml installed in addition to the minmimum packages (numpy, ScientificPython, matplotlib)
+
+Example 4 - Immigration death model using Markov jump process and Gillespie algorithm on CUDA device. There should be one cuda file and a user input file.
+	This example requires pycuda installed in addition to the minmimum packages (numpy, ScientificPython, matplotlib)
+
