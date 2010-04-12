@@ -6,18 +6,18 @@ import time
 from math import *
 import numpy
 from numpy import random as rnd
-#from scipy.integrate.odepack import odeint
+from scipy.integrate.odepack import odeint
 
 from abcsysbio import GillespieAlgorithm
+from abcsysbio import abcodesolve
 from abcsysbio import sdeint
 from abcsysbio import euclidian
 
-from abcsysbio.checkInputArguments import *
+#from abcsysbio.checkInputArguments import *
 from abcsysbio.getResults import *
 
 __LARGE_DISTANCE__ = 1000000
 __XMAX__= 2000
-__DUMP__ = False
 
 def w_choice(item,weight):#http://snippets.dzone.com/posts/show/732 - modified for vectors
     n = rnd.random_sample()
@@ -38,12 +38,12 @@ def w_choice2(item,weight):#http://snippets.dzone.com/posts/show/732 - modified 
 
 
 ################## compute the kernels
-def getKernel(kern,priors,population):
+def getKernel(kern,population):
 
     for param in range(0, len(population)):
         minimum=min(population[param])
         maximum=max(population[param])
-        scale=(maximum-minimum)
+        scale=(maximum-minimum)/4.0
         if kern[param][0]==1: 
             kern[param][1]=-scale/2.0
             kern[param][2]=scale/2.0
@@ -58,7 +58,7 @@ def getPdfUniform(scale1,scale2,parameter):
     if ((parameter>scale2) or (parameter<scale1)): x=0.0
     else:
         scale=scale2-scale1
-        x=(scale)**(-1)
+        x=(scale*2)**(-1)
 
     return x
 
@@ -226,8 +226,8 @@ def sampleTheParameter(t, nparticle, priors, kernel, selected_model, margins_pre
 
     return sampleParameters
 
-  
-def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart ):
+############sample model
+def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart, modelKernel ):
     
     if nmodel == 1:
         return 0
@@ -245,7 +245,7 @@ def sampleTheModel(t, nmodel, margins_prev, modelDistrib0, dead_models, restart 
         
         # perturb model
         u = rnd.uniform(low=0, high=1)
-        if u > 0.7:
+        if u > modelKernel:
 
             # sample randomly from other (non dead) models
             not_available = dead_models[:]
@@ -276,7 +276,7 @@ def getPdfModelKernel(m,m0,nmodel,dead_models):
         else:
             return 0.3/(nmodel-ndead)
 
-def getPdfParameterKernel(params, params0, priors, kernel, id):
+def getPdfParameterKernel(params, params0, priors, kernel):
 
     prob = 1
     for n in range(0,len(priors)):
@@ -338,7 +338,7 @@ def computeParticleWeights(t, sampleParameters, selected_model, nmodel, numOutpu
 
             if(int(selected_model) == int(model_prev[j]) ):
                 #print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
-                denom = denom + weights_prev[j] * kernelpdffn(sampleParameters, parameters_prev[j], priors, kernel, j )
+                denom = denom + weights_prev[j] * kernelpdffn(sampleParameters, parameters_prev[j], priors, kernel )
 
         #print "numer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, margins_prev[selected_model]
 
@@ -567,7 +567,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                  sampleFromPrior=False,beta=1,dt=0.01,restart=False,source=None,diagnostic=True,pickling=True,plotDataSeries=True,
                  full=False, rtol=None, atol=None, constKernels=False,
                  runmode=0, timing=False, nthread=None, nblock=None, fname="_results_", mt_data="MersenneTwister.dat",app_file="app.txt",
-                 custom_kernel=False, custom_distance=False):   
+                 custom_kernel=False, custom_distance=False, modelKernel=0.7):   
 
     """
 
@@ -852,18 +852,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if margins_prev[j] < 1e-6:
                 dead_models.append(j)
 
-    #
-    # Import ODE solver if required
-    #
-    flag = False
-    o = re.compile('ODE')
-    for j in range(0,nmodel):
-        if o.search(integrationType[j]):
-            flag = True
-
-    if flag==True:
-        from abcsysbio import abcodesolve
-        print 'importing ODE solver'
 
     #
     # Read, compile cuda code. Initialize RNGs 
@@ -938,7 +926,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 #
                 # Sample and perturb the model
                 #
-                selected_model = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart)
+                selected_model = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart, modelKernel)
             
                 #
                 # Sample and perturb the parameters given the model
@@ -1012,13 +1000,13 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if runmode == 2:
                 nt = nthread * nblock 
                 sampling[t]=sampling[t] + nt
-                #if full == True:
-                #    print "population", t, ", cuda batch:", sampling[t], i
+                if full == True:
+                    print "population", t, ", cuda batch:", sampling[t], i
 
                 # sample nt models
                 batch_model = numpy.zeros( [nt], dtype=numpy.int32 )
                 for k in range(nt):
-                    batch_model[k] = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart)
+                    batch_model[k] = sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart, modelKernel)
 
                 # sample nt parameters given the models
                 batch_param = numpy.zeros( [nt,pmax], dtype=numpy.float32 )
@@ -1051,14 +1039,14 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         points=howToFitData( fit[m], d )
                         distance=distancefn(points,data)
 
-                        if __DUMP__ == True:
+                        if custom_kernel == True:
                             print t,",",
                             for kk in range( model_np[m] ):
                                 print batch_param[k,kk],",",
                             print distance
                         
                         if(distance<=epsilon[t] and distance>0 ):
-                            distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(m+1)+'\n')
+                            #distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
                             accept[k] = 1
                             batch_beta[k] = batch_beta[k] + 1
 
@@ -1174,10 +1162,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         # Compute kernels
         #
         if constKernels==False: ### numbers[lastpopulation]
-            #print "computing kernels", margins_prev[mod]
             for mod in range(0, nmodel):
                 if margins_prev[mod] > 0.1:  ### only compute corrected kernels if the model was selected at least 10%
-                    kernel[mod] = kernelfn(kernel[mod], priors[mod], population[mod][t])
+                    kernel[mod] = kernelfn(kernel[mod], population[mod][t])
 
         if pickling==True:
             write_pickled(folder, nmodel, numOutput, priors, model_prev, weights_prev, parameters_prev, margins_prev, kernel)
