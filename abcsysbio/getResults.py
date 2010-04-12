@@ -1,14 +1,15 @@
 from pylab import * 
 
-import re
 import matplotlib
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 #import modelfunction
-
+import re
+import math
+from abcsysbio import abcodesolve
 from abcsysbio import sdeint
 from abcsysbio import GillespieAlgorithm
-#import abcsysbio.abcSMC_model
-#from scipy.integrate.odepack import odeint
+import abcsysbio.abcSMC_model
+from scipy.integrate.odepack import odeint
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from Scientific.Statistics import Histogram
 
 def MatrixToTextfile(matrix,filename,model,eps):
@@ -165,17 +166,18 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
         for j in range(0,len(matrix[int(model)][populationNumber-1])):
             parameter.append(matrix[int(model)][int(populationNumber)-1][j][i])
 
-        if o.match(integrationType):
-            from abcsysbio import abcodesolve
-            data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
+        if o.match(integrationType): data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
         if s.match(integrationType): data_sim=sdeint(module,InitValues,parameter,timepoints_new,dt=0.01)
         if g.match(integrationType): data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
 
         points_sim = abcsysbio.abcSMC_model.howToFitData(fit,data_sim)
+
         matplotlib.pyplot.plot(timepoints_new,points_sim)
-    if plotdata==True: matplotlib.pyplot.plot(timepoints,data,'o')
-        
-        
+    if plotdata==True: 
+        matplotlib.pyplot.plot(timepoints,data,'o')
+        xlabel('time')
+        ylabel('Unit')
+   
     
     matplotlib.pyplot.savefig(filename)
     cla()
@@ -255,7 +257,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
                 minX=min(histogramX)
                 xrange=maxX-minX
                # xrange=histogr
-                matplotlib.pyplot.bar(histogramX,histogramY,color='0.9',width=xrange/bins,align='center')
+                matplotlib.pyplot.bar(histogramX,histogramY,color='#1E90FF',width=xrange/bins,align='center')
                 xlabel('parameter '+repr(i+1),size='xx-small')
             
                 xmin,xmax=xlim()
@@ -317,8 +319,16 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
     cla()
     dim=len(matrix[int(model)-1][0])
-   
-    
+
+  
+    myColors=['#000000','#003399','#3333FF','#6666FF','#990000','#CC0033','#FF6600','#FFCC00','#FFFF33','#33CC00','#339900','#336600']
+
+    if len(populations)>len(myColors):
+        q=int(math.ceil(len(populations)/len(myColors)))
+        
+        for slopes in range(0,q):
+            myColors.extend(myColors)
+
     max1=4.0
     if dim<=max1:
         permutation=zeros([dim**2,2])
@@ -330,12 +340,15 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                 k=k+1
 
         binB=20.0
-
+        i2=0
         for i in range(0,len(permutation)):
             subplot(dim,dim,i+1)
             subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)
             w=weights[int(model)-1][int(populations[len(populations)-1])-1][int(permutation[i][0])-1]
+          
             for j in range(0,len(populations)):
+
+
                 x=matrix[int(model)-1][int(populations[j])-1][int(permutation[i][0])-1]
                 y=matrix[int(model)-1][int(populations[j])-1][int(permutation[i][1])-1]
                 g=(j+1)*((len(populations)*1.5)**(-1))
@@ -343,6 +356,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                     if j==len(populations)-1:
                         cla()
                         if not(len(x)==0):
+                            i2=i2+1
                             hist=Histogram.WeightedHistogram(x,w,int(binB))
                             length=hist.__len__()
                             histogramX=[]
@@ -355,18 +369,18 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                             maxX=max(histogramX)
                             minX=min(histogramX)
                             xrange=maxX-minX
-                            matplotlib.pyplot.bar(histogramX,histogramY,width=xrange/binB,color='0.9',align='center')
-                            xlabel('parameter '+repr(i+1),size='xx-small')
+                            matplotlib.pyplot.bar(histogramX,histogramY,width=xrange/binB,color=myColors[j],align='center')
+                            xlabel('parameter '+repr(i2),size='xx-small')
                  
                 else:
                     if not(len(x)==0):
-                        scatter(x,y,s=10,marker='o',c=repr(g),edgecolor=repr(g))
+                        scatter(x,y,s=10,marker='o',c=myColors[j],edgecolor=myColors[j])
                         ylabel('parameter '+repr(int(permutation[i][1])),size='xx-small')
                 xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
                 
                 xmin,xmax=xlim()
                 ymin,ymax=ylim()
-                
+
                 ax = gca()
                 ay = gca()
                 if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
@@ -375,6 +389,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                 
                 if ((ymax-ymin)<0.1 or (ymax-ymin)>=1000): yFormatter = FormatStrFormatter('%0.1e')
                 else: yFormatter = FormatStrFormatter('%0.2f')
+                ay.yaxis.set_major_formatter(yFormatter)
 
                 if permutation[i][0]==permutation[i][1]: yFormatter = FormatStrFormatter('%i')
                 
@@ -390,6 +405,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
         subplot(111)
 
     else:
+        i2=0
         permutation=zeros([dim*(dim+1)/2,2])
         k=0
         for i in range(1,dim+1):
@@ -420,6 +436,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                         if j==len(populations)-1:
                             cla()
                             if not(len(x)==0):
+                                i2=i2+1
                                 hist=Histogram.WeightedHistogram(x,w,int(binB))
                                 length=hist.__len__()
                                 histogramX=[]
@@ -431,15 +448,15 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                                 maxX=max(histogramX)
                                 minX=min(histogramX)
                                 xrange=maxX-minX
-                                matplotlib.pyplot.bar(histogramX,histogramY,color='0.9',width=xrange/binB,align='center')
-                                xlabel('parameter '+repr(i+1),size='xx-small')
+                                matplotlib.pyplot.bar(histogramX,histogramY,color=myColors[j],width=xrange/binB,align='center')
+                                xlabel('parameter '+repr(i2),size='xx-small')
 
                     #        matplotlib.pyplot.hist(matrix[int(model)-1][j][int(permutation[i][0])-1],bins=20,facecolor='white')
                     #        xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
                     
                     else:
                         if not(len(x)==0):
-                            scatter(x,y,s=10,marker='o',c=repr(g),edgecolor=repr(g))
+                            scatter(x,y,s=10,marker='o',c=myColors[j],edgecolor=myColors[j])
                             ylabel('parameter '+repr(int(permutation[i][1])),size='xx-small')
                             xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
                 
@@ -575,7 +592,7 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
             subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.8)
             left=arange(1,matrix.shape[1]+1,1)
             height=matrix[i]
-            bar(left,height,width=1.0,color='0.9',align='center')
+            bar(left,height,width=1.0,color='#1E90FF',align='center')
             xmin=0
             xmax=matrix.shape[1]+1
             ymin,ymax=ylim()
