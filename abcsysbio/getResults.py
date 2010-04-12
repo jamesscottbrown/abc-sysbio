@@ -160,7 +160,7 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
 
     timepoints_new=arange(time_start,time_end+step,step)
 
-    cla()
+    clf()
     for i in range(0,amount):
         parameter=[]
         for j in range(0,len(matrix[int(model)][populationNumber-1])):
@@ -180,7 +180,7 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
    
     
     matplotlib.pyplot.savefig(filename)
-    cla()
+    clf()
 
 def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', model=1):
 
@@ -214,7 +214,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
 
     """
 
-    cla()
+    clf()
     dim=len(matrix[int(model)-1][0])
 
     max1=4.0 #must be float or double, but no integer
@@ -244,7 +244,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
             w=weights[int(model)-1][int(population)-1][i]
             bins=20.0
             if not(len(x)==0):
-                cla()
+                clf()
                 hist=Histogram.WeightedHistogram(x,w,int(bins))
                 length=hist.__len__()
                 histogramX=[]
@@ -280,7 +280,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
 
 
         savefig(PlotName)
-        cla()
+        clf()
         subplot(111)
 
 
@@ -317,7 +317,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
     """
 
-    cla()
+    clf()
     dim=len(matrix[int(model)-1][0])
 
   
@@ -354,7 +354,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                 g=(j+1)*((len(populations)*1.5)**(-1))
                 if permutation[i][0]==permutation[i][1]:
                     if j==len(populations)-1:
-                        cla()
+                        clf()
                         if not(len(x)==0):
                             i2=i2+1
                             hist=Histogram.WeightedHistogram(x,w,int(binB))
@@ -401,7 +401,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
                
         savefig(PlotName)
-        cla()
+        clf()
         subplot(111)
 
     else:
@@ -434,7 +434,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                     g=(j+1)*((len(populations)*1.5)**(-1))
                     if permutation[i][0]==permutation[i][1]:
                         if j==len(populations)-1:
-                            cla()
+                            clf()
                             if not(len(x)==0):
                                 i2=i2+1
                                 hist=Histogram.WeightedHistogram(x,w,int(binB))
@@ -481,7 +481,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
        
                
             savefig(PlotName+"_"+repr(p))
-            cla()
+            clf()
             subplot(111)
 
 
@@ -522,7 +522,7 @@ def getScatterPlot(matrix,parameter,populations=(1,),PlotName='ScatterPlot',mode
 
     """
     
-    cla()
+    clf()
     subplot(111)
 
     for j in range(0,len(populations)):
@@ -532,7 +532,7 @@ def getScatterPlot(matrix,parameter,populations=(1,),PlotName='ScatterPlot',mode
         if not(len(x)==0):
             scatter(x,y,s=10,c=repr(g),edgecolor=repr(g))
     savefig(PlotName)
-    cla()
+    clf()
 
 
 
@@ -603,5 +603,5 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
 
             title("("+repr(i+1)+") "+str(epsilon[i])+"\n"+str(rate[i]),size='xx-small')
             savefig(PlotName+'_'+repr(p+1))
-        cla()
+        clf()
         subplot(111)
