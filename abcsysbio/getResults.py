@@ -244,7 +244,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
             w=weights[int(model)-1][int(population)-1][i]
             bins=20.0
             if not(len(x)==0):
-                clf()
+                cla()
                 hist=Histogram.WeightedHistogram(x,w,int(bins))
                 length=hist.__len__()
                 histogramX=[]
@@ -354,7 +354,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                 g=(j+1)*((len(populations)*1.5)**(-1))
                 if permutation[i][0]==permutation[i][1]:
                     if j==len(populations)-1:
-                        clf()
+                        cla()
                         if not(len(x)==0):
                             i2=i2+1
                             hist=Histogram.WeightedHistogram(x,w,int(binB))
@@ -434,7 +434,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                     g=(j+1)*((len(populations)*1.5)**(-1))
                     if permutation[i][0]==permutation[i][1]:
                         if j==len(populations)-1:
-                            clf()
+                            cla()
                             if not(len(x)==0):
                                 i2=i2+1
                                 hist=Histogram.WeightedHistogram(x,w,int(binB))
@@ -566,6 +566,8 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
             each page will be saved to a separate file, with this prefix.
 
     """
+    
+    clf()
     max1=4.0 #must be float or double, but no integer
     if max1>len(matrix): 
         max1=len(matrix)
