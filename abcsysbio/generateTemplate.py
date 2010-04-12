@@ -1,4 +1,3 @@
-from libsbml import *
 
 
 def getSpeciesValue(species):
@@ -69,7 +68,8 @@ def generateTemplate(source,filename="input_file_template.txt"):
     out_file.write("variable1:\n\n//\n\n")
 
 
-    reader=SBMLReader()
+    import libsbml
+    reader=libsbml.SBMLReader()
         
       
     for i in range(0,len(source)):
