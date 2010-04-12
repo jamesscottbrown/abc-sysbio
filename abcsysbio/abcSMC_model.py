@@ -6,10 +6,9 @@ import time
 from math import *
 import numpy
 from numpy import random as rnd
-from scipy.integrate.odepack import odeint
+#from scipy.integrate.odepack import odeint
 
 from abcsysbio import GillespieAlgorithm
-from abcsysbio import abcodesolve
 from abcsysbio import sdeint
 from abcsysbio import euclidian
 
@@ -853,6 +852,18 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if margins_prev[j] < 1e-6:
                 dead_models.append(j)
 
+    #
+    # Import ODE solver if required
+    #
+    flag = False
+    o = re.compile('ODE')
+    for j in range(0,nmodel):
+        if o.search(integrationType[j]):
+            flag = True
+
+    if flag==True:
+        from abcsysbio import abcodesolve
+        print 'importing ODE solver'
 
     #
     # Read, compile cuda code. Initialize RNGs 
