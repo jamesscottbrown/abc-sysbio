@@ -1,7 +1,7 @@
 #!/usr/bin/python2.5
 
 import matplotlib
-matplotlib.use('pdf')
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from pylab import *
 
@@ -153,6 +153,7 @@ def main():
     if seed != None:
 	print "#### Seeding random number generator : ", seed
         numpy.random.seed(seed)
+
                 
     if (file_exist==True and simulate==False):            
 	info = abcsysbio.parseInfo.getAlgorithmInfo(input_file)        
@@ -175,9 +176,19 @@ def main():
 	rtol = 		info[16]
 	atol = 		info[17]
 	constKernels = 	info[18]
+	modelKernel = 	info[19]
 
         if plot==True:
-            plt.plot(timepoints,data,'o')
+            plt.plot(timepoints,data,'o-')
+	    xlabel('time')
+            ylabel('Unit')
+	    specLeg = range(0,shape(data)[1])
+	    for leg in range(0,len(specLeg)):
+	    	specLeg[leg] = 'species'+str(specLeg[leg]+1)
+	    print specLeg
+	    legend(specLeg,loc=0)
+
+				
             plt.savefig('_data')
             cla()
 
@@ -199,7 +210,8 @@ def main():
                                                                              restart,
                                                                              source,                            
                                                                              constKernels,
-                                                                             fname)
+                                                                             fname,
+									     modelKernel)
 	else :
 	   
             source = None
@@ -217,7 +229,8 @@ def main():
                                                                              restart,
                                                                              source,
                                                                              constKernels,
-                                                                             fname)         
+                                                                             fname,
+									     modelKernel)         
 	    # temporary check
 	    s=re.compile('Gillespie')
 	    fail=0
@@ -267,7 +280,8 @@ def main():
                                                                                           mt_data=mt_data,
                                                                                           app_file=app_file,
 											  custom_kernel=custom_kernel,
-											  custom_distance=custom_distance)
+											  custom_distance=custom_distance,
+											  modelKernel=modelKernel)
 
 	
 #####if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
