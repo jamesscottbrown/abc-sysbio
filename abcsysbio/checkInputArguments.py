@@ -1,5 +1,4 @@
 import pickle
-#from libsbml import *
 import re
 
 def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname,modelKernel):
@@ -83,11 +82,12 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
 
     ### check model specific properties (comparing with SBML model)
     if not source==None:
+        import libsbml
 
         if not len(source)==len(ModelName): 
             return False,"\nPlease provide the same amount of model sources and model names!\n"
         
-	reader=SBMLReader()
+	reader=libsbml.SBMLReader()
 	for mod in range(0,len(source)):
 	    
 	    document=reader.readSBML(source[mod])
@@ -247,11 +247,12 @@ def checkInputSimulation(name, timepoints, InitValues, IntegrationType, Constant
 
     ### check model specific properties (comparing with SBML model)
     if not source==None:
+        import libsbml
 
         if not len(source)==len(name): 
             return False,"\nPlease provide the same amount of model sources and model names!\n"
         
-	reader=SBMLReader()
+	reader=libsbml.SBMLReader()
 	for mod in range(0,len(source)):
 	    
 	    document=reader.readSBML(source[mod])
