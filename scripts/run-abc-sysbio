@@ -190,7 +190,8 @@ def main():
 
 				
             plt.savefig('_data')
-            cla()
+            clf()
+
 
 	modelCorrect = False
         if usesbml == True : 
@@ -324,11 +325,11 @@ def main():
                 #print data
                 plt.plot(timepoints, data, 'o')
                 plt.savefig("Synthetic_Data_"+name[i])
-                cla()
+                clf()
             else: 
                 plt.plot(timepoints, data)
                 plt.savefig("Simulated_Data_"+name[i])
-                cla()
+                clf()
 
     else:
         print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
