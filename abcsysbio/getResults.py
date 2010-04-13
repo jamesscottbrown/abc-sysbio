@@ -1,16 +1,15 @@
-from pylab import * 
+import re, math
+import numpy
 
 import matplotlib
-#import modelfunction
-import re
-import math
-from abcsysbio import abcodesolve
-from abcsysbio import sdeint
-from abcsysbio import GillespieAlgorithm
-import abcsysbio.abcSMC_model
-from scipy.integrate.odepack import odeint
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter
 from Scientific.Statistics import Histogram
+
+from pylab import *
+
+# need to get howToFitData
+import abcsysbio.abcSMC_model
+
 
 def MatrixToTextfile(matrix,filename,model,eps):
 
@@ -152,7 +151,7 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
     s=re.compile('SDE')
     g=re.compile('Gillespie')
 
-    subplot(111)
+    matplotlib.pyplot.subplot(111)
     
     time_start=timepoints[0]
     time_end=timepoints[-1]
@@ -166,9 +165,15 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
         for j in range(0,len(matrix[int(model)][populationNumber-1])):
             parameter.append(matrix[int(model)][int(populationNumber)-1][j][i])
 
-        if o.match(integrationType): data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
-        if s.match(integrationType): data_sim=sdeint(module,InitValues,parameter,timepoints_new,dt=0.01)
-        if g.match(integrationType): data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
+        if o.match(integrationType):
+            from abcsysbio import abcodesolve
+            data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
+        if s.match(integrationType):
+            from abcsysbio import sdeint
+            data_sim=sdeint.sdeint(module,InitValues,parameter,timepoints_new,dt=0.01)
+        if g.match(integrationType):
+            from abcsysbio import GillespieAlgorithm    
+            data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
 
         points_sim = abcsysbio.abcSMC_model.howToFitData(fit,data_sim)
 
@@ -180,7 +185,7 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
    
     
     matplotlib.pyplot.savefig(filename)
-    clf()
+    matplotlib.pylab.clf()
 
 def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', model=1):
 
@@ -214,7 +219,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
 
     """
 
-    clf()
+    matplotlib.pylab.clf()
     dim=len(matrix[int(model)-1][0])
 
     max1=4.0 #must be float or double, but no integer
@@ -238,7 +243,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
         end=p*max1*max2+max1*max2
         for i in range(int(start),int(end)):
             if i>=len(matrix[int(model)-1][0]): break
-            subplot(max1,max2,i-start+1)
+            matplotlib.pyplot.subplot(max1,max2,i-start+1)
             subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)    
             x=matrix[int(model)-1][int(population)-1][i]
             w=weights[int(model)-1][int(population)-1][i]
@@ -280,8 +285,8 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
 
 
         savefig(PlotName)
-        clf()
-        subplot(111)
+        matplotlib.pylab.clf()
+        matplotlib.pyplot.subplot(111)
 
 
 
@@ -317,7 +322,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
     """
 
-    clf()
+    matplotlib.pylab.clf()
     dim=len(matrix[int(model)-1][0])
 
   
@@ -331,7 +336,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
     max1=4.0
     if dim<=max1:
-        permutation=zeros([dim**2,2])
+        permutation=numpy.zeros([dim**2,2])
         k=0
         for i in range(1,dim+1):
             for j in range(1,dim+1):
@@ -342,7 +347,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
         binB=20.0
         i2=0
         for i in range(0,len(permutation)):
-            subplot(dim,dim,i+1)
+            matplotlib.pyplot.subplot(dim,dim,i+1)
             subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)
             w=weights[int(model)-1][int(populations[len(populations)-1])-1][int(permutation[i][0])-1]
           
@@ -401,8 +406,8 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
                
         savefig(PlotName)
-        clf()
-        subplot(111)
+        matplotlib.pylab.clf()
+        matplotlib.pyplot.subplot(111)
 
     else:
         i2=0
@@ -425,7 +430,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
             end=p*max1**2+max1**2
             for i in range(int(start),int(end)):
                 if i>=len(permutation): break
-                subplot(max1,max1,i-start+1)
+                matplotlib.pyplot.subplot(max1,max1,i-start+1)
                 subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)
                 w=weights[int(model)-1][int(populations[len(populations)-1])-1][int(permutation[i][0])-1]
                 for j in range(0,len(populations)):
@@ -481,8 +486,8 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
        
                
             savefig(PlotName+"_"+repr(p))
-            clf()
-            subplot(111)
+            matplotlib.pylab.clf()
+            matplotlib.pyplot.subplot(111)
 
 
 
@@ -522,8 +527,8 @@ def getScatterPlot(matrix,parameter,populations=(1,),PlotName='ScatterPlot',mode
 
     """
     
-    clf()
-    subplot(111)
+    matplotlib.pylab.clf()
+    matplotlib.pyplot.subplot(111)
 
     for j in range(0,len(populations)):
         g=(j+1)*((len(populations)*1.5)**(-1))
@@ -532,7 +537,7 @@ def getScatterPlot(matrix,parameter,populations=(1,),PlotName='ScatterPlot',mode
         if not(len(x)==0):
             scatter(x,y,s=10,c=repr(g),edgecolor=repr(g))
     savefig(PlotName)
-    clf()
+    matplotlib.pylab.clf()
 
 
 
@@ -567,7 +572,7 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
 
     """
     
-    clf()
+    matplotlib.pylab.clf()
     max1=4.0 #must be float or double, but no integer
     if max1>len(matrix): 
         max1=len(matrix)
@@ -590,7 +595,7 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
         end=p*max1*max2+max1*max2
         for i in range(int(start),int(end)):
             if i>=len(matrix): break
-            subplot(max1,max2,i-start+1)
+            matplotlib.pyplot.subplot(max1,max2,i-start+1)
             subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.8)
             left=arange(1,matrix.shape[1]+1,1)
             height=matrix[i]
@@ -605,5 +610,5 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
 
             title("("+repr(i+1)+") "+str(epsilon[i])+"\n"+str(rate[i]),size='xx-small')
             savefig(PlotName+'_'+repr(p+1))
-        clf()
-        subplot(111)
+        matplotlib.pylab.clf()
+        matplotlib.pyplot.subplot(111)
