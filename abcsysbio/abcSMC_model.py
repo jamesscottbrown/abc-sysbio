@@ -1,20 +1,20 @@
-import re
-import os
-import pickle
-import time
+# standard imports
+import re, os, sys, pickle, time, math
 
-from math import *
 import numpy
 from numpy import random as rnd
-from scipy.integrate.odepack import odeint
 
-from abcsysbio import GillespieAlgorithm
-from abcsysbio import abcodesolve
-from abcsysbio import sdeint
-from abcsysbio import euclidian
+from abcodesolve        import abcodeint
+from sdeint             import sdeint
+from GillespieAlgorithm import GillespieInt
+from GillespieAlgorithm import GillespieInt_onestep
 
-#from abcsysbio.checkInputArguments import *
-from abcsysbio.getResults import *
+from getResults import MatrixToTextfile
+from getResults import getAllScatterPlots
+from getResults import getAllHistograms
+from getResults import plotTimeSeries
+from getResults import printModelDistribution
+from getResults import getModelDistribution
 
 __LARGE_DISTANCE__ = 1000000
 __XMAX__= 2000
@@ -88,11 +88,11 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
 
 
     if o.match(integrationType[selected_model]):
-        samplePoints=abcodesolve.abcodeint(module, InitValues[selected_model], timepoints, sampleParameters, dt, rtol, atol)
+        samplePoints=abcodeint(module, InitValues[selected_model], timepoints, sampleParameters, dt, rtol, atol)
     if s.match(integrationType[selected_model]): 
-        samplePoints=sdeint.sdeint(module,InitValues[selected_model],sampleParameters,timepoints,dt)
+        samplePoints=sdeint(module,InitValues[selected_model],sampleParameters,timepoints,dt)
     if g.match(integrationType[selected_model]): 
-        samplePoints=GillespieAlgorithm.GillespieInt(module, InitValues[selected_model], sampleParameters,timepoints)
+        samplePoints=GillespieInt(module, InitValues[selected_model], sampleParameters,timepoints)
 
     return samplePoints
 
@@ -528,7 +528,7 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
                         population_mod[mod][eps].append(population[mod][eps][param])
                         weights_mod[mod][eps].append(weights[mod][eps])
 
-            getAllScatterPlots(population_mod,weights_mod,populations=arange(1,t+2,1),PlotName=PlotName,model=mod+1)
+            getAllScatterPlots(population_mod,weights_mod,populations=numpy.arange(1,t+2,1),PlotName=PlotName,model=mod+1)
             getAllHistograms(population_mod,weights_mod,population=t+1,PlotName=PlotName2, model=mod+1)
 
     if nmodel>1:
@@ -852,7 +852,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if margins_prev[j] < 1e-6:
                 dead_models.append(j)
 
-
     #
     # Read, compile cuda code. Initialize RNGs 
     #
@@ -874,11 +873,11 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         xmax = max(model_nx)
         print "#### built cuda code. pmax/xmax : ", pmax, xmax
 
-
     #
     # Set distance function
     #
     if custom_distance == False:
+        from abcsysbio import euclidian
         distancefn = euclidian.euclidianDistance
     else:
         import customABC
