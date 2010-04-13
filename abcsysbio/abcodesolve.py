@@ -1,5 +1,12 @@
-from numpy import *
-from scipy.integrate.odepack import odeint
+import numpy
+
+try: from scipy.integrate.odepack import odeint
+except ImportError:
+
+    def odeint(fun, conc, times, args, atol, rtol ):
+        return 0
+   
+
 
 def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol=None):
   
@@ -37,7 +44,7 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
     """
    
     #array for the data that the user wants
-    solutions_out=zeros([len(timepoints), len(InitValues)])
+    solutions_out=numpy.zeros([len(timepoints), len(InitValues)])
     current_concentrations = tuple(InitValues)
     current_concentrations,parameters=func.rules(current_concentrations, parameters, timepoints[0])
     solutions_out[0]=current_concentrations
@@ -65,3 +72,10 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
         intTime1 = intTime2
 
     return solutions_out
+
+
+
+
+    
+
+
