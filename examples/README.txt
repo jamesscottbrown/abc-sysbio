@@ -15,7 +15,7 @@ Example 4 - Immigration death model using Markov jump process and Gillespie algo
 	This example requires pycuda installed in addition to the minmimum packages (numpy, ScientificPython, matplotlib)
 
 Example 5 -Repressilator model using ODE solver. There should be one user input file and the python module repressilator.py. 
-	No import of SBML is performed and as such this example requires only the minmimum packages (numpy, ScientificPython, matplotlib)
+	No import of SBML is performed so this example requires scipy and the minmimum packages (numpy, ScientificPython, matplotlib)
 	To run type: run-abc-sysbio -i 'input_file_repressilator.txt' -f -pm
 
 
