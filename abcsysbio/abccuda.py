@@ -272,10 +272,11 @@ def initialise_twisters( mt_data, mod, nthread, nblock ):
     pMT = int(mod.get_global("MT")[0])
     
     MT_RNG_COUNT = 32768
-    with open(mt_data, 'rb') as f:
-        s = f.read(16*MT_RNG_COUNT)
-        # the file should contain 32768 x 4 integers
-        tup = unpack('131072i',s)
+
+    f = open(mt_data, 'rb')
+    s = f.read(16*MT_RNG_COUNT)
+    # the file should contain 32768 x 4 integers
+    tup = unpack('131072i',s)
 
     # Copy the offline MT parameters over to GPU
     cuda.memcpy_htod( pMT, np.array(tup).astype(np.uint32) )
