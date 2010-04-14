@@ -3,12 +3,35 @@ import numpy
 
 import matplotlib
 from matplotlib.ticker import FormatStrFormatter
-from Scientific.Statistics import Histogram
-
 from pylab import *
 
 # need to get howToFitData
 import abcsysbio.abcSMC_model
+
+# weighted histogramming 
+def bin_data(d, w, nbins):
+
+    d_max = numpy.max(d)
+    d_min = numpy.min(d) - 1e-6 # ensures that the lowest entry is included in the first bin
+    bin_width = (d_max - d_min)/nbins
+
+    bin_l = numpy.array( [ d_min + i*bin_width for i in range(nbins) ] )
+    bin_u = numpy.array( [ d_min + (i+1)*bin_width for i in range(nbins) ] )
+    bin_c = numpy.array( [ bin_l[i] + bin_width/2 for i in range(nbins) ] )
+
+    count = numpy.zeros( [ nbins ] )
+
+    for k in range(len(d)):
+        kd = d[k]
+        kw = w[k]
+
+        i = 0
+        for i in range(nbins):
+            if kd > bin_l[i] and kd <= bin_u[i]:
+                count[i] = count[i] + kw
+                break
+
+    return [ bin_c, count ]
 
 
 def MatrixToTextfile(matrix,filename,model,eps):
@@ -250,18 +273,22 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
             bins=20.0
             if not(len(x)==0):
                 cla()
-                hist=Histogram.WeightedHistogram(x,w,int(bins))
-                length=hist.__len__()
+                #hist=Histogram.WeightedHistogram(x,w,int(bins))
+                #length=hist.__len__()
+                #histogramX=[]
+                #histogramY=[]
+                #for k in range(0, length):
+                #    histogramX.append(hist.__getitem__(k)[0])
+                #    histogramY.append(hist.__getitem__(k)[1])
+
                 histogramX=[]
                 histogramY=[]
-                for k in range(0, length):
-                    histogramX.append(hist.__getitem__(k)[0])
-                    histogramY.append(hist.__getitem__(k)[1])
-
+                histogramX, histogramY = bin_data(x, w, int(bins))
+                
                 maxX=max(histogramX)
                 minX=min(histogramX)
                 xrange=maxX-minX
-               # xrange=histogr
+                
                 matplotlib.pyplot.bar(histogramX,histogramY,color='#1E90FF',width=xrange/bins,align='center')
                 xlabel('parameter '+repr(i+1),size='xx-small')
             
@@ -362,14 +389,18 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                         cla()
                         if not(len(x)==0):
                             i2=i2+1
-                            hist=Histogram.WeightedHistogram(x,w,int(binB))
-                            length=hist.__len__()
+                            #hist=Histogram.WeightedHistogram(x,w,int(binB))
+                            #length=hist.__len__()
+                            #histogramX=[]
+                            #histogramY=[]
+
+                            #for k in range(0, length):
+                            #    histogramX.append(hist.__getitem__(k)[0])
+                            #    histogramY.append(hist.__getitem__(k)[1])
+
                             histogramX=[]
                             histogramY=[]
-
-                            for k in range(0, length):
-                                histogramX.append(hist.__getitem__(k)[0])
-                                histogramY.append(hist.__getitem__(k)[1])
+                            histogramX, histogramY = bin_data(x, w, int(binB))
                             
                             maxX=max(histogramX)
                             minX=min(histogramX)
@@ -442,13 +473,17 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                             cla()
                             if not(len(x)==0):
                                 i2=i2+1
-                                hist=Histogram.WeightedHistogram(x,w,int(binB))
-                                length=hist.__len__()
+                                #hist=Histogram.WeightedHistogram(x,w,int(binB))
+                                #length=hist.__len__()
+                                #histogramX=[]
+                                #histogramY=[]
+                                #for k in range(0, length):
+                                #    histogramX.append(hist.__getitem__(k)[0])
+                                #    histogramY.append(hist.__getitem__(k)[1])
+
                                 histogramX=[]
                                 histogramY=[]
-                                for k in range(0, length):
-                                    histogramX.append(hist.__getitem__(k)[0])
-                                    histogramY.append(hist.__getitem__(k)[1])
+                                histogramX, histogramY = bin_data(x, w, int(binB))
                             
                                 maxX=max(histogramX)
                                 minX=min(histogramX)
