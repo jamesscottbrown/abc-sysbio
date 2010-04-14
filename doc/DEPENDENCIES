@@ -24,10 +24,6 @@ python setup.py install --prefix=<dir>
 python setup.py build
 python setup.py install --prefix=<dir>
 
-# ScientificPython http://dirac.cnrs-orleans.fr/plone/software/scientificpython
-python setup.py build
-python setup.py install --prefix=<dir>
-
 *** For SBML interface
 
 # swig http://www.swig.org/ (required by libsbml)

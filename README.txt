@@ -16,7 +16,6 @@ first install the following packages
 
 	numpy
 	matplotlib
-	Scientific	
 
 If you wish to use the SBML interface in abc-sysbio 
 you must also install
