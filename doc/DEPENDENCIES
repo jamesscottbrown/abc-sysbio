@@ -31,7 +31,7 @@ python setup.py install --prefix=<dir>
 *** For SBML interface
 
 # swig http://www.swig.org/ (required by libsbml)
-./configure --prefix=<dir>ﬁ
+./configure --prefix=<dir>
 make
 make install
 
