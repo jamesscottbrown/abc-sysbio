@@ -383,7 +383,7 @@ def create_output_folders(fname, Nmodel, ModelName, numOutput, restart, pickling
     os.chdir('..')
 
             
-    rate_file=open(folder+'/rates.txt',"w")
+    #rate_file=open(folder+'/rates.txt',"w")
 
         
     if pickling==True:
@@ -399,7 +399,7 @@ def create_output_folders(fname, Nmodel, ModelName, numOutput, restart, pickling
         pickle.dump(numOutput,out_file)
         out_file.close()
 
-    return [folder, rate_file]
+    return folder
 
 ################read the stored data
 def read_pickled(fname):
@@ -830,7 +830,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
     
     # Create results folder for each model and create the pickling folder
-    folder, rate_file = create_output_folders(fname, nmodel, ModelName, numOutput, restart, pickling) 
+    folder = create_output_folders(fname, nmodel, ModelName, numOutput, restart, pickling) 
 
     # Load the pickled data
     if restart==True:
@@ -1174,7 +1174,12 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             print "acceptance rate:",rate[t]
             if(len(dead_models) > 0): print "dead_models:", dead_models
 
+        rate_file = open(folder+'/rates.txt',"a")
         rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
+        rate_file.close()
+
+        if timing == True:
+            print "####abcSimulator:runmode/pop/time:", runmode, t+1, time.time() - start_time
 
         #
         # Print histograms and scatter plots (analytical plots)
