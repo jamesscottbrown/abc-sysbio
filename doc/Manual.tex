@@ -1,6 +1,6 @@
 \documentclass[a4paper]{report}
 \title{ABC-SysBio : Approximate Bayesian Computation in Python}
-\author{Erika Cule \and Juliane Liepe}
+\author{Juliane Liepe, Chris Barnes, Erika Cule}
 \date{\today}
 \usepackage{graphicx}
 %\usepackage{tabularx}
@@ -43,7 +43,7 @@ P=\left(
 \end{eqnarray*}
 
 
-During the last decade  advanced tools to investigate and simulate biological systems have been developed. Now it is a standard practice to investigate biological models and their dynamical behaviour {\it in silico}. One major problem of this strategy is the estimation of system parameters and the exclusion of overfitting a model to biological data. Several statistical approaches have been introduced to this topic. With these statistical methods it is possible to infer parameter values of a biochemical system. One limitation of these approaches is that most of them provide a single best estimate for each parameter value, when it is preferable to obtain a probability distribution of likely parameter values. One algorithm for obaining such a distribution is the ABC (approximate Bayesian computation) rejection sampler \citep{ABCrejection}. Starting from a given prior distribution the ABC rejection method samples parameter values and tests if their simulation result fits to the experimental data. However, this algorithm is computationally expensive, especially for large prior distribution. A computationally more efficient algorithm was published by \citeauthor{Toni2009} in  \citeyear{Toni2009}, using ABC combined with a sequential Monte-Carlo approach (SMC). \cite{Toni2009}, \cite{Toni2010} also shown that the ABC-SMC allows for model selection.
+During the last decade  advanced tools to investigate and simulate biological systems have been developed. Now it is standard practice to investigate biological models and their dynamical behaviour {\it in silico}. One major problem of this strategy is the estimation of system parameters and the exclusion of overfitting a model to biological data. Several statistical approaches have been introduced to this topic. With these statistical methods it is possible to infer parameter values of a biochemical system. One limitation of these approaches is that most of them provide a single best estimate for each parameter value, when it is preferable to obtain a probability distribution of likely parameter values. One algorithm for obaining such a distribution is the ABC (approximate Bayesian computation) rejection sampler \citep{ABCrejection}. Starting from a given prior distribution the ABC rejection method samples parameter values and tests if their simulation result fits to the experimental data. However, this algorithm is computationally expensive, especially for large prior distribution. A computationally more efficient algorithm was published by \citeauthor{Toni2009} in  \citeyear{Toni2009}, using ABC combined with a sequential Monte-Carlo approach (SMC). \cite{Toni2009}, \cite{Toni2010} also shown that the ABC SMC allows for model selection.
 
 Here we present a Python package, \verb$abc-sysbio$, that implements parameter inference and model selection in dynamical systems. \verb$abc-sysbio$ combines three algorithms (see Figure \ref{abcAlgorithms}). The first and most simple one is the ABC rejection sampler \cite{ABCrejection}. It is automatically used when only one model and one maximal distance is given. The second algorithm is the ABC SMC for parameter inference \cite{Toni2009} and it is used when only one model but several maximal distances are given. If several models and maximal distances are given the last implemented algorithm, the ABC SMC for model selection \cite{Toni2009}, is applied. The first two methods are optimized for the inference of parameter values. However, with an optimal chosen series of maximal distances and a large enough population size the third one can be used for a simultaniously parameter inference and model selection.
 
@@ -63,16 +63,15 @@ The models can be treated as deterministic or stochastic models. To analyze dete
 \chapter{Examples}
 \label{examples}
 We advise that you read through the Examples to get a feel for how the package works. The SBML models and user input files used in the examples are distributed with the package. enabling you to reproduce the examples yourself. Thus familiarised, you will be ready to use the package to perform ABC  algorithms on your own models. For full instructions on how to use the package in a general case, see Chapter \ref{usage}.
-\begin{figure}[h]
+\begin{figure}[p]
 \begin{center}
 \includegraphics[width=1.0\textwidth]{Flowchart/Flowchart.pdf}
-\caption{A user's-eye-view of the package abc. \label{Flowchart}}
+\caption{A user's-eye-view of the package abc-sysbio. \label{Flowchart}}
 \end{center}
 \end{figure}
 
-
-\section{Model selection and parameter inference}
-We illustrate an example of the ABC-SMC algorithm for model selection using a range of simple models that describe the epidemiology of infections diseases. This example reproduces the findings of \cite{Toni2009}. As described by \citeauthor{Toni2009}, SIR models describe the spread of such disease in a population of susceptible (\emph{S}), infected (\emph{I}) and recovered (\emph{R}) individuals \citep{Anderson1991}. The three models used for this example use systems of ordinary differential equations (ODEs) to describe the change in the number of \emph{S}, \emph{I} and \emph{R} indivuduals over time.
+\section{Example 1 : Model selection and parameter inference}
+We illustrate an example of the ABC SMC algorithm for model selection using a range of simple models that describe the epidemiology of infections diseases. This example reproduces the findings of \cite{Toni2009}. As described by \citeauthor{Toni2009}, SIR models describe the spread of such disease in a population of susceptible (\emph{S}), infected (\emph{I}) and recovered (\emph{R}) individuals \citep{Anderson1991}. The three models used for this example use systems of ordinary differential equations (ODEs) to describe the change in the number of \emph{S}, \emph{I} and \emph{R} indivuduals over time.
 
 \subsection*{Model 1}
 In the simplest case, the model assumes that every individual can be infected only once and that there is no time delay between the individual getting infected and their ability to infect other individuals.
@@ -112,13 +111,13 @@ In your working directory, two new files will be written: a summary of the model
 
 Inspection of \verb$model_summary.txt$ will reveal a summary of the properties of the model(s), including the numbers of species and parameters contained therein, how these are handled by the simulators, and the presence of any rules, events and functions in the model. \verb$model_summary.txt$ is primarily for information and for verification that the properties of your model are as expected. 
 
-\verb$input_file_template.txt$ contains, or will contain, all the information to be passed to the ABC-SMC algorithm. It might be prudent to rename this template file with a more meaningful name.
+\verb$input_file_template.txt$ contains, or will contain, all the information to be passed to the ABC SMC algorithm. It might be prudent to rename this template file with a more meaningful name.
 \begin{verbatim}
 $ mv input_file_template.txt input_file_SIR.txt
 \end{verbatim}
 \verb$input_file_template.txt$ is written with its own comments in it, preceeded by \verb$#$ (as in Python). These comments should help the user to complete the template; additional comments can be added, preceded by \verb$#$.
 
-\verb$run-abc-sysbio$ has the capacity to simulate the model (see Example 2), to generate a synthetic data set, or to perform the ABC-SMC algorithm using the information in the input file.
+\verb$run-abc-sysbio$ has the capacity to simulate the model (see Example 2), to generate a synthetic data set, or to perform the ABC SMC algorithm using the information in the input file.
 
 \subsection*{Editing the input file}
 Some of the information in the input file does not need to be changed.
@@ -127,7 +126,7 @@ Some of the information in the input file does not need to be changed.
 \item[restart] Boolean, to describe whether or not we wish to restart the simulation. This is covered in more detail in Example 2. For now, we leave it as \verb$False$.
 \item[beta] The number of times to simulate an SDE model before determing if a sampled parameter set should be accepted. As all of our models are ODE models, this will be ignored.
 \end{description}
-To perform ABC-SMC, some additional information does need to be added to the input file.
+To perform ABC SMC, some additional information does need to be added to the input file.
 \begin{description}
 \item[epsilons] A comma-delimeited list of floats, these are the distances below which a parameter set is accepted by the algorithm.
 \item[population size] Integer, the size of each population. 
@@ -177,17 +176,17 @@ To recap, in the current working directory we have
 \begin{verbatim}
 $ run-abc-sysbio -h
 \end{verbatim}
-By default, \verb$run-abc-sysbio$ requires one argument, \verb$--infile filename.txt$. So to use our completed input file to run ABC-SMC, at the prompt we type
+By default, \verb$run-abc-sysbio$ requires one argument, \verb$--infile filename.txt$. So to use our completed input file to run ABC SMC, at the prompt we type
 \begin{verbatim}
 $ run-abc-sysbio --infile input_file_SIR.txt
 \end{verbatim}
-Depending on the stiffness of the model(s), the length of each simulation, \textbf{dt}, the priors, epsilons and population size, ABC-SMC may take from minutes to hours to run. To monitor the progress of the algorithm, run \verb$run-abc-sysbio$ with full output:
+Depending on the stiffness of the model(s), the length of each simulation, \textbf{dt}, the priors, epsilons and population size, ABC SMC may take from minutes to hours to run. To monitor the progress of the algorithm, run \verb$run-abc-sysbio$ with full output:
 \begin{verbatim}
 $ run-abc-sysbio --infile input_file_SIR.txt --fulloutput
 \end{verbatim}
 
-\subsection*{Outputs from ABC-SMC}
-The outputs from running the ABC-SMC algorithm are saved in your working directory.
+\subsection*{Outputs from ABC SMC}
+The outputs from running the ABC SMC algorithm are saved in your working directory.
 \begin{itemize}
 \item \verb$_data.png$, a scatter plot of your input data. (Figure \ref{dataSIR}).
 \item A folder, \verb$_results_$, containing the following files:
@@ -203,58 +202,62 @@ The outputs from running the ABC-SMC algorithm are saved in your working directo
 \item \verb$TimeseriesPopulationN.png$, simulations of the model using ten accepted parameter sets, to compare with the data. Refer to Figure \ref{TimeseriesSIR}.
 \item \verb$weightedHistograms_PopulationN.png$, histograms showing accepted parameter distributions.
 \end{itemize}
-\item \verb$copy$ contains in binary data form the information required to restart the ABC-SMC algorithm using the last population. These files are not human-readable but are read into Python if the algorithm is being run restarting from a previous population. See Example 2.
+\item \verb$copy$ contains in binary data form the information required to restart the ABC SMC algorithm using the last population. These files are not human-readable but are read into Python if the algorithm is being run restarting from a previous population. See Example 2.
 \end{itemize}
 In this example, the data (which are available in \verb$input_file_SIR.txt$) are generated from Model 1 and perturbed with Gaussian noise, $N(0, (0.2)^2)$. From the posterior distributions (Figure \ref{ModelDistributionSIR}), after eleven populations, the correct model has been selected 1000 times in a population of 1000 particles. 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=1.0\textwidth]{Graphics/dataSIR.png}
-\caption{Scatterplot of data from an SIR model as input to abcSMC. \label{dataSIR}}
+\caption{Scatterplot of data from an SIR model as input to abc-sysbio. \label{dataSIR}}
 \end{center}
 \end{figure}
-\begin{figure}[h]
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=1.0\textwidth]{Graphics/ModelDistributionSIR.png}
-\caption{Posterior distributions of models after abcSMC using the three SIR models. \label{ModelDistributionSIR}}
+\caption{Posterior distributions of the three SIR models. \label{ModelDistributionSIR}}
 \end{center}
 \end{figure}
-\begin{figure}[h]
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=1.0\textwidth]{Graphics/AcceptedSIR.png}
 \caption{Posterior distributions of parameters of SIR Model 1, final population. \label{AcceptedSIR}}
 \end{center}
 \end{figure}
-\begin{figure}
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{Graphics/FirstTimeSIR.png}
 \hspace{0.5cm}
 \includegraphics[width=0.4\textwidth]{Graphics/LastTimeSIR.png} 
-\caption{Simulations of Model1 using accepted parameters from the first (left) and last (right) populations. \label{TimeseriesSIR}}
+\caption{Simulations of SIR Model1 using accepted parameters from the first (left) and last (right) populations. \label{TimeseriesSIR}}
 \end{center}
 \end{figure} 
-\section{Parameter inference - ABC-SMC}
-As shown in Figure \ref{Flowchart}, if only one model is used, in the absence of model selection the package \verb$abc-sysbio$ effectively performs ABC-SMC for parameter inference.
 
-In this section we perform ABC-SMC for parameter inference using the linear growth model. 
+\newpage
+\newpage
 
-This model is an instance when the flexibility of the package is useful. The noise terms in the Python representation of the model automatically generated by the program are too large for the model to be simulated efficiently. (See Chapter \ref{Troubleshooting}). In this example the Python file has been edited to reduce the magnitude of the noise terms. The script \verb$run-abc-sysbio$ has been modified accordingly, such that the edited Python file representing the model is not overwritten when the script is run.
+\section{Example 2: Parameter inference using ABC SMC}
+As shown in Figure \ref{Flowchart}, if only one model is used, in the absence of model selection the package \verb$abc-sysbio$ effectively performs ABC SMC for parameter inference.
+
+In this section we perform ABC SMC for parameter inference in a stochastic linear growth model. 
+
+This model is an instance when the flexibility of the package is useful. The noise terms in the Python representation of the model automatically generated by the program are too large for the model to be simulated efficiently. (See Chapter \ref{Troubleshooting}). In this example the Python file has been edited to reduce the magnitude of the noise terms. 
 
 \verb$run-abc-sysbio$ has the capacity to generate a synthetic data set from the model. To do this, a series of timepoints at which data are required must be added to the input file, and all the parameters in the input file must be constant. In this example, the data were simulated from the model parameterised with parameters $10.0, 1.0$.
 \begin{verbatim}
-$ run-abc-sysbio --infile input_file_simulation -y
+$ run-abc-sysbio --infile input_file_simulation -y -pm
 \end{verbatim}
-In the input file, we input the data and the initial epsilon schedue, $\epsilon = \{5, 4, 3\}$. The population size is 500.
+In the input file, we input the data and the initial epsilon schedue, $\epsilon = \{5, 4, 3\}$. The population size is 500. The option \verb$-pm$ tells the package to use local python files and not try an import from an SBML file.
 
 To run our script, we type
 \begin{verbatim}
-$ run-abc-sysbio  --infile input_file_lingrow.txt
+$ run-abc-sysbio  --infile input_file_lingrow.txt -pm
 \end{verbatim}
-After running the script, we inspect the outputs.  From Figure \ref{LinGrow1}) we see that the accepted parameters span the entire prior distribution. Our choice of $\epsilon$ was too large for meaningful parameter inference. 
-\begin{figure}
+After running the script, we inspect the outputs.  From Figure \ref{LinGrow1} we see that the accepted parameters span the entire prior distribution. Our choice of $\epsilon$ was too large for meaningful parameter inference. 
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.4\textwidth]{Graphics/TimeSeriesLinGrow1.png}
 \includegraphics[width=0.4\textwidth]{Graphics/ScatterPlotsLinGrow1.png}
-\caption{Left, time series using ten accepted parameter sets. Data are turquoise circles; Right, posterior distributions after the third population ($\epsilon = 6$) \label{LinGrow1}}
+\caption{Time series and posteriors for the stochastic linear growth model with $\epsilon = 6$. Left, time series using ten accepted parameter sets. Data are turquoise circles; Right, posterior distributions after the third population \label{LinGrow1}}
 \end{figure}
 Using the \textbf{Restart} option, we can adjust the epsilon schedule and restart the program, making use of the posterior distribution from the last population. To do this, we make a copy of the user input file.
 \begin{verbatim}
@@ -262,18 +265,18 @@ $ cp input_file_lingrow.txt input_file_lingrow2.txt
 \end{verbatim}
 In the new user input file, we set the \textbf{Restart} flag in the input file to \verb$True$ and change the epsilon schedule. We can then restart the program. The data in the binary data files saved in the folder \verb$copy$ will be read into python and used as the posterior distribution from which the parameters are sampled.
 \begin{verbatim}
-$ run-abc-sysbio --infile input_file_lingrow2.txt
+$ run-abc-sysbio --infile input_file_lingrow2.txt -pm
 \end{verbatim}
 By inspecting the output, we can see that after restarting the program with a more appropriate epsilon schedule, more meaningful parameter inference is obtained. 
-\begin{figure}
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.4\textwidth]{Graphics/TimeSeriesLinGrow2.png}
 \includegraphics[width=0.4\textwidth]{Graphics/ScatterPlotsLinGrow2.png}
-\caption{Left, time series using ten accepted parameter sets. Data are turquoise circles; Right, posterior distributions after the fourth population ($\epsilon = 4$) \label{LinGrow2}}
+\caption{Time series and posteriors for the stochastic linear growth model with $\epsilon = 4$. Left, time series using ten accepted parameter sets. Data are turquoise circles; Right, posterior distributions after the fourth population. \label{LinGrow2}}
 \end{figure}
 
-\section{Parameter inference - ABC-Rejection}
-In an even simpler case than that described in Example 2, specifying a single epsilon will return a single population of accepted parameters, effectively implementing the ABC Rejection algorithm \citep{ABCrejection}. We give an example using the dimerisation model of \cite{Wilkinson2006}. This model has been written with appropriate rate laws for a discreet stochastic simulation using Gillespie's direct method \citep{Gillespie1977}. 
+\section{Example 3: Parameter inference using ABC rejection}
+In an even simpler case than that described in Example 2, specifying a single epsilon will return a single population of accepted parameters, effectively implementing the ABC rejection algorithm \citep{ABCrejection}. We give an example using the dimerisation model of \cite{Wilkinson2006}. This model has been written with appropriate rate laws for a discreet stochastic simulation using Gillespie's direct method \citep{Gillespie1977}. 
 
 As in Example 2, in this example the data are data from the model (Figure \ref{DimerisationData}).
 \begin{figure}[htbp]
@@ -283,20 +286,47 @@ As in Example 2, in this example the data are data from the model (Figure \ref{D
 \label{DimerisationData}
 \end{center}
 \end{figure}
-The procedure for using \verb$abc-sysbio$ to implement the ABC-Rejection algorithm follows that of the use of the package to implement ABC-SMC. By specifying a single epsilon together with a size for the population of accepted particles, a single population of accepted parameters is returned.
+The procedure for using \verb$abc-sysbio$ to implement the ABC rejection algorithm follows that of the use of the package to implement ABC SMC. By specifying a single epsilon together with a size for the population of accepted particles, a single population of accepted parameters is returned.
 
-Figure \ref{DimerisationResults} shows the posterior distributions of the two parameters in the dimerisation model. The true parameter values were parameter 1$\times 10^{-15}$, 1.66$\times 10^{-3}$ and 0.2 for parameters 1,2 and 3 respectively . As discussed by \cite{Toni2009} and \cite{Sisson2007}, the ABC-Rejection algorithm is less efficient than ABC-SMC. With the ability to restart the algorithm using the posterior distribution of a population of accepted parameters, the user can transition from ABC-Rejection to ABC-SMC to narrow the posterior distribution further with further iteration(s) of ABC.
+Figure \ref{DimerisationResults} shows the posterior distributions of the two parameters in the dimerisation model. The true parameter values were 1$\times 10^{-15}$, 1.66$\times 10^{-3}$ and 0.2 for parameters 1,2 and 3 respectively . As discussed by \cite{Toni2009} and \cite{Sisson2007}, the ABC rejection algorithm is less efficient than ABC SMC. With the ability to restart the algorithm using the posterior distribution of a population of accepted parameters, the user can transition from ABC rejection to ABC SMC to narrow the posterior distribution further with further iteration(s) of ABC.
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=1.0\textwidth]{Graphics/DimerisationResults.png}
 \caption{Posterior parameter distributions of parameter 1 and parameter 2 in the dimerisation model. \label{DimerisationResults}}
 \end{center}
 \end{figure}
+
+\section{Example 4: Using pycuda on Nvidia GPUs}
+Using Graphical Processing Units for simulation can increase performance by large factors; initial tests with \verb$run-abc-sysbio$ and a simple example gave speed ups of 20-30 times. \verb$run-abc-sysbio$ supports CUDA via \verb$pycuda$ (\cite{Klockner2009}). This must be installed and working before this example can be run. 
+
+Currently, the user is required to write an application file in C but automatic generation of CUDA code will be implemented in the future. In addition, only the Gillespie algorithm is currently implemented.
+
+Example 4 that comes with the \verb$abc-sysbio$ package contains a simple model selection example using cuda. The data has been simulated under a stochastic immigration-death model. We will perform model selection using a stochastic immigration death model (true model) and a stochastic logistic growth model. The CUDA code is contained in \verb$immdeath_logistic.cu$. Three main things need to be defined:
+\begin{itemize}
+\item \verb$#define NXMAX 1$ \\
+This states the maximum number of species in any model.
+\item \verb$__constant__ int nx[] = {1,1};$\\
+This specifies the number of species in each model. Here we are fitting two models so the array is of length two.  
+\item
+\verb$__device__ void hazards$ \\
+This function defines the hazards for each model.
+\end{itemize}
+To run the example, issue the following command:
+\begin{verbatim}
+$ run-abc-sysbio -f -i input_file_pop.txt -sd=10 --runmode=2 \
+	-of=results -ct=512 -cb=16 --cudacode=immdeath_logistic.cu \
+	-pm -t
+\end{verbatim}
+
+The argument \verb$--runmode=2$ tells \verb$abc-sysbio$ to use cuda.
+The maximum number of threads, \verb$-ct$, and blocks,  \verb$-cb$, and indeed the best performing combinations of these, will be highly dependent on the specification of GPU in use and the nature of the problem at hand.
+
+
 \chapter{Using the package}
 \label{usage}
-\verb$abc-sysbio$ can be used as a standalone Python library. However, facilitate the most common applications of the package, \verb$abc-sysbio$ is supplied with two scripts, \verb$abc-sysbio-sbml-sum$ and \verb$run-abc-sysbio$. These scripts combine the functions in the package to implement the ABC algorithms.
+\verb$abc-sysbio$ can be used as a standalone Python library. However, to facilitate the most common applications of the package, \verb$abc-sysbio$ is supplied with two scripts, \verb$abc-sysbio-sbml-sum$ and \verb$run-abc-sysbio$. These scripts combine the functions in the package to implement the ABC algorithms.
 
-\verb$run-abc-sysbio$ implements parameter inference and model selection using the ABC-SMC algorithm \citep{Toni2009}, as well as the ABC rejection sampler \citep{ABCrejection}. The program works directly with models written in SBML format. 
+\verb$run-abc-sysbio$ implements parameter inference and model selection using the ABC SMC algorithm \citep{Toni2009}, as well as the ABC rejection sampler \citep{ABCrejection}. The program works directly with models written in SBML format. 
 \section{Model conversion from SBML to Python format}
 When \verb$run-abc-sysbio$ is run, model(s) written in SBML format are used to generate an appropriate Python module representing the model, via a call to \verb$importSBML$. The format of the Python module written depends on the integration type, which also informs the program which solver to use to simulate the model. (See Section \ref{extending}.)
 
@@ -318,7 +348,7 @@ Some information is general to the algorithm.
 Some optional keywords can be supplied.
 \begin{description}
 \item[rtol, atol] For models to be simulated as an ODE system these two keywords can be used to set the relative and absolute error tolerances for the numeric simulation. For stiff models, this may be necessary for successful simulation.
-\item[restart] Frequently in the implementation of the ABC-SMC algorithm, the epsilon schedule selected in the first instance might be sub-optimal, leading to a high acceptance rate and too wide a posterior distribution. In addition this makes parameter inference computationally expensive. To avoid wasting the information from initial attempts at parameter inference, it is possible to make a backup that stores the information about each popualation after it has been completed. With this backup one can stop the program, change the maximum distances or any other parameters and restart the program with the results of the last population. To do this set: \verb$<restart>: True$ When restarting from a backup population, it is important not to increase the population size and to keep the structure of the models constant. Permitted changes include \textbf{epsilon}, \textbf{beta}, \textbf{dt}, \textbf{rtol} and \textbf{atol}, the values in \textbf{data} (but not the structure), the initial concentrations, the prior distributions (for constant parameters) and the pertubation kernels. Which of these changes will make the inference more informative, we will leave the user to decide.\end{description}
+\item[restart] Frequently in the implementation of the ABC SMC algorithm, the epsilon schedule selected in the first instance might be sub-optimal, leading to a high acceptance rate and too wide a posterior distribution. In addition this makes parameter inference computationally expensive. To avoid wasting the information from initial attempts at parameter inference, it is possible to make a backup that stores the information about each popualation after it has been completed. With this backup one can stop the program, change the maximum distances or any other parameters and restart the program with the results of the last population. To do this set: \verb$<restart>: True$ When restarting from a backup population, it is important not to increase the population size and to keep the structure of the models constant. Permitted changes include \textbf{epsilon}, \textbf{beta}, \textbf{dt}, \textbf{rtol} and \textbf{atol}, the values in \textbf{data} (but not the structure), the initial concentrations, the prior distributions (for constant parameters) and the pertubation kernels. Which of these changes will make the inference more informative, we will leave the user to decide.\end{description}
 For each model in the input file, additional information must be supplied.
 \begin{description}
 \item[model {\it i}] ({\it i} = 1, \dots, $M$, where $M$ is the total number of models to be investigated.) For ABC-Rejection and ABC SMC for parameter inference, $M = 1$.
@@ -406,41 +436,46 @@ Plotting options: & & \\
 \end{table}
 \chapter{Installation}
 The package \verb$abc-sysbio$ provides a Python library, \verb$abcsysbio$ containing functions for parameter inference and model selection \citep{Toni2009,ABCrejection} of dynamical systems taken from the Biomodels database. Together with the scripts \verb$abc-sysbio-sbml-sum$ and \verb$run-abc-sysbio$ it creates a user-friendly tool.
-It is advisable to use the package together with the Python Enthought Distribution. It works on both operationg systems MacOS and Linux. 
+It is advisable to use the package together with the Python Enthought Distribution though this is not essential. It works on both MacOS and Linux operating systems.
 
-The package is installed via the standard \verb$distutils$ interface. Download and unpack the code \verb$abc-sysbio-XX.tar.gz$ where XX is the version number.
+\verb$abcsysbio$ has the below dependencies. With the exception of libSBML and pycuda all of these are included in the Enthought Python Distribution. 
+\begin{verbatim}
+libSBML
+pycuda
+matplotlib
+Numpy
+Scipy
+\end{verbatim}
+Only  \verb$matplotlib$ and \verb$numpy$ are essential; stochastic (SDE and Gillepsie), pure python models (no SBML) can be run with just these installed. \verb$scipy$ is used by the ODE solver and so must be installed for inference in ODE models. \verb$libsbm$ must be installed if import from SBML is desired. 
+
+Once the dependent packages have been installed (see the README.txt in the package distribution), abc-sysbio is installed via the standard \verb$distutils$ interface. Download and unpack the code \verb$abc-sysbio-XX.tar.gz$ where XX is the version number.
 \begin{verbatim}
 $ cd abc-sysbio-XX
-$ python setup.py install 
+$ python setup.py install
 \end{verbatim}
-And this should copy the module \verb$abcsysbio$ and the programs \verb$run-abc-sysbio$ and \verb$abc-sysbio-sbml-sum$ into the appropriate places. The current directory should also be placed into the python path
+
+\section*{Linux}
+On linux this will copy the module \verb$abcsysbio$ into the \verb$lib/pythonXX/site-packages$ directory corresponding to the python version that was used to invoke the installation. In addition it will copy the scripts \verb$run-abc-sysbio$ and \verb$abc-sysbio-sbml-sum$ into the same \verb$bin$ directory as the python version that was used to invoke the installation. For example
 \begin{verbatim}
-$  export PYTHONPATH=$PYTHONPATH:.
+$ /usr/local/bin/python2.6 setup.py install
 \end{verbatim}
-for bash or
-\begin{verbatim}
-$ setenv PYTHONPATH $PYTHONPATH:.
-\end{verbatim}
-for C type shells (this can be put in your .bashrc or .cshrc file)
-It should then suffice to just do
+places \verb$run-abc-sysbio$ and \verb$abc-sysbio-sbml-sum$ into \verb$/usr/local/bin/$ and \verb$abcsysbio$ into \verb$/usr/local/lib/python2.6/site-packages$. If \verb$run-abc-sysbio$ and \verb$abc-sysbio-sbml-sum$ are already in the path then it should now be sufficient to issue the command
 \begin{verbatim}
 $ run-abc-sysbio -h
 \end{verbatim}
-In addition the \verb$abcsysbio$ module can be used like any other Python library.
-
-\verb$abcsysbio$ has the below dependencies. With the exception of libSBML, all of these are included in the Enthought Python Distribution
+to get a list of options. Alternatively if they are not in the path, they can be added by issuing
 \begin{verbatim}
-libSBML
-math
-matplotlib
-Numpy
-os
-pickle
-re
-sys
-Scientific
-Scipy
+$ export PATH=<dir>:$PATH 
 \end{verbatim}
+for 'sh' type shells or
+\begin{verbatim}
+$ setenv PATH <dir>:$PATH 
+\end{verbatim}
+for 'c' type shells. This must be done each time you open a new shell unless you add the line to your .bashrc / .cshrc files. Alternatively you can just call the scripts using the full path eg \verb$/usr/local/bin/run-abc-sysbio$.
+
+\section*{Mac OSX}
+On the Mac the location of the resulting files can be different depending on which flavour of python you are using. The output from the \verb$install$ command can be used to identify the location of the scripts and this directory should be added to the PATH as above.
+See the README.txt in the package distribution for one way to install \verb$abc-sysbio$ on the Mac.
 
 \chapter{Extending the library}
 \section{Using the modules independently of the scripts}
@@ -468,30 +503,6 @@ There is an alternative way to define custom kernel functions when using \verb$r
 \section{Defining your own priors}
 Parameters are sampled from priors or from previous distributions in the module \verb$abcSMC_model$, via the functions \verb$sampleParametersFromPrior$ and \verb$sampleParametersFromPrevious$, which are called in the function \verb$sampleTheParameter$. Prior distribution definitions are also required as an input to \verb$computeParticleWeights$.  If the user wishes to define their own prior distributions, a sensible way to do this would be to re-define one of the existing prior distributions with the required prior. The user should be aware that user-defined priors will not be supported by \verb$run-abc-sysbio$. 
 
-\chapter{Using pycuda on Nvidia GPUs}
-\section{Introduction}
-Using Graphical Processing Units for simulation can increase performance by large factors; initial tests with \verb$run-abc-sysbio$ and a simple example gave speed ups of 20-30 times. \verb$run-abc-sysbio$ supports CUDA via \verb$pycuda$ (\cite{Klockner2009}). Currently, the user is required to write an application file in C. Automatic generation of CUDA code will be implemented in the future.
-
-\section{Example}
-Example4 that comes with the \verb$abc-sysbio$ package contains a simple model selection example using cuda. The data has been simulated under a stochastic immigration death model and the models fit are stochastic immigration death and stochastic logistic. The CUDA code is contained in \verb$immdeath_logistic.cu$. Three main things need to be defined:
-\begin{itemize}
-\item \verb$#define NXMAX 1$ \\
-This states the maximum number of species in any model.
-\item \verb$__constant__ int nx[] = {1,1};$\\
-This specifies the number of species in each model. Here we are fitting two models so the array is of length two.  
-\item
-\verb$__device__ void hazards$ \\
-This function defines the hazards for each model.
-\end{itemize}
-To run the example, first obtain the file \verb$MersenneTwister.dat$ supplied with the package.  Issue a command of the form:
-\begin{verbatim}
-$ run-abc-sysbio -f -i input_file_pop.txt -sd=10 --runmode=2 \
-	-of=results -ct=512 -cb=16 --cudacode=immdeath_logistic.cu \
-	-mt=MersenneTwister.dat -pm.
-\end{verbatim}
-
-\noindent The number of threads and blocks will be dependent on the type of GPU in use.
-
 \chapter{Troubleshooting} \label{Troubleshooting}
 Before the ABC algorithm is implemented, the package checks that all the supplied information is consistent with each other and with the model(s) being used. If a discrepancy is found an error message is returned and the program is stopped. Despite this, some known issues remain.
 \begin{itemize}
@@ -499,12 +510,12 @@ Before the ABC algorithm is implemented, the package checks that all the supplie
 \begin{verbatim}
 Excess work done on this call. Perhaps wrong Dfun type.
 \end{verbatim}
-may be encountered. This error message arises when the model is too stiff to be solved successfully by the \verb$odeint$ solver from Scipy. If this error message is encountered, specifying a smaller \textbf{dt} and/or a small \textbf{rtol} or \textbf{atol} (on the order of $1e^{-5}$ to $1e^{-7}$) may allow a stiff model to be successfully simulated; however, such a stiff model may take such a long time to be simulated as to be impractical for ABC-SMC.
+may be encountered. This error message arises when the model is too stiff to be solved successfully by the \verb$odeint$ solver from Scipy. If this error message is encountered, specifying a smaller \textbf{dt} and/or a small \textbf{rtol} or \textbf{atol} (on the order of $1e^{-5}$ to $1e^{-7}$) may allow a stiff model to be successfully simulated; however, such a stiff model may take such a long time to be simulated as to be impractical for ABC SMC.
 \item When attempting to simulate a model using the SDE solver, the message
 \begin{verbatim}
 SDE simulation failed. Try a smaller dt.
 \end{verbatim}
-indicates that the concentrations of species in the simulation have fallen below zero. At this point the simulation is stopped and, if this simulation is occuring in the context of ABC-SMC or ABC-Rejection, the sampled parameters are rejected. If this error is encountered, a smaller \textbf{dt} may enable a successful simulation by having the effect of making the noise at each step smaller. Another means of simulating the model with less noise is to edit the Python function representing the model; in this case the user will have to edit the script \verb$run-abc-sysbio$ to ensure that the edited model is not overwritten by a call to \verb$importSBML$.
+indicates that the concentrations of species in the simulation have fallen below zero. At this point the simulation is stopped and, if this simulation is occuring in the context of ABC SMC or ABC-Rejection, the sampled parameters are rejected. If this error is encountered, a smaller \textbf{dt} may enable a successful simulation by having the effect of making the noise at each step smaller. Another means of simulating the model with less noise is to edit the Python function representing the model; in this case the user will have to edit the script \verb$run-abc-sysbio$ to ensure that the edited model is not overwritten by a call to \verb$importSBML$.
 \end{itemize}
 \newpage
 \chapter{Appendix}
@@ -516,7 +527,7 @@ indicates that the concentrations of species in the simulation have fallen below
 \textbf{Package Description}
 \begin{quote}
 	The abc-sysbio package @ 2010\\
-	Erika Cule and Juliane Liepe\\
+	Juliane Liepe, Chris Barnes, Erika Cule\\
 	Centre for Bioinformatics\\
 	Imperial College London\\
 \end{quote}
@@ -534,85 +545,9 @@ indicates that the concentrations of species in the simulation have fallen below
     	parseInfo\\
     	relations\\
     	sdeint\\
+	abccuda.py\\
+	MersenneTwister.dat\\
 \end{quote}
-
-\section{Module and function details}
-Module names are given in bold type; function names are given in \emph{italics}.
-\subsection{GillespieAlgorithm}
-\emph{select\_hazard}(total\_hazard,list\_of\_hazards)
-\indent \verbatimtabinput{Docstrings/GillespieAlgorithmselect_hazard.py}
-\emph{GillespieInt}(func, initValues, parameters, outputtimes)
-\verbatimtabinput{Docstrings/GillespieAlgorithmGillespieInt.py}
-\subsection{SBMLparse}
-\emph{write\_GillespieFunctions}(stoichiometricMatrix, kineticLaw, numSpecies, numReactions, species, parameterId, InitValues, speciesId,name, listOfFunctions, FunctionArgument, FunctionBody, listOfRules, ruleFormula, ruleVariable, listOfEvents, EventCondition, EventVariable, EventFormula)
-\verbatimtabinput{Docstrings/writeGillespie.py}
-\emph{write\_ODEFunctions}(stoichiometricMatrix, kineticLaw, species, numReactions,speciesId,listOfParameter, parameterId,parameter,InitValues,name, listOfFunctions, FunctionArgument, FunctionBody, listOfRules, ruleFormula, ruleVariable, listOfEvents, EventCondition, EventVariable, EventFormula)
-\verbatimtabinput{Docstrings/writeODE.py}
-\emph{write\_SDEFunctions}(stoichiometricMatrix, kineticLaw, species, numReactions,speciesId, listOfParameter,parameterId,parameter,InitValues,method,name, listOfFunctions, FunctionArgument, FunctionBody,listOfRules, ruleFormula, ruleVariable, listOfEvents, EventCondition, EventVariable, EventFormula)
-\verbatimtabinput{Docstrings/writeSDE.py}
-\emph{importSBML}(source,integrationType,ModelName=None,method=None)
-\verbatimtabinput{Docstrings/importSBML.py}
-\subsection{abcSMC\_model}
-\emph{abcSimulator}(ModelName, data, timepoints, numOutput, epsilon, InitValues, integrationType, modelWeights, priors, kernel, fit=None, sampleFromPrior=False, beta=1, dt=0.01, restart=False, source=None, diagnostic=True, pickling=True, plotDataSeries=True, full=False, constKernels=False, rtol=None, atol=None)
-\verbatimtabinput{Docstrings/abcSimulatorDocstrings.py}
-\subsection{abcodesolve}
-\emph{abcodeint}(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol=None)
-\verbatimtabinput{Docstrings/abcodesolveDocstrings.py}
-\subsection{checkInputArguments}
-\emph{checkInputABC}(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,\\priors,kernel,fit,restart,source)
-\verbatimtabinput{Docstrings/checkinputargumentsDocstrings.py}
-\emph{checkInputSimulation}(name, timepoints, InitValues, IntegrationType, ConstantParameters, source, dt)
-\verbatimtabinput{Docstrings/checkinputSimulationDocstrings.py}
-\subsection{euclidian}
-\emph{euclidianDistance}(data1, data2)
-\verbatimtabinput{Docstrings/euclidianDocstrings.py}
-\subsection{generateTemplate}
-\emph{generateTemplate}(source, filename='input\_file\_template.txt')
-\verbatimtabinput{Docstrings/generateTemplateDocstrings.py}
-\subsection{getResults}
-\emph{MatrixToTextfile}(matrix,filename,model,eps)
-\verbatimtabinput{Docstrings/MatrixToTextFileDocstrings.py}
-\emph{printModelDistribution}(matrix,eps,filename=`model\_distribution.txt')
-\verbatimtabinput{Docstrings/printModelDistributionDocstrings.py}
-\emph{plotTimeSeries}(ModelName,matrix,integrationType,InitValues,timepoints,fit,\\populationNumber=1,dt=0.1,amount=1,model=1,filename=`TimeSeries',data=None,plotdata=False)
-\verbatimtabinput{Docstrings/plotTimeSeriesDocstrings.py}
-\emph{getAllHistograms}(matrix,weights,population=1,PlotName=`AllScatterPlots', model=1)
-\verbatimtabinput{Docstrings/getAllHistogramsDocstrings.py}
-\emph{getAllScatterPlots}(matrix,weights,populations=(1,),PlotName=`AllScatterPlots', model=1)
-\verbatimtabinput{Docstrings/getAllScatterPlotsDocstrings.py}
-\emph{getScatterPlot}(matrix,parameter,populations=(1,),PlotName=`ScatterPlot',model=1)
-\verbatimtabinput{Docstrings/getScatterPlotDocstrings.py}
-\emph{getModelDistribution}(matrix,epsilon,rate,PlotName=`ModelDistribution')
-\verbatimtabinput{Docstrings/getModelDistributionDocstrings.py}
-\subsection{parseInfo}
-\emph{getAlgorithmInfo}(filename)
-\verbatimtabinput{Docstrings/getAlgorithmInfo.py}
-\emph{getinfoForSimulation}(filename)
-\verbatimtabinput{Docstrings/getInfoForSimulation.py}
-\subsection{relations}
-\emph{mathMLConditionParser}(mathMLstring)
-\verbatimtabinput{Docstrings/reldocmathML.py}
-\emph{eq}(a, b)
-\verbatimtabinput{Docstrings/relDoceq.py}
-\emph{neq}(a, b)
-\verbatimtabinput{Docstrings/relDocneq.py}
-\emph{gt}(a, b)
-\verbatimtabinput{Docstrings/relDocgt.py}
-\emph{lt}(a, b)
-\verbatimtabinput{Docstrings/relDoclt.py}
-\emph{geq}(a, b)
-\verbatimtabinput{Docstrings/relDocgeq.py}
-\emph{leq}(a, b)
-\verbatimtabinput{Docstrings/relDocleq.py}
-\emph{and\_}(a, b)
-\verbatimtabinput{Docstrings/relDocand.py}
-\emph{or\_}(a, b)
-\verbatimtabinput{Docstrings/relDocor.py}
-\emph{piecewise}(*args)
-\verbatimtabinput{Docstrings/relDocpiecewise.py}
-\subsection{sdeint}
-\emph{sdeint}(func, InitValues, parameter, timepoints, dt=0.01)
-\verbatimtabinput{Docstrings/sdeintDocstring.py}
 
 \bibliography{ManualBibliography}
 \bibliographystyle{interface}
