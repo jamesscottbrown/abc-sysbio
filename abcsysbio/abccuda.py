@@ -1,5 +1,7 @@
 # cuda utilities
 
+import os, string, abcsysbio
+
 import pycuda.driver as cuda
 import pycuda.tools as tools
 from pycuda.compiler import SourceModule
@@ -16,8 +18,6 @@ from struct import unpack
 # x : nt x pitch (usually 64)
 # tot = 3670016 + nt x 68 
 # nt = 2048 mem = 3,801,088 = 3.8MB
-
-
 
 _mersenne_twister_source_ = """
     // This mersenne twister code is derived from the code at 
@@ -265,6 +265,11 @@ _gillespie2_source_="""
 
 def initialise_twisters( mt_data, mod, nthread, nblock ):
 
+    # get the location of the MersenneTwister.dat file
+    s = abcsysbio.__file__
+    mt_data = s.replace('__init__.pyc','MersenneTwister.dat')
+    print '#### using MersenneTwister data at', mt_data
+    
     print "\n#### initialise_twisters"
     print "#### obtaining MT  pointer of size", mod.get_global("MT")[1], "bytes" 
     print "#### obtaining MTS pointer of size", mod.get_global("MTS")[1], "bytes" 
