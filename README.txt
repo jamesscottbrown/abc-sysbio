@@ -125,6 +125,7 @@ Python library.
 #################################
 # 3) Mac OSX 10.5 installation
 #################################
+
 The following assumes that you have admin rights.
 
 1) Download and install python 2.6
