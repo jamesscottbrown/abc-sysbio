@@ -10,6 +10,9 @@ import numpy
 import sys
 import re
 
+import sys
+sys.path.insert(0, ".")
+
 def printOptions():
     
     print "\nList of possible options:"
