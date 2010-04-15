@@ -392,7 +392,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
     """ 
     p=re.compile('\s')
     out_file=open(name+".py","w")
-    out_file.write("from math import *\nfrom numpy import *\nimport random\nfrom abcsysbio.relations import *\n\n")
+    out_file.write("from math import sqrt\nfrom numpy import random\nfrom abcsysbio.relations import *\n\n")
 
     for i in range(0, len(listOfFunctions)):
         out_file.write("def ")
@@ -523,7 +523,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
                         string=p.sub('',kineticLaw[k])
                         out_file.write(string)
                         out_file.write(")*")
-                        out_file.write("random.gauss(0.0,sqrt(dt))")
+                        out_file.write("random.normal(0.0,sqrt(dt))")
                         out_file.write("+")
                 out_file.write("0\n")
 
@@ -533,7 +533,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
                 out_file.write(ruleVariable[i])
                 out_file.write("= sqrt(")
                 out_file.write(ruleFormula[i])
-                out_file.write(" ) * random.gauss(0.0,sqrt(dt))")
+                out_file.write(" ) * random.normal(0.0,sqrt(dt))")
                 out_file.write("\n")
                 
 
@@ -542,14 +542,14 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
         for i in range(0,numSpecies):
             if (species[i].getConstant() == False):
                 out_file.write("\tnoise_"+speciesId[i]+"=")
-                out_file.write("random.gauss(0.0,sqrt(dt))\n")
+                out_file.write("random.normal(0.0,sqrt(dt))\n")
                 
         for i in range(0,len(listOfRules)):
             if listOfRules[i].isRate() == True:
                 out_file.write("\tnoise_")
                 out_file.write(ruleVariable[i])
                 out_file.write("= ")
-                out_file.write("random.gauss(0.0,sqrt(dt))\n")
+                out_file.write("random.normal(0.0,sqrt(dt))\n")
 
 
     if(method==3):
@@ -565,7 +565,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
                         string=p.sub('',kineticLaw[k])
                         out_file.write(string)
                         out_file.write(")*")
-                        out_file.write("random.gauss(0.0,sqrt(dt))")
+                        out_file.write("random.normal(0.0,sqrt(dt))")
                         out_file.write("+")
                 out_file.write("0\n")
 
@@ -575,7 +575,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
                 out_file.write(ruleVariable[i])
                 out_file.write("= (")
                 out_file.write(ruleFormula[i])
-                out_file.write(" ) * random.gauss(0.0,sqrt(dt))")
+                out_file.write(" ) * random.normal(0.0,sqrt(dt))")
                 out_file.write("\n")
                  
 
