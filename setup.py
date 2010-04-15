@@ -19,13 +19,7 @@ setup(name='abc-sysbio',
       package_data={ 'abcsysbio': ['MersenneTwister.dat'] },
       
       requires=['libSBML', 
-                'math',
                 'matplotlib',
                 'Numpy',
-                'os',
-                'pickle',
-                're',
-                'sys',
-                'Scientific',
                 'Scipy']
                 )
