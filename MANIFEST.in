@@ -1,3 +1,4 @@
 include abcsysbio/MersenneTwister.dat
 recursive-include examples *
 include doc/Manual.pdf
+include DEPENDENCIES.txt
