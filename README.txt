@@ -14,7 +14,7 @@ ABC SMC for parameter inference and ABC SMC for model selection.
 1) Prerequisites
 2) Linux installation
 3) Mac OSX installation
-4) pyCUDA on Linux
+4) pycuda on Linux
 5) Package contents
 
 #################################
@@ -30,97 +30,124 @@ first install the following packages
 	scipy (ODE models)
 	pycuda (Nvidia GPU)
 
-The first two are essential the latter three need only
+While the first two are essential, the latter three need only
 be installed if full use of abc-sysbio is required.
 
 #################################
 # 2) LINUX installation
 #################################
+If custom installation is required then replace <dir> 
+with the full path to a location. This will be the 
+location containing lib and bin directories (usually 
+/usr/local by default).
 
-The --prefix=<dir> option can be ignored if the installations are to the default locations.
-If custom installation is required then replace <dir> with the full path to a location. This 
-will be the location contaning lib and bin directories (usually /usr by default).
+The --prefix=<dir> option is recommended since it will 
+guarantee that each package picks up the correct dependency.
 
-# python2.X http://www.python.org/download/
-./configure --prefix=<dir> --enable-shared
-make
-make install
-
-# numpy http://numpy.scipy.org/
-python setup.py install --prefix=<dir>
-
-# matplotlib http://matplotlib.sourceforge.net/
-python setup.py build
-python setup.py install --prefix=<dir>
-
-*** For SBML interface
-
-# swig http://www.swig.org/ (required by libsbml)
-./configure --prefix=<dir>
-make
-make install
-
-# libsbml http://sbml.org/Software/libSBML
-./configure --with-python=<dir> --prefix=<dir> --with-swig=<dir>
-make 
-make install
-
-
-*** For ODE modelling
-
-# ATLAS http://math-atlas.sourceforge.net/ (required by scipy but maybe included with Linux/MAC distribution)
-
-# scipy
-export ATLAS=/full/path/to/atlas
-python setup.py build
-python setup.py install --prefix=<dir>
-
-
-
-Once the required dependent packages have been installed, 
-abc-sysbio is installed via the standard distutils interface. 
-The command:
+1) Download and install python
+http://www.python.org/ftp/python/2.6.5/Python-2.6.5.tgz
 	
-	python setup.py install 
+	tar xzf Python-2.6.5.tgz
+	cd Python-2.6.5
+	./configure --prefix=<dir> --enable-shared
+	make
+	make install
 
-will place the module abcsysbio into the standard folder, 
-usually something /usr/lib/python2.X/site-packages/ on Linux, 
-depending on the version of python you are using. It also 
-places two executable Python scripts called run-abc-sysbio 
-and abc-sysbio-sbml-sum into the standard location, 
-usually /usr/bin on Linux.
+Note that the user may have to do 
 
-If you wish to install to a custom location you can use 
-the command:
+	sudo make install
 
-	python setup.py install \
-		--prefix=/path/to/custom/location/
+if the target <dir> is write protected
 
-this places the scripts run-abc-sysbio and abc-sysbio-sbml-sum 
-into /path/to/custom/location/bin/ and the module abcsysbio 
-in /path/to/custom/location/lib/python2.6/site-packages/
-depending on which python version you are using.
+Make sure this new version of python is picked up by default
+	
+	export PATH=<dir>/bin:$PATH  (for BASH)
+	setenv PATH <dir>/bin:$PATH
 
+2) Download and install numpy
+http://downloads.sourceforge.net/project/numpy/NumPy/1.4.1rc2/numpy-1.4.1rc2.tar.gz
+	
+	tar xzf numpy-1.4.1rc2.tar.gz	
+	cd numpy-1.4.1rc2
+	python setup.py install --prefix=<dir>
 
-The current directory should also be placed into the python 
-path. For bash type shells do:
+3) Download and install matplotlib
+http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-0.99.1/matplotlib-0.99.1.2.tar.gz
 
-	export PYTHONPATH=$PYTHONPATH:.
+	tar xzf matplotlib-0.99.1.2.tar.gz
+	cd matplotlib-0.99.1.1/	
+	python setup.py build
+	python setup.py install --prefix=<dir>
 
-For C type shells do:
+4) Download and install swig 
+Note that this is required by libsbml and it must be at least version 1.3.39 
+http://downloads.sourceforge.net/project/swig/swig/swig-1.3.40/swig-1.3.40.tar.gz
 
-	setenv PYTHONPATH $PYTHONPATH:.
+	tar -xzf swig-1.3.40.tar.gz
+	cd swig-1.3.40
+	./configure --prefix=<dir>
+	make
+	make install
 
-Note that this can be added to your .bashrc or .cshrc.
+Note that the user may have to do
 
-If everything is installed correctly it should then suffice 
-to do:
+	sudo make install
+
+if the target <dir> is write protected
+
+5) Download and install libSBML
+http://downloads.sourceforge.net/project/sbml/libsbml/4.0.1/libsbml-4.0.1-src.zip
+
+	unzip libsbml-4.0.1-src.zip
+	cd libsbml-4.0.1	
+	./configure --with-python=<dir> --prefix=<dir> --with-swig=<dir>
+	make 
+	make install
+
+Note that the user may have to do 
+
+	sudo make install
+
+if the target <dir> is write protected
+
+6) Download and install scipy
+http://downloads.sourceforge.net/project/scipy/scipy/0.7.2rc2/scipy-0.7.2rc2.tar.gz
+
+Note that scipy requires ATLAS (http://math-atlas.sourceforge.net/)
+but should be included in most linux distributions. You need to locate
+the ATLAS libraries
+
+	tar xzf scipy-0.7.2rc2.tar.gz
+	cd scipy-0.7.2rc2
+	export ATLAS=/full/path/to/atlas/libraries
+	python setup.py build
+	python setup.py install --prefix=<dir>
+
+7) Install abc-sysbio
+In the unzipped abc-sysbio package directory do
+   
+	python setup.py install --prefix=<dir>
+
+This places the abcsysbio package into 
+     
+	<dir>/lib/python2.6/site-packages/
+
+and writes the scripts
+    
+	<dir>/bin/abc-sysbio-sbml-sum
+	<dir>/bin/run-abc-sysbio
+
+Add the script directory to the path (must be done in each session or added to .bashrc or .cshrc file)
+
+	export PATH=<dir>/bin:$PATH  (bash shells)
+	setenv PATH <dir>/bin:$PATH  (c shells)
+
+Then  the command
 
 	run-abc-sysbio -h
 
-to get a list of options printed. 
-In addition the abcsysbio module can be used like any other 
-Python library.
+should display a list of options and you are ready to run the examples.
+
 
 #################################
 # 3) Mac OSX 10.5 installation
@@ -145,49 +172,63 @@ http://downloads.sourceforge.net/project/scipy/scipy/0.7.2rc2/scipy-0.7.2rc2-py2
 http://downloads.sourceforge.net/project/sbml/libsbml/4.0.1/libsbml-4.0.1-src.zip
 Do following in an xterm
 
-   unzip libsbml-4.0.1-src.zip
-   cd libsbml-4.0.1
-   ./configure --with-python=/usr/local
-   make
-   sudo make install
-   cp -r /usr/local/lib/python2.6/site-packages/libsbml* /Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/
+	unzip libsbml-4.0.1-src.zip
+	cd libsbml-4.0.1
+	./configure --with-python=/usr/local
+	make
+	sudo make install
+	cp -r /usr/local/lib/python2.6/site-packages/libsbml* /Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/
 
 6) Install abc-sysbio
 In the unzipped abc-sysbio package directory do
-python2.6 setup.py install
+   
+	python2.6 setup.py install
 
 This places the abcsysbio package into 
-/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/
+
+	/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/
+
 and writes the scripts
-/Library/Frameworks/Python.framework/Versions/2.6/bin/abc-sysbio-sbml-sum
-/Library/Frameworks/Python.framework/Versions/2.6/bin/run-abc-sysbio
+    
+	/Library/Frameworks/Python.framework/Versions/2.6/bin/abc-sysbio-sbml-sum
+	/Library/Frameworks/Python.framework/Versions/2.6/bin/run-abc-sysbio
 
 Add the script directory to the path (must be done in each session or added to .bashrc file)
-export PATH=/Library/Frameworks/Python.framework/Versions/2.6/bin:$PATH
+
+	export PATH=/Library/Frameworks/Python.framework/Versions/2.6/bin:$PATH
 
 Then  the command
 
-      run-abc-sysbio -h
+	run-abc-sysbio -h
 
 should display a list of options and you are ready to run the examples.
 
 #################################
-# 4) pyCUDA on Linux	 
+# 4) pycuda on Linux	 
 #################################
 
-# Boost (required for pycuda) see http://wiki.tiker.net/BoostInstallationHowto
-  
-  ./bootstrap.sh --prefix=<dir> --libdir=<dir>/lib
-  ./bjam variant=release link=shared install
+see http://wiki.tiker.net/PyCuda/Installation/Linux
 
-# distribute-0.6.8 (required for pycuda) 
-# see http://wiki.tiker.net/DistributeVsSetuptools
+You are likely to require:
 
-# Pytools (required for pycuda)
-  python setup.py install
+1) Boost
+http://www.boost.org/
+see http://wiki.tiker.net/BoostInstallationHowto
 
-# PyCUDA
-# see http://wiki.tiker.net/PyCuda/Installation/Linux
+	./bootstrap.sh --prefix=<dir> --libdir=<dir>/lib
+	./bjam variant=release link=shared install
+
+2) distribute-0.6.8 
+   
+	curl -O http://python-distribute.org/distribute_setup.py
+	python distribute_setup.py
+
+See also http://wiki.tiker.net/DistributeVsSetuptools
+
+3) Pytools 
+http://pypi.python.org/pypi/pytools
+	
+	python setup.py install
 
 #################################
 # 5) Package contents	 
