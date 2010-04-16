@@ -14,8 +14,9 @@ ABC SMC for parameter inference and ABC SMC for model selection.
 1) Prerequisites
 2) Linux installation
 3) Mac OSX installation
-4) pycuda on Linux
-5) Package contents
+4) Windows Vista installation
+5) pycuda on Linuxa
+6) Package contents
 
 #################################
 # 1) Prerequisites
@@ -204,7 +205,15 @@ Then  the command
 should display a list of options and you are ready to run the examples.
 
 #################################
-# 4) pycuda on Linux	 
+# 4) Windows Vista installation	 
+#################################
+
+Windows is not currently supported but we have succesfully installed
+matplotlib, numpy, scipy and libsbml on Windows Vista.
+
+
+#################################
+# 5) pycuda on Linux	 
 #################################
 
 see http://wiki.tiker.net/PyCuda/Installation/Linux
@@ -231,7 +240,7 @@ http://pypi.python.org/pypi/pytools
 	python setup.py install
 
 #################################
-# 5) Package contents	 
+# 6) Package contents	 
 #################################
 
 abcsysbio/ is the python module containing all the source 
