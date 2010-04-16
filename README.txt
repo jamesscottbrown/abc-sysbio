@@ -154,7 +154,7 @@ should display a list of options and you are ready to run the examples.
 # 3) Mac OSX 10.5 installation
 #################################
 
-The following assumes that you have admin rights.
+What follows is one way to install abc-sysbio on Mac OSX 10.5. It assumes that you have admin rights. 
 
 1) Download and install python 2.6
 http://www.python.org/ftp/python/2.6.5/python-2.6.5-macosx10.3-2010-03-24.dmg
@@ -209,7 +209,8 @@ should display a list of options and you are ready to run the examples.
 #################################
 
 Windows is not currently supported but we have succesfully installed
-matplotlib, numpy, scipy and libsbml on Windows Vista.
+matplotlib, numpy, scipy, libsbml and abc-sysbio on Windows Vista
+using WinPython.
 
 
 #################################
