@@ -1045,7 +1045,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                             print distance
                         
                         if(distance<=epsilon[t] and distance>0 ):
-                            #distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
+                            distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(m+1)+'\n')
                             accept[k] = 1
                             batch_beta[k] = batch_beta[k] + 1
 
