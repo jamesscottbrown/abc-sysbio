@@ -264,7 +264,8 @@ def getAlgorithmInfo(filename):
 
     stop=False
     dataFound=False
-    dataFromFile = []  
+    dataFromFile = []
+    maskFromFile = []
     for line in f_info.readlines():
         if commentRE.match(line): continue
         elif(stop==True): break
@@ -280,19 +281,40 @@ def getAlgorithmInfo(filename):
                         timepoints.append(float(seq[x]))
                 if var.match(line):
                     sequence=var.sub('',line)
-                    seq=digit.findall(sequence)
+
+                    # get the data values
+                    seq = re.split(',',sequence.strip())
+                    
+                    # detect NA values
+                    mask = [ re.match("\s*NA\s*", seq[i]) != None for i in range(len(seq)) ]
+                    
+                    # set NA values to zero
+                    for i in range(len(seq)):
+                        if( mask[i] == True): seq[i] = 0
+                    
                     dataFromFile.append(seq)
+                    maskFromFile.append(mask)
             if dat.match(line):
                 dataFound=True
-        
+
     f_info.close()
-    data=zeros([len(timepoints),len(dataFromFile)])
+    data_unmasked = zeros([len(timepoints),len(dataFromFile)])
+    data_mask = zeros([len(timepoints),len(dataFromFile)])
     for x in range(0, len(dataFromFile)):
         try:
-            data[:,x]=dataFromFile[x]
+            data_unmasked[:,x]=dataFromFile[x]
+            data_mask[:,x]=maskFromFile[x]
         except:
             print "\n<data> is wrong defined: length of 'times' and 'variables' are not the same!\n"
 
+    data = ma.array(data_unmasked, mask = data_mask)
+
+    print data_unmasked
+    print maskFromFile
+    print data
+    print sum( data*data )
+    
+    #sys.exit()
 
 ######sample from prior
     sampleFromPrior=True
