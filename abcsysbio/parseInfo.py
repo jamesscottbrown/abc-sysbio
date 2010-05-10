@@ -309,12 +309,10 @@ def getAlgorithmInfo(filename):
 
     data = ma.array(data_unmasked, mask = data_mask)
 
-    print data_unmasked
-    print maskFromFile
-    print data
-    print sum( data*data )
-    
-    #sys.exit()
+    #print data_unmasked
+    #print maskFromFile
+    #print data
+    #print sum( data*data )
 
 ######sample from prior
     sampleFromPrior=True
