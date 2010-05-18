@@ -1,7 +1,7 @@
 import numpy
 import sys
 
-def euclidianDistance(data1, data2):
+def euclidianDistance(data1, data2, epsilon=0):
     """Returns the euclidian distance between two data sets.
     Data sets must have the same dimensions.
 
