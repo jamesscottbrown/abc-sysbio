@@ -133,7 +133,7 @@ def realize_particles( ModelName, selected_model, integrationType, initValues, t
 
         concentrations[counter] = current_concentrations
         points = howToFitData(fit,concentrations[0:counter+1])
-        distance = distancefn(points,data[0:counter+1])
+        distance = distancefn(points,data[0:counter+1],epsilon)
 
         #print data[0:counter+1].transpose()
         #print points.transpose()
@@ -948,7 +948,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     if runmode == 0 :
                         samplePoints=simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol,atol)
                         points=howToFitData(fit[selected_model],samplePoints)
-                        distance=distancefn(points,data)
+                        distance=distancefn(points,data,epsilon[t])
                     else :
                         distance = realize_particles(  ModelName,
                                                        selected_model,
@@ -1035,7 +1035,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         d = simulated_data[k, :, 0:model_nx[m] ]
                     
                         points=howToFitData( fit[m], d )
-                        distance=distancefn(points,data)
+                        distance=distancefn(points,data,epsilon[t])
 
                         if custom_kernel == True:
                             print t,",",
