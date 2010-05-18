@@ -856,11 +856,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     # Read, compile cuda code. Initialize RNGs 
     #
     if runmode > 1:
-        import abccuda
-
-        if runmode == 2 : ptrs = abccuda.compile_cuda_gillespie ( app_file, mt_data, nthread, nblock )
-        if runmode == 3 : ptrs = abccuda.compile_cuda_gillespie2( app_file, mt_data, nthread, nblock )
-
+        
         model_np = []
         model_nx = []
 
@@ -872,6 +868,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         pmax = max(model_np)
         xmax = max(model_nx)
         print "#### built cuda code. pmax/xmax : ", pmax, xmax
+
+        import abccuda
+        if runmode == 2 : ptrs = abccuda.compile_cuda_gillespie ( app_file, nthread, nblock, pmax, xmax )
 
     #
     # Set distance function
@@ -1027,9 +1026,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     #print "beta:", r
                     
                     # run the gillespie
-                    simulated_data = abccuda.run_gillespie( ptrs, nt, nmodel, pmax, xmax, nthread,
-                                                            nblock, batch_model, batch_param, timepoints, InitValues )
-
+                    simulated_data = abccuda.run_gillespie( ptrs, nthread, nblock, nmodel, pmax, xmax,
+                                                            batch_model, batch_param, timepoints, InitValues )
+                    
                     # calculate distances and fill beta_values
                     for k in range(nt):
                         m = batch_model[k]
