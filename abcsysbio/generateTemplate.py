@@ -19,7 +19,7 @@ def getSpeciesValue(species):
 
 
 
-def generateTemplate(source,filename="input_file_template.txt"):
+def generateTemplate(source,filename="input_file_template.txt", sumname="model_summary.txt"):
 
     """
 
@@ -40,7 +40,7 @@ def generateTemplate(source,filename="input_file_template.txt"):
     """
 
     out_file=open(filename,"w")
-    sum_file=open("model_summary.txt","w")
+    sum_file=open(sumname,"w")
 
     out_file.write("#Number of models for which details are described in this input file\n\n")
     out_file.write("<modelnumber> "+repr(len(source))+"\n\n")
