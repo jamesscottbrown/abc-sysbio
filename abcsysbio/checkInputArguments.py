@@ -124,6 +124,7 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
                     numParameters=numParameters+1
                     numSpecies=numSpecies-1
 
+            listOfRules = model.getListOfRules()
             for k in range (0, len(listOfParameter)):
                 if listOfParameter[k].getConstant()==False:
                     for j in range(0, len(listOfRules)):
