@@ -7,7 +7,7 @@ from numpy import random as rnd
 from abcodesolve        import abcodeint
 from sdeint             import sdeint
 from GillespieAlgorithm import GillespieInt
-from GillespieAlgorithm import GillespieInt_onestep
+from realize            import realize_particles
 
 from getResults import MatrixToTextfile
 from getResults import getAllScatterPlots
@@ -95,58 +95,6 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
         samplePoints=GillespieInt(module, InitValues[selected_model], sampleParameters,timepoints)
 
     return samplePoints
-
-#############
-def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters, epsilon, fit, data, distancefn ):
-    o=re.compile('ODE')
-    s=re.compile('SDE')
-    g=re.compile('Gillespie')
-
-    if( g.match(integrationType[selected_model]) == False): 
-        print "\n __FAST__ only implemented for Gillespie algorithm\n"
-        sys.exit()
-  
-    mdl = __import__(ModelName[selected_model])
-
-    #Set initial time
-    time = timepoints[0]
-
-    #set initial concentrations
-    concentrations = numpy.zeros([len(timepoints),len(initValues)])
-    current_concentrations = tuple(initValues)
-    
-    current_concentrations, parameters=mdl.events(current_concentrations, parameters,time)
-    current_concentrations, parameters=mdl.rules(current_concentrations, parameters,time)
-        
-    concentrations[0] = current_concentrations
-    
-    counter = 1
-    distance = __LARGE_DISTANCE__
-
-    while 1:
-        current_concentrations, time, flag = GillespieAlgorithm.GillespieInt_onestep(mdl, current_concentrations, time, timepoints[counter], parameters, __XMAX__)
-        #print "Main loop:", current_concentrations, time,  timepoints[counter], parameters
-
-        if flag == False:
-            distance = __LARGE_DISTANCE__
-            break
-
-        concentrations[counter] = current_concentrations
-        points = howToFitData(fit,concentrations[0:counter+1])
-        distance = distancefn(points,data[0:counter+1],epsilon)
-
-        #print data[0:counter+1].transpose()
-        #print points.transpose()
-        #print "len:",counter+1, distance
-
-        if(distance >= epsilon or distance < 0):
-            break
-
-        counter = counter + 1
-        if counter >= len(timepoints):
-            break
-
-    return distance
 
 ###########how to fit variable to the given data (if fit is None, data for all variables are available in order of the model)
 def howToFitData(fitting_instruction,samplePoints):
@@ -959,7 +907,13 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                                        epsilon[t],
                                                        fit[selected_model],
                                                        data,
-                                                       distancefn )
+                                                       distancefn,
+                                                       howToFitData,
+                                                       dt,
+                                                       rtol,
+                                                       atol,
+                                                       __LARGE_DISTANCE__,
+                                                       __XMAX__)
 
                         #print selected_model, sampleParameters, r, distance 
 
