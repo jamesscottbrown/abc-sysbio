@@ -73,6 +73,28 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
 
     return solutions_out
 
+def abcodeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01, atol=None, rtol=None):
+
+    time = t1
+    next_time = min(time+dt,t2)
+    current_concentrations,parameters=func.rules(current_concentrations, parameters, time)
+
+    while 1:
+        #print time, next_time, t2, current_concentrations
+        data = odeint(func.modelfunction, current_concentrations, [time, next_time], args=(parameters,), atol=atol, rtol=rtol )
+
+        current_concentrations, parameters = func.rules(current_concentrations, parameters, next_time)
+        current_concentrations = data[1]
+
+        if ((t2 - next_time)<0.000000001):
+            return [ current_concentrations, next_time, True ]
+
+        time = next_time
+        next_time = min(time+dt,t2)
+
+    return [ current_concentrations, time, False ]
+
+
 
 
 
