@@ -19,6 +19,7 @@ def getAlgorithmInfo(filename):
     eps=re.compile('<epsilon>')
     dat=re.compile('<data>')
     datfile=re.compile('<datafile>')
+    flowdatfile=re.compile('<flowdatafile>')
     res=re.compile('<restart>\s*True')
     beta=re.compile('<beta>')
     times=re.compile('times:')
@@ -257,6 +258,60 @@ def getAlgorithmInfo(filename):
     if numOutput==False:
         print "\n No value for the population size <population size> is given in file '"+filename+"'\n"
         sys.exit()
+
+#########get flow cytometry type data
+    f_info=open(filename)
+
+    for line in f_info.readlines():
+        if commentRE.match(line): continue
+        else:
+
+            if flowdatfile.match(line):
+                store = []
+
+                try:
+                    datafile = flowdatfile.sub('',line).strip()
+                    print 'reading datafile:', datafile
+                    
+                    tf = open(datafile,'r')
+
+                except:
+                    print "\n Please provide a valid file for <flowdatafile> in file '"+filename+"'\n"
+
+                currenttime = None
+                data = []
+                store_m = []
+                for dline in tf:
+                    fields = dline.strip().split(' ');
+
+                    tinfile = float(fields[0])
+
+                    if tinfile > currenttime:
+                        # add current store_m to data
+                        if currenttime != None :
+                            data.append( store_m[:] )
+
+                        # new time point
+                        timepoints.append( tinfile )
+                        store_m = []
+
+                        currenttime = tinfile
+                    
+                    elif tinfile < currenttime:
+                        print "\n Times in flowdata are non increasing \n"
+                        sys.exit()
+                    
+                    store_m.append( fields[1:] )
+
+                # at the end require append of current matrix
+                data.append( store_m[:] )
+
+                for i in range(len(timepoints)):
+                    for j in range(3):
+                        print timepoints[i], data[i][j][:]
+                
+                sys.exit()
+                break;
 
 #########get data
     f_info=open(filename)
