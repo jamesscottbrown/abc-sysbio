@@ -18,6 +18,7 @@ def getAlgorithmInfo(filename):
     numout=re.compile('<population size>')
     eps=re.compile('<epsilon>')
     dat=re.compile('<data>')
+    datfile=re.compile('<datafile>')
     res=re.compile('<restart>\s*True')
     beta=re.compile('<beta>')
     times=re.compile('times:')
@@ -137,7 +138,7 @@ def getAlgorithmInfo(filename):
             if commentRE.match(line): continue
             elif modelKernel.match(line):
                 try:
-                    modelkernel=float(modnum.sub('',line))
+                    modelkernel=float(modelKernel.sub('',line))
                 except:
                     print "\n Please provide an float value for model kernel <model kernel> in file '"+filename+"'\n"
                     sys.exit()
@@ -257,8 +258,6 @@ def getAlgorithmInfo(filename):
         print "\n No value for the population size <population size> is given in file '"+filename+"'\n"
         sys.exit()
 
-
-
 #########get data
     f_info=open(filename)
 
@@ -270,6 +269,10 @@ def getAlgorithmInfo(filename):
         if commentRE.match(line): continue
         elif(stop==True): break
         else:
+
+            if dat.match(line):
+                dataFound=True
+        
             if (s.match(line) and dataFound==True):
                 stop=True
             
@@ -294,8 +297,49 @@ def getAlgorithmInfo(filename):
                     
                     dataFromFile.append(seq)
                     maskFromFile.append(mask)
-            if dat.match(line):
+
+            if datfile.match(line):
+                store = []
+                try:
+                    datafile = datfile.sub('',line).strip()
+                    print 'reading datafile:', datafile
+                    
+                    tf = open(datafile,'r')
+
+                except:
+                    print "\n Please provide a valid file for <datafile> in file '"+filename+"'\n"
+                    
+                for dline in tf:
+                    fields = dline.strip().split(' ');
+                    timepoints.append(float(fields[0]))
+
+                    tstore = []
+                    for i in range(1,len(fields)):
+                        tstore.append(fields[i])
+
+                    store.append( tstore[:] )
+                    
+                nvars = len(store[0])
+                ntimes = len(timepoints)
+            
+                for nv in range(nvars):
+                    species = [ store[nt][nv] for nt in range(ntimes) ]
+
+                    # detect NA values
+                    mask = [ re.match("\s*NA\s*", species[nt]) != None for nt in range(ntimes) ]
+
+                    # set NA values to zero
+                    for i in range(ntimes):
+                        if( mask[i] == True): species[i] = 0
+
+                    dataFromFile.append(species)
+                    maskFromFile.append(mask)
+
                 dataFound=True
+                break;
+                
+            
+                
 
     f_info.close()
     data_unmasked = zeros([len(timepoints),len(dataFromFile)])
@@ -309,10 +353,10 @@ def getAlgorithmInfo(filename):
 
     data = ma.array(data_unmasked, mask = data_mask)
 
-    #print data_unmasked
-    #print maskFromFile
     #print data
-    #print sum( data*data )
+    #for i in range(len(timepoints)):
+    #    print timepoints[i], data[i,:].transpose()
+    #sys.exit()
 
 ######sample from prior
     sampleFromPrior=True
