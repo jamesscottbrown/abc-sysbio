@@ -16,6 +16,8 @@ from getResults import plotTimeSeries
 from getResults import printModelDistribution
 from getResults import getModelDistribution
 
+import abcsysbio
+
 __LARGE_DISTANCE__ = 1000000
 __XMAX__= 2000
 
@@ -803,8 +805,27 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Read, compile cuda code. Initialize RNGs 
     #
-    if runmode > 1:
+    if runmode == 2:
         
+        o=re.compile('ODE')
+        s=re.compile('SDE')
+        g=re.compile('Gillespie')
+
+        # First check that all models are either ode, or mjp
+        int_type = 0
+        if s.match(integrationType[0]):
+            print "\n cuda SDE integration not implemented \n"
+            sys.exit()
+        elif g.match(integrationType[0]):
+            int_type = 3
+        elif o.match(integrationType[0]):
+            int_type = 1
+
+        for j in range(1,nmodel):
+            if integrationType[0] != integrationType[j]:
+                print "\n cuda supports same integration type only \n"
+                sys.exit()
+                
         model_np = []
         model_nx = []
 
@@ -815,10 +836,23 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
         pmax = max(model_np)
         xmax = max(model_nx)
-        print "#### built cuda code. pmax/xmax : ", pmax, xmax
 
         import abccuda
-        if runmode == 2 : ptrs = abccuda.compile_cuda_gillespie ( app_file, nthread, nblock, pmax, xmax )
+        
+        if int_type == 3:
+            import abccuda.gillespie
+            
+            # get the location of the MersenneTwister.cu file
+            s = abcsysbio.__file__
+            mt_cu = s.replace('__init__.pyc','MersenneTwister.cu')
+            print '#### using MersenneTwister.cu at', mt_cu
+
+            # get the location of the MersenneTwister.dat file
+            s = abcsysbio.__file__
+            mt_data = s.replace('__init__.pyc','MersenneTwister.dat')
+            print '#### using MersenneTwister.dat at', mt_data
+
+            ptrs = abccuda.gillespie.compile_gillespie ( app_file, mt_cu, mt_data, nthread, nblock, pmax, xmax, options=[], write=False )
 
     #
     # Set distance function
@@ -978,10 +1012,11 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 batch_beta = [0 for k in range(0,nt)]
                 for r in range(beta):
                     #print "beta:", r
-                    
+
+                    #
                     # run the gillespie
-                    simulated_data = abccuda.run_gillespie( ptrs, nthread, nblock, nmodel, pmax, xmax,
-                                                            batch_model, batch_param, timepoints, InitValues )
+                    simulated_data = abccuda.gillespie.run_gillespie( ptrs, nthread, nblock, nmodel, pmax, xmax,
+                                                                      batch_model, batch_param, timepoints, InitValues )
                     
                     # calculate distances and fill beta_values
                     for k in range(nt):
@@ -1022,27 +1057,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                             #print parameters_curr[i]
                             numbers[m][t]=numbers[m][t] + 1
                             i=i+1
-
-            if runmode == 3:
-                
-                abccuda.realize_particles(ptrs, nthread, nblock, xmax, pmax,
-                                          numOutput, nmodel, model_np, model_nx, dead_models,
-                                          sampleTheModel, sampleTheParameter, t, priors, kernel, restart, modelDistrib0, beta,
-                                          distancefn, howToFitData, integrationType, InitValues, timepoints, epsilon, fit, data,
-                                          margins_prev, model_prev, weights_prev, parameters_prev,
-                                          model_curr, parameters_curr, beta_values, hits, sampling) # output into these variables
-                i = numOutput
-                rate[t] = hits[t]/float(sampling[t])
-
-                for k in range(numOutput):
-                    #print parameters_curr[k]
-
-                    for m in range(nmodel):
-                        if(model_curr[k] == m):
-                            numbers[m][t]=numbers[m][t] + 1
-
-                #print model_curr
-                
+            
             # end of loop over particles
         distance_file.close()
 
