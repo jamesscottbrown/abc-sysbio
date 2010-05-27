@@ -78,9 +78,7 @@ def copy2D_host_to_array(arr, host, width, height ):
     copy.height = height
     copy(aligned=True)
 
-def compile_lsoda( application_code, blockSize, gridSize, pmax, xmax, options, write=False ):
-
-    cuLsoda = "../src/ode/cuLsoda_all.cu"
+def compile_lsoda( application_code, cuLsoda, blockSize, gridSize, pmax, xmax, options, write=False ):
 
     fa = open(application_code,'r')
     fc = open(cuLsoda,'r')
