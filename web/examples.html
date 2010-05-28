@@ -29,10 +29,10 @@ body,td,th {
 
 <p align="center">&nbsp;</p>
   <div align="center">
-    <table width="861" border="0" cellpadding="3" cellspacing="0" bordercolor="#000000">
+    <table width="962" border="0" cellpadding="3" cellspacing="0" bordercolor="#000000">
       <tr bgcolor="#003399">
         <td colspan="4" bgcolor="#0074EE"></td>
-        <td width="27" bgcolor="#FFFFFF">&nbsp;</td>
+        <td width="24" bgcolor="#FFFFFF">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="3" bordercolor="#FFFFFF" bgcolor="#D4DFFF"><p align="center" class="style10"><br>
@@ -41,7 +41,7 @@ body,td,th {
 	<p align="center" class="style11"><a href="http://www3.imperial.ac.uk/theoreticalsystemsbiology" target="_blank">Theoretical Systems Biology Group, Imperial College</a></p>
 </p>
 	</td>
-	<td width="24" bordercolor="#FFFFFF" bgcolor="#D4DFFF">&nbsp;</td>
+	<td width="20" bordercolor="#FFFFFF" bgcolor="#D4DFFF">&nbsp;</td>
         <td rowspan="10" bgcolor="#0074EE">&nbsp;</td>
       </tr>
       <tr>
@@ -54,27 +54,10 @@ body,td,th {
       
       <tr>
         <td colspan="3" bgcolor="#FFFFFF"><h3 class="style11"><strong>Example 1: Model selection with ABC SMC - SIR models  using ODEs</strong></h3>
-          <p>We illustrate an example of the ABC SMC algorithm for model selection using a range of simple models that describe the epidemiology of infections diseases. This example reproduces the ndings of Toni et al. (2009). As described by Toni et al., SIR models describe the spread of such disease in a population of susceptible (S), infected (I ) and recovered (R) individuals (Anderson &amp; May, 1991). The three models used for this example use systems of ordinary differential equations (ODEs) to describe the change in the number of S, I and R indivuduals over time (See manual for details).<br>
-        </p></td>
-      </tr>
-      <tr>
-        <td colspan="2" bgcolor="#FFFFFF"><p><br>          
-          SIR model 1:<img src="pic/SIR1.png" width="165" height="87"></p>
-          <p><br>
-            SIR model 2:<br>
-            <img src="pic/SIR2.png" width="169" height="119"><br>
-  <br>
-            SIR model 3:<br>
-            <img src="pic/SIR3.png" width="193" height="89"><br>
-          </p>
-          <p>&nbsp; </p></td>
-        <td bgcolor="#FFFFFF"><p>The package abc-sysbio is primarily written to handle SBML models. The BioModels Database (Le Novere et al., 2006), a database of SBML models, contains mathematical models of biological interest. These SIR models, however, are not available from the BioModels database, so SBML models have been constructed for the purpose of this example. To construct the models, we make use of SBML shorthand and its conversion tools (Gillespie et al., 2006), and construct the three SIR models, SIRmodel1.xml, SIRmodel2.xml and SIRmodel3.xml.</p>
-        <p><strong><em>Results:</em></strong></p>
-        <p>&nbsp;</p></td>
-      </tr>
-      <tr>
-        <td colspan="3" bgcolor="#FFFFFF"><p><em><strong>Requires:</strong></em> scipy, libsbml, numpy, matplotlib<br>
-          <br>
+          <p>We illustrate an example of the ABC SMC algorithm for model selection using a range of simple models that describe the epidemiology of infections diseases. This example reproduces the ndings of Toni et al. (2009). As described by Toni et al., SIR models describe the spread of such disease in a population of susceptible (S), infected (I ) and recovered (R) individuals (Anderson &amp; May, 1991). The three models used for this example use systems of ordinary differential equations (ODEs) to describe the change in the number of S, I and R indivuduals over time (See manual for details).</p>
+          <p>The package abc-sysbio is primarily written to handle SBML models. The BioModels Database (Le Novere et al., 2006), a database of SBML models, contains mathematical models of biological interest. These SIR models, however, are not available from the BioModels database, so SBML models have been constructed for the purpose of this example. To construct the models, we make use of SBML shorthand and its conversion tools (Gillespie et al., 2006), and construct the three SIR models, SIRmodel1.xml, SIRmodel2.xml and SIRmodel3.xml.</p>
+          <p><em><strong>Requires:</strong></em> scipy, libsbml, numpy, matplotlib<br>
+            <br>
           <em><strong>To run:</strong></em></p>
           <blockquote>
             <blockquote>
@@ -82,8 +65,38 @@ body,td,th {
                 run-abc-sysbio --infile input_file_SIR.txt -f</p>
             </blockquote>
           </blockquote>
+          <p><br>
+        </p></td>
+      </tr>
+      <tr>
+        <td colspan="2" bgcolor="#FFFFFF"><p><br>          
+          SIR model 1:<img src="pic/SIR1.png" width="165" height="87"><br>
+        </p>
+          <p><br>
+            SIR model 2:<br>
+            <img src="pic/SIR2.png" width="169" height="119"><br>
+            <br>
+            <br>
+            SIR model 3:<br>
+            <img src="pic/SIR3.png" width="193" height="89"><br>
+          </p></td>
+        <td width="701" bgcolor="#FFFFFF"><p><strong><em>Results:</em></strong></p>
+<p align="left">Model distributions:<br>
+        <img src="pic/example1a.png" alt="" width="563" height="429"></p></td>
+      </tr>
+      <tr>
+        <td colspan="3" bgcolor="#FFFFFF"><p>&nbsp;</p>
+          <p>Posterior parameter distributions for SIR model 1:</p>
+          <p><br>
+            <img src="pic/example1b.png" alt="" width="700" height="523"></p>
+          <p><br>
+          Simulated data with parameters from the posterior distribution (lines) and the data (dots): </p>
+          <p><img src="pic/example1c.png" width="423" height="314"></p>
           <p>&nbsp;</p>
-        </td>
+          <hr>
+          <blockquote>
+            <blockquote>&nbsp;</blockquote>
+          </blockquote></td>
       </tr>
             <tr>
         <td colspan="3" bgcolor="#FFFFFF"> 
@@ -110,12 +123,14 @@ run-abc-sysbio --infile input_file_lingrow.txt -pm -f</p>
           </blockquote>
         </blockquote>
         <p><strong><em>Results:</em></strong></p>
-<p></p>
-<p></p>
-<p></p>
-<p></p>
-<p></p>
-<p></p></td>
+        <p>Posterior parameter distribution:</p>
+        <p align="center"><img src="pic/example2a.png" width="278" height="206"> <img src="pic/example2c.png" width="276" height="205"> <img src="pic/example2d.png" width="261" height="204"></p>
+        <p>&nbsp;</p>
+        <p>Simulated data with parameters from the posterior distribution (lines) and the data (dots):<img src="pic/example2e.png" width="432" height="311"></p>
+        <p>&nbsp;</p>
+        <hr>
+        <p></p>
+        <p></p></td>
       </tr>
             <tr>
         <td colspan="3" bgcolor="#FFFFFF"> 
@@ -142,11 +157,14 @@ run-abc-sysbio -f -i input_file_abcRejection.txt</p>
             </blockquote>
           </blockquote>
         </blockquote>
-        <p><strong><em>Results:</em></strong></p>
-<p></p>
-<p></p>
-<p></p>
-<p></p>
+        <p><strong><em>Results:</em></strong>        </p>
+        <p>Simulated data with parameters from the posterior distribution (lines) and the data (dots): <img src="pic/example3a.png" width="427" height="312"></p>
+        <p></p>
+        <p>Posterior parameter distributions for the 2 parameter of the dimerisation model:<br>        
+          <img src="pic/example3b.png" width="353" height="268"><img src="pic/example3c.png" width="350" height="270"></p>
+        <p>&nbsp; </p>
+        <hr>
+        <p></p>
 <p></p>
 <p></p></td>
       </tr>
@@ -176,9 +194,9 @@ run-abc-sysbio -f -i input_file_abcRejection.txt</p>
           run-abc-sysbio -f -i input_file_pop.txt -sd=10 --runmode=2 -of=results -ct=512 -cb=16 --cudacode=immdeath_logistic.cu -pm -t</p>
         <p>&nbsp; </p>
         <p><strong><em>Results:</em></strong></p>
-        <p></p>
-        <p></p>
-        <p></p>
+        <p>&nbsp;</p>
+        
+        <hr>
         <p></p>
         <p></p>
         <p></p></td>
@@ -210,8 +228,8 @@ run-abc-sysbio -i input_file_repressilator.txt -f -pm</p>
         </blockquote>
 <p>&nbsp;</p>
 <p><strong><em>Results:</em></strong></p>
-<p></p>
-<p></p>
+<p>Posterior parameter distributions for the repressilator:</p>
+<p><img src="pic/example5a.png" width="683" height="520"></p>
 <p></p>
 <p></p>
 <p></p>
