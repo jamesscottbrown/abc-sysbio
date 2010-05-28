@@ -16,7 +16,7 @@ def getAlgorithmInfo(filename):
 
     modnum=re.compile('<modelnumber>')
     numout=re.compile('<population size>')
-    eps=re.compile('<epsilon>')
+    eps=re.compile('<epsilon\d*>')
     dat=re.compile('<data>')
     datfile=re.compile('<datafile>')
     flowdatfile=re.compile('<flowdatafile>')
@@ -150,19 +150,35 @@ def getAlgorithmInfo(filename):
 
 
 #####get epsilon
+    foundEps = -1
     f_info=open(filename)
     for line in f_info.readlines():
         if commentRE.match(line): continue
         elif eps.match(line):
-            sequence=eps.sub('',line)
-            seq=digit.findall(sequence)
-            for x in range(0,len(seq)):
-                try:
-                    epsilon.append(float(seq[x]))
-                except:
-                    print "\nMaximum distance values <epsilon> have a wrong format in file '"+filename+"'\n"
-                    sys.exit()
-            break
+            if foundEps ==(-1):
+                foundEps = 0
+                epsilon.append([])
+                sequence=eps.sub('',line)
+                seq=digit.findall(sequence)
+                for x in range(0,len(seq)):
+                    try:
+                        epsilon[foundEps].append(float(seq[x]))
+                    except:
+                        print "\nMaximum distance values <epsilon> have a wrong format in file '"+filename+"'\n"
+                        sys.exit()
+            else:
+                foundEps = foundEps + 1
+                epsilon.append([])
+                sequence=eps.sub('',line)
+                seq=digit.findall(sequence)
+                for x in range(0,len(seq)):
+                    try:
+                        epsilon[foundEps].append(float(seq[x]))
+                    except:
+                        print "\nMaximum distance values <epsilon> have a wrong format in file '"+filename+"'\n"
+                        sys.exit()
+
+
     f_info.close()
 
 

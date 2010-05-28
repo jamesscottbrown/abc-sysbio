@@ -10,7 +10,7 @@ from sdeint import sdeint_onestep
 
 #############
 def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters,
-                       epsilon, fit, data, distancefn, fitfn, dt, rtol, atol, large_dist, x_max ):
+                       epsilon, t, fit, data, distancefn, fitfn, dt, rtol, atol, large_dist, x_max ):
 
     o=re.compile('ODE')
     s=re.compile('SDE')
@@ -59,9 +59,10 @@ def realize_particles( ModelName, selected_model, integrationType, initValues, t
 
         concentrations[counter] = current_concentrations
         points = fitfn(fit,concentrations[0:counter+1])
-        distance = distancefn(points,data[0:counter+1],epsilon)
+        distance = distancefn(points,data[0:counter+1])
 
-        if(distance >= epsilon or distance < 0):
+        dist=evaluateDistance(distance,epsilon,t)
+        if dist == False:
             break
 
         counter = counter + 1

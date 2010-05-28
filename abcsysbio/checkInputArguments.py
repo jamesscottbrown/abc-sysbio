@@ -1,7 +1,7 @@
 import pickle
 import re
 
-def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname,modelKernel):
+def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname,modelKernel,custom_distance):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to run the abc-SMC algorithm.
@@ -79,6 +79,8 @@ def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integ
     if not modelKernel>0.0:
 	return False,"\nPlease provide a model Kernel larger than 0!\n"
     
+    if (len(epsilon)>1 and  custom_distance==False):
+        return False,"\nPlease provide a custom distance function when you specify more than 1 epsilon schedule!\n"
 
     ### check model specific properties (comparing with SBML model)
     if not source==None:

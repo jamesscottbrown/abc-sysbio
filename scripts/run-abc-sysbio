@@ -221,7 +221,8 @@ def main():
                                                                              source,                            
                                                                              constKernels,
                                                                              fname,
-									     modelKernel)
+									     modelKernel,
+									     custom_distance)
 	else :
 	   
             source = None
@@ -240,7 +241,8 @@ def main():
                                                                              source,
                                                                              constKernels,
                                                                              fname,
-									     modelKernel)         
+									     modelKernel,
+									     custom_distance)         
         if modelCorrect==False:
             print message
             sys.exit()

@@ -15,6 +15,7 @@ from getResults import getAllHistograms
 from getResults import plotTimeSeries
 from getResults import printModelDistribution
 from getResults import getModelDistribution
+from evaluate import evaluateDistance
 
 import abcsysbio
 
@@ -552,15 +553,18 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
               accepted in each population.
 
     epsilon: 
-              a list of floats.
+              a 2D list of floats.
               Epsilon corresponds to the maximum distance between experimental and simmulated 
-              data. The length of this list corresponds to the number of populations.
+              data. The length of this list corresponds to the number of populations. If the 
+              second dimension > 1, the user needs to define its own distance function!
 
               Example:
               maximum distance for ABC Rejection (only one population):
-              epsilon = (1.5,)
+              epsilon = [[1.5,]]
               maximum distance for ABC SMC with five populations:
-              epsilon = (3.5,3.0,2.5,2.0,1.5)
+              epsilon = [[3.5,3.0,2.5,2.0,1.5]]
+              maximum distance for ABC SMC with five populations, but more complex distance function:
+              epsilon = [[3.5,3.0,2.5,2.0,1.5],[35,30,25,20,15],[1.0,0.8,0.6,0.4,0.2]]
 
     InitValues: 
               a 2D list of floats.
@@ -725,7 +729,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     # Define all variable and containers here
     #
-    npop = len(epsilon)
+    npop = len(epsilon[0])
+    print len(epsilon[0])
     nmodel = len(ModelName)
 
     # model prior distribution is uniform over number of models
@@ -930,7 +935,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     if runmode == 0 :
                         samplePoints=simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,sampleParameters,dt,rtol,atol)
                         points=howToFitData(fit[selected_model],samplePoints)
-                        distance=distancefn(points,data,epsilon[t])
+                        distance=distancefn(points,data)
                     else :
                         distance = realize_particles(  ModelName,
                                                        selected_model,
@@ -938,7 +943,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                                        InitValues[selected_model],
                                                        timepoints,
                                                        sampleParameters,
-                                                       epsilon[t],
+                                                       epsilon,
+                                                       t,
                                                        fit[selected_model],
                                                        data,
                                                        distancefn,
@@ -951,9 +957,10 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
                         #print selected_model, sampleParameters, r, distance 
 
-                    if(distance<epsilon[t] and distance>0 ):
+                   
+                    dist=evaluateDistance(distance,epsilon,t)
+                    if dist==True:
                         distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
-                        dist=True
                         beta_values[i] = beta_values[i] + 1
 
                 # end of loop over B
@@ -1024,7 +1031,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         d = simulated_data[k, :, 0:model_nx[m] ]
                     
                         points=howToFitData( fit[m], d )
-                        distance=distancefn(points,data,epsilon[t])
+                        distance=distancefn(points,data)
 
                         if custom_kernel == True:
                             print t,",",
@@ -1032,8 +1039,10 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                 print batch_param[k,kk],",",
                             print distance
                         
-                        if(distance<=epsilon[t] and distance>0 ):
-                            distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(m+1)+'\n')
+
+                        dist=evaluateDistance(distance,epsilon,t)
+                        if dist == True:
+                            distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
                             accept[k] = 1
                             batch_beta[k] = batch_beta[k] + 1
 

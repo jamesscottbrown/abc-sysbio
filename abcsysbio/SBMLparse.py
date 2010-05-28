@@ -211,7 +211,7 @@ def write_ODEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
                     out_file.write(parameterId[i])
                     out_file.write(",")
 
-    out_file.write("),t,parameter=(")
+    out_file.write("),time,parameter=(")
     for i in range(0,len(parameterId)):
         dontPrint = False
         if (listOfParameter[i].getConstant() == False):
@@ -326,7 +326,7 @@ def write_ODEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
             out_file.write(speciesId[i])
             out_file.write(",")
 
-    out_file.write("),t):\n\n")
+    out_file.write("),time):\n\n")
 
     #Write the events
 
@@ -450,7 +450,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
             out_file.write(repr(InitValues[i]))
             out_file.write(",")
  
-    out_file.write("),t=0):\n\n")
+    out_file.write("),time=0):\n\n")
 
     counter=0
     for i in range(0,len(parameterId)):
@@ -639,7 +639,7 @@ def write_SDEFunctions(stoichiometricMatrix, kineticLaw, species, numReactions,s
             out_file.write(speciesId[i])
             out_file.write(",")
 
-    out_file.write("),t):\n\n")
+    out_file.write("),time):\n\n")
 
 	#Write the events
 
