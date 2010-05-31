@@ -27,9 +27,8 @@ __global__ void cuLsoda(int *neq, double *y, double *t, double *tout, int *itol,
 {
   int tid = blockDim.x * blockIdx.x + threadIdx.x;
   
-
-  dlsoda_(myfex, neq+tid, y+tid*NXMAX, t+tid, tout+tid, itol+tid, rtol+tid, atol+tid*NXMAX, itask+tid, 
-	  istate+tid, iopt+tid, rwork+tid*70, lrw+tid, iwork+tid*23, liw+tid, myjex, jt+tid, &(common[tid]) );
+  dlsoda_(myfex, neq+tid, y+tid*NXMAX, t+tid, tout+tid, itol+tid, rtol+tid, atol+tid, itask+tid, 
+	  istate+tid, iopt+tid, rwork+tid*RSIZE, lrw+tid, iwork+tid*ISIZE, liw+tid, myjex, jt+tid, &(common[tid]) );
 }
 }
 
@@ -83,11 +82,17 @@ def compile_lsoda( application_code, cuLsoda, blockSize, gridSize, pmax, xmax, o
     fa = open(application_code,'r')
     fc = open(cuLsoda,'r')
 
+    isize = 20 + xmax
+    rsize = 22 + xmax * max(16, xmax + 9)
+
+    _isize_ = "#define ISIZE " + repr( 20 + xmax ) + "\n"
+    _rsize_ = "#define RSIZE " + repr( 22 + xmax * max(16, xmax + 9) ) + "\n"
+
     _xmax_ = "#define NXMAX " + repr(xmax) + "\n"
     _textures_ = "texture<int, 1, cudaReadModeElementType> model_tex;\n" + "texture<float, 2, cudaReadModeElementType> param_tex;\n"
     _common_block_ = "__device__ struct cuLsodaCommonBlock common[" + repr(blockSize*gridSize) + "];\n"
 
-    _code_ =  _xmax_ + _textures_ + fa.read() + fc.read() + _common_block_ + _lsoda_source_
+    _code_ =  _isize_ + _rsize_ + _xmax_ + _textures_ + fa.read() + fc.read() + _common_block_ + _lsoda_source_
 
     if write==True:
         fo = open('source_o.cu','w')
@@ -109,7 +114,7 @@ def compile_lsoda( application_code, cuLsoda, blockSize, gridSize, pmax, xmax, o
 
     return [ lsoda_Kernel, model_tex, param_tex ]
         
-def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, model, param, times, init, in_atol=1e-12, in_rtol=1e-6 ):
+def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, neqn, model, param, times, init, dt, in_atol=1e-12, in_rtol=1e-6 ):
     start_time = time.time()
 
     lsoda_Kernel = ptrs[0]
@@ -122,12 +127,14 @@ def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, model, param, times, in
     ntimes = len(times)
     ret_xt = np.zeros( [nt, ntimes, xmax] )
 
+    # calculate sizes of work spaces
+    isize = 20 + xmax
+    rsize = 22 + xmax * max(16, xmax + 9)
+        
     # local variables
     t      = np.zeros( [nt], dtype=np.float64)
     jt     = np.zeros( [nt], dtype=np.int32)
     neq    = np.zeros( [nt], dtype=np.int32)
-    liw    = np.zeros( [nt], dtype=np.int32)
-    lrw    = np.zeros( [nt], dtype=np.int32)
     itol   = np.zeros( [nt], dtype=np.int32)
     iopt   = np.zeros( [nt], dtype=np.int32)
     rtol   = np.zeros( [nt], dtype=np.float64)
@@ -135,25 +142,29 @@ def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, model, param, times, in
     tout   = np.zeros( [nt], dtype=np.float64)
     itask  = np.zeros( [nt], dtype=np.int32)
     istate = np.zeros( [nt], dtype=np.int32)
-    y      = np.zeros( [xmax*nt], dtype=np.float64)
     atol   = np.zeros( [nt], dtype=np.float64)
-    iwork  = np.zeros( [23*nt], dtype=np.int32)
-    rwork  = np.zeros( [70*nt], dtype=np.float64)
+
+    liw    = np.zeros( [nt], dtype=np.int32)
+    lrw    = np.zeros( [nt], dtype=np.int32)
+    iwork  = np.zeros( [isize*nt], dtype=np.int32)
+    rwork  = np.zeros( [rsize*nt], dtype=np.float64)
+    y      = np.zeros( [xmax*nt], dtype=np.float64)
 
     # initialise variables
     for i in range(nt):
-        neq[i] = xmax
+        neq[i] = neqn[model[i]]
         t[i] = 0
         tout[i] = times[0]
         itol[i] = 1
-        rtol[i] = in_rtol
         itask[i] = 1
         istate[i] = 1
         iopt[i] = 0
-        lrw[i] = 70
-        liw[i] = 23
         jt[i] = 2
         atol[i] = in_atol
+        rtol[i] = in_rtol
+
+        liw[i] = isize
+        lrw[i] = rsize
 
         # initial conditions
         for im in range(nm):
@@ -161,20 +172,6 @@ def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, model, param, times, in
                 for k in range(len(init[im])):
                     y[i*xmax + k] = init[im][k]
                     ret_xt[i, 0, k] = init[im][k]
-
-
-        # initial conditions
-        #y[ i*xmax + 0 ] = 1.0
-        #y[ i*xmax + 1 ] = 0
-        #y[ i*xmax + 2 ] = 0
-
-        #ret_xt[i,0,0] = 1.0
-        #ret_xt[i,0,1] = 0
-        #ret_xt[i,0,2] = 0
-
-        #atol[ i*xmax + 0 ] = 1e-6
-        #atol[ i*xmax + 1 ] = 1e-10
-        #atol[ i*xmax + 2 ] = 1e-6
 
     # allocate on device
     d_t      = cuda.mem_alloc(t.size      * t.dtype.itemsize)
@@ -222,26 +219,65 @@ def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, model, param, times, in
     copy2D_host_to_array(ary, param, pmax*4, nt )
     param_tex.set_array(ary)
 
-    print "Running lsoda"
-    start_time = time.time()
-    for i in range(1,len(times)):
+    #print "Running lsoda"
 
-        for j in range(nt):
-            tout[j] = times[i]; 
-        cuda.memcpy_htod( d_tout, tout ) 
+    if dt < 0:
+        start_time = time.time()
+        for i in range(1,len(times)):
 
-        lsoda_Kernel( d_neq, d_y, d_t, d_tout, d_itol, d_rtol, d_atol, d_itask, d_istate,
-                      d_iopt, d_rwork, d_lrw, d_iwork, d_liw, d_jt, block=(blockSize,1,1), grid=(gridSize,1) );
+            for j in range(nt):
+                tout[j] = times[i]; 
+            cuda.memcpy_htod( d_tout, tout ) 
 
-        cuda.memcpy_dtoh(t, d_t)
-        cuda.memcpy_dtoh(y, d_y)
-        cuda.memcpy_dtoh(istate, d_istate)
+            lsoda_Kernel( d_neq, d_y, d_t, d_tout, d_itol, d_rtol, d_atol, d_itask, d_istate,
+                          d_iopt, d_rwork, d_lrw, d_iwork, d_liw, d_jt, block=(blockSize,1,1), grid=(gridSize,1) );
 
-        for j in range(nt):
-            for k in range(xmax):
-                ret_xt[j, i, k] = y[j*xmax + k]
+            cuda.memcpy_dtoh(t, d_t)
+            cuda.memcpy_dtoh(y, d_y)
+            cuda.memcpy_dtoh(istate, d_istate)
 
-    print '#### timing:', time.time() - start_time
+            for j in range(nt):
+                for k in range(xmax):
+                    ret_xt[j, i, k] = y[j*xmax + k]
+
+        # end of loop over time points
+
+    else:
+        tt = times[0]
+        
+        start_time = time.time()
+        for i in range(1,len(times)):
+            
+            while 1:
+                
+                next_time = min(tt+dt, times[i])
+                
+                for j in range(nt):
+                    tout[j] = next_time; 
+                cuda.memcpy_htod( d_tout, tout ) 
+
+                lsoda_Kernel( d_neq, d_y, d_t, d_tout, d_itol, d_rtol, d_atol, d_itask, d_istate,
+                              d_iopt, d_rwork, d_lrw, d_iwork, d_liw, d_jt, block=(blockSize,1,1), grid=(gridSize,1) );
+
+                cuda.memcpy_dtoh(t, d_t)
+                cuda.memcpy_dtoh(y, d_y)
+                cuda.memcpy_dtoh(istate, d_istate)
+
+                if np.abs(next_time - times[i]) < 1e-5:
+                    tt = next_time
+                    break
+
+                tt = next_time
+                
+
+            for j in range(nt):
+                for k in range(xmax):
+                    ret_xt[j, i, k] = y[j*xmax + k]
+
+        # end of loop over time points
+
+    #print "### ###"
+    #print istate
     return ret_xt
 
 
