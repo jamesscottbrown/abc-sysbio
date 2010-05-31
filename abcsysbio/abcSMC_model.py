@@ -843,17 +843,27 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         xmax = max(model_nx)
 
         import abccuda
+
+        if int_type == 1:
+            import abccuda.lsoda
+
+            # get the location of the cuLsoda_all.cu file
+            s = abccuda.__file__
+            ls_cu = s.replace('__init__.pyc','cuLsoda_all.cu')
+            print '#### using cuLsoda_all.cu at', ls_cu
+            
+            ptrs = abccuda.lsoda.compile_lsoda( app_file, ls_cu, nthread, nblock, pmax, xmax, options=[], write=False )
         
         if int_type == 3:
             import abccuda.gillespie
             
             # get the location of the MersenneTwister.cu file
-            s = abcsysbio.__file__
+            s = abccuda.__file__
             mt_cu = s.replace('__init__.pyc','MersenneTwister.cu')
             print '#### using MersenneTwister.cu at', mt_cu
 
             # get the location of the MersenneTwister.dat file
-            s = abcsysbio.__file__
+            s = abccuda.__file__
             mt_data = s.replace('__init__.pyc','MersenneTwister.dat')
             print '#### using MersenneTwister.dat at', mt_data
 
@@ -1010,21 +1020,23 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
                     for kk in range( model_np[m] ):
                         batch_param[k,kk] = params[kk]
-                        #print batch_param[k,kk],
-                    #print ""
-                #print "min/max:", batch_param.min(axis=0), batch_param.max(axis=0)
 
                 # Loop over B
                 accept = [0 for k in range(0,nt)]
                 batch_beta = [0 for k in range(0,nt)]
                 for r in range(beta):
-                    #print "beta:", r
-
+                   
+                    #
+                    # run the ode solver
+                    if int_type == 1:
+                        simulated_data = abccuda.lsoda.run_lsoda( ptrs, nthread, nblock, nmodel, pmax, xmax, model_nx, 
+                                                                  batch_model, batch_param, timepoints, InitValues, dt )
                     #
                     # run the gillespie
-                    simulated_data = abccuda.gillespie.run_gillespie( ptrs, nthread, nblock, nmodel, pmax, xmax,
-                                                                      batch_model, batch_param, timepoints, InitValues )
-                    
+                    elif int_type == 3:
+                        simulated_data = abccuda.gillespie.run_gillespie( ptrs, nthread, nblock, nmodel, pmax, xmax,
+                                                                          batch_model, batch_param, timepoints, InitValues )
+
                     # calculate distances and fill beta_values
                     for k in range(nt):
                         m = batch_model[k]
@@ -1033,6 +1045,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         points=howToFitData( fit[m], d )
                         distance=distancefn(points,data)
 
+                        #print 'm, d:', m, distance
+                        
                         if custom_kernel == True:
                             print t,",",
                             for kk in range( model_np[m] ):
@@ -1042,7 +1056,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
                         dist=evaluateDistance(distance,epsilon,t)
                         if dist == True:
-                            distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
+                            distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(m+1)+'\n')
                             accept[k] = 1
                             batch_beta[k] = batch_beta[k] + 1
 
@@ -1105,11 +1119,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         parameters_curr = [[] for j in range(0,numOutput)]
         margins_curr    = [0  for j in range(0,nmodel)] 
 
-        #print "margins_prev", margins_prev 
-        #print "previous particles \n",
-        #for i in range(numOutput):
-        #    print "\t", i, model_prev[i], weights_prev[i], parameters_prev[i]
-
         #
         # Check for dead models
         #
@@ -1163,7 +1172,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
         
         make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName,
-                            integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate )            
+                            integrationType, InitValues, priors, population, numbers, modelDistribution, weights, epsilon[0], rate )            
         restart=False
 
         # end of loop over populations
