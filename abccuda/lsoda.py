@@ -153,8 +153,7 @@ def run_lsoda(ptrs, blockSize, gridSize, nm, pmax, xmax, neqn, model, param, tim
     # initialise variables
     for i in range(nt):
         neq[i] = neqn[model[i]]
-        t[i] = 0
-        tout[i] = times[0]
+        t[i] = times[0]
         itol[i] = 1
         itask[i] = 1
         istate[i] = 1
