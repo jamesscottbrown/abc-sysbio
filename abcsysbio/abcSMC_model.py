@@ -730,7 +730,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     # Define all variable and containers here
     #
     npop = len(epsilon[0])
-    print len(epsilon[0])
     nmodel = len(ModelName)
 
     # model prior distribution is uniform over number of models
@@ -1045,8 +1044,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         points=howToFitData( fit[m], d )
                         distance=distancefn(points,data)
 
-                        #print 'm, d:', m, distance
-                        
                         if custom_kernel == True:
                             print t,",",
                             for kk in range( model_np[m] ):
@@ -1055,6 +1052,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                         
 
                         dist=evaluateDistance(distance,epsilon,t)
+                        
                         if dist == True:
                             distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(m+1)+'\n')
                             accept[k] = 1
