@@ -299,18 +299,27 @@ Figure \ref{DimerisationResults} shows the posterior distributions of the two pa
 \section{Example 4: Using pycuda on Nvidia GPUs}
 Using Graphical Processing Units for simulation can increase performance by large factors; initial tests with \verb$run-abc-sysbio$ and a simple example gave speed ups of 20-30 times. \verb$run-abc-sysbio$ supports CUDA via \verb$pycuda$ (\cite{Klockner2009}). This must be installed and working before this example can be run. 
 
-Currently, the user is required to write an application file in C but automatic generation of CUDA code will be implemented in the future. In addition, only the Gillespie algorithm is currently implemented.
+Currently, the user is required to write an application file in C but automatic generation of CUDA code will be implemented in the future. In addition, only the Gillespie algorithm and ODE solvers are currently implemented.
 
-Example 4 that comes with the \verb$abc-sysbio$ package contains a simple model selection example using cuda. The data has been simulated under a stochastic immigration-death model. We will perform model selection using a stochastic immigration death model (true model) and a stochastic logistic growth model. The CUDA code is contained in \verb$immdeath_logistic.cu$. Three main things need to be defined:
+Example 4 that comes with the \verb$abc-sysbio$ package contains a simple model selection example using the cuda gillespie algorithm. The data has been simulated under a stochastic immigration-death model. We will perform model selection using a stochastic immigration death model (true model) and a stochastic logistic growth model. The CUDA code is contained in \verb$immdeath_logistic.cu$. A few things need to be defined:
 \begin{itemize}
-\item \verb$#define NXMAX 1$ \\
-This states the maximum number of species in any model.
-\item \verb$__constant__ int nx[] = {1,1};$\\
-This specifies the number of species in each model. Here we are fitting two models so the array is of length two.  
+\item \verb$#define NRMAX 2$ \\
+This states the maximum number of reactions in any model.
+
 \item
-\verb$__device__ void hazards$ \\
-This function defines the hazards for each model.
+\verb$__device__ void hazards(int *x, int r, int tid)$ \\
+This function defines the hazards for each model. Notice how the model and parameters are accessed via textures.
+
+\item 
+\verb$__device__ void stoichiometry(int *x, int r, int tid)$ \\
+This function defines the stoichiometry. In this example the stoichiometry is identical for the two models.
+
+\item
+\verb$__device__ void rules(int *x, float t)$ \\
+Any rules go in here. There are none in this example.
+
 \end{itemize}
+
 To run the example, issue the following command:
 \begin{verbatim}
 $ run-abc-sysbio -f -i input_file_pop.txt -sd=10 --runmode=2 \
@@ -321,6 +330,7 @@ $ run-abc-sysbio -f -i input_file_pop.txt -sd=10 --runmode=2 \
 The argument \verb$--runmode=2$ tells \verb$abc-sysbio$ to use cuda.
 The maximum number of threads, \verb$-ct$, and blocks,  \verb$-cb$, and indeed the best performing combinations of these, will be highly dependent on the specification of GPU in use and the nature of the problem at hand.
 
+In the file \verb$immdeath_ode.cu$ is also the cuda code required to run an ODE integration in parallel. Note that the CUDA card must support double precision for the ODE solver to run.
 
 \chapter{Using the package}
 \label{usage}
@@ -339,9 +349,11 @@ Not all the information required for the algorithms is intrinsic to the model, t
 Some information is general to the algorithm.
 \begin{description}
 \item[modelnumber] Number of the model for which details are described in this input file
-\item[epsilon] Comma-delimited list of maximum distances between the data points and the simulated trajectories. If the length of the epsilon series is one and only one model is analyzed, the algorithm implemented is the ABC-Rejection sampler.
+\item[model kernel] Used in model selection. This controls the model perturbation probability.
+\item[epsilon] Comma-delimited list of maximum distances between the data points and the simulated trajectories. If the length of the epsilon series is one and only one model is analyzed, the algorithm implemented is the ABC-Rejection sampler. In more advanced usage, multiple epsilon schedules can be given denoted by {\bf epsilon1}, {\bf epsilon2} etc. If this feature is used then the user must define a custom distance function (see below).
 \item[population size] Number of particles to be accepted.
-\item[data] This section is devided into `times' and `variable'. Both describe the experimental data for which the parameters or models respectively have to be analyzed. The time points are given in 'times' as a comma-delimited list starting with 0. The species concentrations (in the case of an ODE or SDE simulation) or molecule numbers (in the case of a Gillespie simulation) are also given as a comma-delimited list and denoted as variable1, variable2, ..., variableN for N different species.
+\item[data] This section is divided into `times' and `variable'. Both describe the experimental data for which the parameters or models respectively have to be analyzed. The time points are given in 'times' as a comma-delimited list starting with 0. The species concentrations (in the case of an ODE or SDE simulation) or molecule numbers (in the case of a Gillespie simulation) are also given as a comma-delimited list and denoted as variable1, variable2, ..., variableN for N different species. Missing data can be specified provided that the first entry in present. Missing data is denoted by 'NA'.
+\item[datafile] Use this as an alternative to the {\bf data} option. Provide a valid path to a file containing columns of data with the first column representing times points and the next N columns variable1, variable2, ..., variableN.
 \item[dt] The internal time step for the solvers.
 \item[beta] Number of times to simulate each sampled parameter set. For deterministic systems beta is set to 1. For analysis of stochastic systems beta should be chosen larger than 1.
 \end{description}
@@ -352,8 +364,8 @@ Some optional keywords can be supplied.
 For each model in the input file, additional information must be supplied.
 \begin{description}
 \item[model {\it i}] ({\it i} = 1, \dots, $M$, where $M$ is the total number of models to be investigated.) For ABC-Rejection and ABC SMC for parameter inference, $M = 1$.
-\item[name] The name of the Python file that will be written to represent the model in a format that is interpretable by the solvers.
-\item[source] The name of the .xml file containing an SBML representation of the model.
+\item[name] The name of the Python file that will be written to represent the model in a format that is interpretable by the solvers.  The name of the python model file if option \verb$-pm$ is given.
+\item[source] The name of the .xml file containing an SBML representation of the model. Can be left blank if option \verb$-pm$ is given.
 \item[type] The simulation type. One of \verb$ODE$, \verb$SDE$ or \verb$Gillespie$.
 \item[Initial values] A comma-delimited list of initial values for the model. This list should have the same dimensionality as that of the model.
 \item[parameters] Parameters are described with two properties:
@@ -379,7 +391,9 @@ This user input file can be written by hand; however, we forsee attempts to hand
 
 Beside implementing the ABC SMC algorithms the program \verb$run-abc-sysbio$ provides an easy way to simulate a biochemical system directly from  the SBML source without converting it manually into another Python compatible format. Simulations works with requires the user input file, but less information is required. For a simulation, \textbf{modelnumber}, \textbf{dt} and \textbf{times} must be supplied. For each model, \textbf{source}, \textbf{type}, \textbf{initial values} and \textbf{parameter} must be provided; all parameters must have a constant prior distribution for a simulation.
 
-Both \verb$run-abc-sysbio$ and \verb$abc-sysbio-sbml-sum$ can be run from the command line. To run \verb$abc-sysbio-sbml-sum$ with three SBML models, type
+\section{Command line options}
+
+Both \verb$run-abc-sysbio$ and \verb$abc-sysbio-sbml-sum$ are run from the command line. To run \verb$abc-sysbio-sbml-sum$ with three SBML models, type
 \begin{verbatim}
 $ abc-sysbio-sbml-sum source1.xml source2.xml source3.xml
 \end{verbatim}
@@ -391,49 +405,28 @@ When running \verb$run-abc-sysbio$, several options are possible. To see a list 
 \begin{verbatim}
 $ run-abc-sysbio --help
 \end{verbatim}
-For example to run abcScript with the user input file 'MyInputFile', to have a full output of results on the shell and to avoid diagnostic plots after each population type
-\begin{verbatim}
-$ run-abc-sysbio -i 'MyInputFile' --fulloutput -d
-\end{verbatim}
-\begin{table}[h]
-\tt
-\begin{center}
-\begin{tabular}{c l l}
-   Input options: & & \\
--i  &    --infile &  declaration of the input file. This input file \\ && has to be provided to run the program! \\
--pm &    --pythonmodel &   do not import model from sbml intead use .py file \\
+The current options are listed below. There are two forms for arguments.
+\begin{description}
+\item [ -i  ,    --infile] declaration of the input file. This input file has to be provided to run the program!
+\item[-pm ,    --pythonmodel]    do not import model from sbml intead use .py (or cuda) file
+\item[-sd   ,  --setseed]        seed the random number generator in numpy with an integer eg -sd=2, --setseed=2
+\item[-rm   ,  --runmode]        integer specifying standard (0), fast (1), cuda (2) eg -rm=2, --runmode=2. default 0. This controls how and when the distance is calculated. In runmode 0 the full time series is calculated and then compared to data. In runmode 1 the distance calculation is done at each time point in the data. As soon as the distance exceeds the current $\epsilon$ value the particle is rejected. This can save a significant amount of time in simulations. 
+\item[-cb  ,   --cudablocks]     number of thread blocks to run eg -cb=4, --cudablocks=4
+\item[-ct  ,   --cudathreads]    number of threads per thread block to run eg -ct=512, --cudathreads=512
+\item[-cc  ,   --cudacode]       cuda application code eg -cc=app.txt, --cudacode=app.txt
+\item[-tm  ,   --timing]         print timing information
+\item[-of  ,   --outfolder]      write results to folder eg -of=/full/path/to/folder (default is \_results\_ in current directory)
+\item[-f   ,   --fulloutput]     print epsilon, sampling steps and acceptence rates after each population
+\item[-s  ,    --save]           no backup after each population
+\item[-y  ,    --synthetic]      print a synthetic data set at the timepoints given in the input file, using initial conditions and constant parameters
+\item[-S  ,    --simulate]       simulate the model over the range of timepoints, using initial conditions and constant parameters
+\item[-sf  ,   --simfile]        output the simulated or synthetic data to a file, eg -sf=out.txt, --simfile=out.txt
+\item[-d   ,   --diagnostic]     disable printing of diagnostic plots
+\item[-t   ,   --timeseries]     disable plotting of simulation results after each population
+\item[-p  ,    --plotdata]      disable plotting of given data points
+\item[-h  ,    --help]           print this list of options.
+\end{description}
 
-Algorithmic options: & & \\
--sd &     --setseed &        seed the random number generator in numpy  \\ & &  with an integer eg -sd=2, --setseed=2 \\
--rm &    --runmode &        integer specifying standard (0), fast (1), cuda (2)  \\ & &  eg -rm=2, --runmode=2. default 0. \\
--cb &    --cudablocks &   number of thread blocks to run  \\ & &  eg -cb=4, --cudablocks=4 \\
--ct  &    --cudathreads &    number of threads per thread block to run  \\ & &  eg -ct=512, --cudathreads=512 \\
--cc &    --cudacode &       cuda application code  \\ & &  eg -cc=app.txt, --cudacode=app.txt \\
--mt &    --mtdata &  path to Mersenne Twister data file  \\ & &  eg -mt=MersenneTwister.dat \\
--tm &    --timing &  print timing information \\
-
-Output options: & & \\
--of &     --outfolder &   write results to folder  (default is \_results\_ ) \\ & &  eg -of=/full/path/to/folder \\
--f &      --fulloutput  &   print epsilon, sampling steps and acceptence rates \\ & & after each population \\
--s &   --save  &         no backup after each population \\
-
-Simulate options: & & \\
--y &      --synthetic &  print a synthetic data set at the timepoints \\ & & given in the input file, using initial conditions \\ & & and constant parameters \\
--S &      --simulate &  simulate the model over the range of timepoints, \\ & & using initial conditions and constant parameters \\
--sf &     --simfile &       output the simulated or synthetic data to a file, \\ & & eg -sf=out.txt, --simfile=out.txt \\
-
-Plotting options: & & \\
--d &      --diagnostic  &   no printing of diagnostic plots \\
--t &      --timeseries &  no plotting of simulation results after each population \\
--p &      --plotdata   &    no plotting of given data points \\
-& & \\
--h &      --help &           print this list of options. \\
-
-\end{tabular}
-\end{center}
-\caption{\rm Full list of options for the script \tt run-abc-sysbio}
-\label{default}
-\end{table}
 \chapter{Installation}
 The package \verb$abc-sysbio$ provides a Python library, \verb$abcsysbio$ containing functions for parameter inference and model selection \citep{Toni2009,ABCrejection} of dynamical systems taken from the Biomodels database. Together with the scripts \verb$abc-sysbio-sbml-sum$ and \verb$run-abc-sysbio$ it creates a user-friendly tool.
 It is advisable to use the package together with the Python Enthought Distribution though this is not essential. It works on both MacOS and Linux operating systems.
