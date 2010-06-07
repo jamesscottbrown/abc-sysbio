@@ -54,9 +54,11 @@ __global__ void Gillespie_one_step(float *vt, int* vx, int* vxt){
   int tid = blockDim.x * blockIdx.x + threadIdx.x;
 
   int i, x[NXMAX];
-  float h0, h[NR];
 
-  //model = tex1Dfetch(model_tex, tid);
+  float h0, h[NRMAX];
+  for(i=0; i<NRMAX; ++i){
+    h[i] = 0;
+  }
  
   for(i=0; i<NXMAX; ++i){
     x[i] = ((int*)( (char*) vx + tid * vxp))[i];
@@ -73,7 +75,7 @@ __global__ void Gillespie_one_step(float *vt, int* vx, int* vxt){
     hazards( x, h, tid );
 
     h0 = 0;
-    for(i=0; i<NR; ++i) h0 += h[i];
+    for(i=0; i<NRMAX; ++i) h0 += h[i];
 
     if(h0 <= 0){
       
@@ -99,7 +101,7 @@ __global__ void Gillespie_one_step(float *vt, int* vx, int* vxt){
       }
 
       // sample reaction
-      i = sample(NR, h, h0*u2);
+      i = sample(NRMAX, h, h0*u2);
 
       // update stochiometry
       stoichiometry( x ,i, tid );
