@@ -1,4 +1,4 @@
-#define NR 2
+#define NRMAX 2
 
 __constant__ int smatrix[] = {1, -1};
 
