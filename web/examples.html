@@ -173,19 +173,8 @@ run-abc-sysbio -f -i input_file_abcRejection.txt</p>
         <p>&nbsp;</p>
         <h3 class="style11"><strong>Example 4: ABC SMC on a CUDA device - Immigration death model using Markov jump process and Gillespie algorithm</strong></h3>
         <p>Using Graphical Processing Units for simulation can increase performance by large factors; initial tests with run-abc-sysbio and a simple example gave speed ups of 20-30 times. run-abc-sysbio supports CUDA via pycuda (Kloeckner et al. (2009)). This must be installed and working before this example can be run. Currently, the user is required to write an application le in C but automatic generation of CUDA code will be implemented in the future. In addition, only the Gillespie algorithm is currently implemented.<br>
-          Example 4 that comes with the abc-sysbio package contains a simple model selection example using cuda. The data has been simulated under a stochastic immigration-death model. We will perform model selection using a stochastic immigration death model (true model) and a stochastic logistic growth model. The CUDA code is contained in immdeath_logistic.cu. Three main things need to be defined:</p>
-        <ul>
-          <li> <strong>#define NXMAX 1</strong><br>
-            This states the maximum number of species in any model.<br>
-            <br>
-          </li>
-          <li><strong> __constant__ int nx[] = {1,1};</strong><br>
-            This species the number of species in each model. Here we are tting two models so the array is of length two.<br>
-            <br>
-          </li>
-          <li><strong> __device__ void hazards</strong><br>
-            This function defines the hazards for each model.</li>
-        </ul>
+          Example 4 that comes with the abc-sysbio package contains a simple model selection example using cuda. The data has been simulated under a stochastic immigration-death model. We will perform model selection using a stochastic immigration death model (true model) and a stochastic logistic growth model. The CUDA code is contained in immdeath_logistic.cu.</p>
+				   
         <p>&nbsp;</p>
         <p><em><strong>Requires:</strong></em> pycuda, numpy, matplotlib<br>
           <br>
