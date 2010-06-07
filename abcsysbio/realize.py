@@ -7,6 +7,7 @@ import re, numpy
 from GillespieAlgorithm import GillespieInt_onestep
 from abcodesolve import abcodeint_onestep
 from sdeint import sdeint_onestep
+from evaluate import evaluateDistance
 
 #############
 def realize_particles( ModelName, selected_model, integrationType, initValues, timepoints, parameters,
