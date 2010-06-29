@@ -46,7 +46,7 @@ def getKernel(kern,population):
     for param in range(0, len(population)):
         minimum=min(population[param])
         maximum=max(population[param])
-        scale=(maximum-minimum)/4.0
+        scale=(maximum-minimum)
         if kern[param][0]==1: 
             kern[param][1]=-scale/2.0
             kern[param][2]=scale/2.0
