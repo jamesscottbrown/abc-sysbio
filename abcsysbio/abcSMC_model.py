@@ -39,6 +39,15 @@ def w_choice2(item,weight):#http://snippets.dzone.com/posts/show/732 - modified 
         n = n - weight[i]
     return item[i]
 
+# calculates the index of the model, given a result index
+def _getModelNumber(index, numberOfModels):
+    sumIndex = 0
+    for i in range(len(numberOfModels)):
+        if(sumIndex > index):
+            return i-1
+        sumIndex += numberOfModels[i]
+        
+    return len(numberOfModels)-1
 
 ################## compute the kernels
 def getKernel(kern,population):
@@ -88,7 +97,7 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
     g=re.compile('Gillespie')
   
     module = __import__(ModelName[selected_model])
-
+    print ModelName[selected_model], module
 
     if o.match(integrationType[selected_model]):
         samplePoints=abcodeint(module, InitValues[selected_model], timepoints, sampleParameters, dt, rtol, atol)
@@ -488,10 +497,9 @@ def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt,
             getModelDistribution(modelDistribution,epsilon,rate,PlotName=folder+'/ModelDistribution')
 
 
-
     if plotDataSeries==True:
         for mod in range(0,nmodel):
-            x=10
+            x=2
             if numbers[mod][t]<x: x=int(numbers[mod][t])
             plotTimeSeries(ModelName[mod],
                            population,
@@ -519,6 +527,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                  full=False, rtol=None, atol=None, constKernels=False,
                  runmode=0, timing=False, nthread=None, nblock=None, fname="_results_", mt_data="MersenneTwister.dat",app_file="app.txt",
                  custom_kernel=False, custom_distance=False, modelKernel=0.7):   
+    #ToDo: Allow for different initialization values?!
 
     """
 
@@ -867,7 +876,49 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             print '#### using MersenneTwister.dat at', mt_data
 
             ptrs = abccuda.gillespie.compile_gillespie ( app_file, mt_cu, mt_data, nthread, nblock, pmax, xmax, options=[], write=False )
-
+    
+    #
+    # Using cuda-sim
+    # Read, compile cuda code. Initialize RNGs 
+    #
+    if runmode == 3:
+        
+        o=re.compile('ODE')
+        s=re.compile('SDE')
+        g=re.compile('Gillespie')
+        
+        import cudasim
+        cudaModel = []
+        
+        # initialize and compile all CUDA kernels; assume that CUDA kernels
+        # given in appfile= are in the same order as in the input file
+        # assume that CUDA kernel-files are separated with commas
+        cudaKernels = app_file.split(",")
+        print cudaKernels
+        
+        for i in range(nmodel):
+        
+            # check integration type
+            if s.match(integrationType[i]):
+                int_type = 2
+            elif g.match(integrationType[i]):
+                int_type = 3
+            elif o.match(integrationType[i]):
+                int_type = 1
+            
+            if int_type == 1:
+                import cudasim.Lsoda as Lsoda
+                codeFile = cudaKernels[i]
+                cudaModel.append(Lsoda.Lsoda(timepoints, codeFile))
+            elif int_type == 2:
+                import cudasim.EulerMaruyama as EulerMaruyama
+                codeFile = cudaKernels[i]
+                cudaModel.append(EulerMaruyama.EulerMaruyama(timepoints, codeFile, dt=dt, beta=beta))
+            else:
+                import cudasim.Gillespie as Gillespie
+                codeFile = cudaKernels[i]
+                cudaModel.append(Gillespie.Gillespie(timepoints, codeFile, beta=beta))
+        
     #
     # Set distance function
     #
@@ -909,8 +960,12 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
         #
         # Loop over accepted particles
         #
-	while(i<numOutput):
-
+        
+        
+        startTime = time.time()
+        while(i<numOutput):
+            #param_file = open(folder+'/param'+str(t)+'.txt',"a")
+        
             if runmode == 0 or runmode == 1:
                 sampling[t]=sampling[t]+1
                 if(full == True and sampling[t]%100 == 0):
@@ -966,10 +1021,10 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
 
                         #print selected_model, sampleParameters, r, distance 
 
-                   
-                    dist=evaluateDistance(distance,epsilon,t)
-                    if dist==True:
+                    if(distance<=epsilon[0][t] and distance>=0):
+                        dist=True
                         distance_file.write(repr(int(hits[t]+1))+'\t'+repr(distance)+'\t'+repr(selected_model+1)+'\n')
+                        distance_file.flush()
                         beta_values[i] = beta_values[i] + 1
 
                 # end of loop over B
@@ -1079,6 +1134,87 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                             numbers[m][t]=numbers[m][t] + 1
                             i=i+1
             
+            if runmode == 3:
+                # ToDo: Some more sophisticated way to chose batchSize
+                batchSize = 25000/beta
+                
+                if(full == True):
+                    print "population " +str(t) + ", sampled:", sampling[t], "accepted:", i  
+                
+                # sample models; save how often specific models were sampled
+                batchModel = numpy.zeros(nmodel, dtype=numpy.int32 )
+                for k in range(batchSize):
+                    batchModel[sampleTheModel(t, nmodel, margins_prev,  modelDistrib0, dead_models, restart, modelKernel)] += 1
+                    
+                # sample parameters for each model seperately and simulate separately
+                allResults = []
+                allParameters = []
+                allResultsIndices = range(batchSize)
+                for k in range(nmodel):
+                    modelParameters = numpy.zeros((batchModel[k],len(priors[k])), dtype=numpy.float32 )
+                    
+                    # sample batchModel[k] many parameters for model k
+                    for l in range(batchModel[k]):
+                        modelParameters[l] = sampleTheParameter(t, numOutput, priors[k], kernel[k],
+                            k, margins_prev, model_prev, weights_prev, parameters_prev, restart, perturbfn)
+                        #for bla in range(len(modelParameters[l])):
+                            #param_file.write(str(modelParameters[l][bla]) + ' ')
+                        #param_file.write("\n")
+                    
+                    # create batchModel[k] many initValues
+                    # ToDo allow more than one init Value!
+                    species = numpy.zeros((batchModel[k],len(InitValues[0])), dtype=numpy.float32)
+                    for l in range(batchModel[k]):
+                        species[l] = InitValues[0]
+                    
+                    # simulate
+                    result = cudaModel[k].run(modelParameters, species, seed=rnd.randint(0,4294967295))
+                    
+                    # put results from different models together
+                    for l in range(len(result)):
+                        allResults.append(result[l])
+                        allParameters.append(modelParameters[l])
+                
+                # randomly choose results and test for distance
+                rnd.shuffle(allResultsIndices)
+                #param_file.close()
+                
+                print "start distance calculation for batch.. ",
+                for k in range(batchSize):
+                    # cancel if numOutput has been reached
+                    if(i >= numOutput):
+                        break
+                    
+                    tempIndex = allResultsIndices[k]
+                    tempResult = allResults[tempIndex]
+                    tempModelIndex = _getModelNumber(tempIndex,batchModel)
+                    tempParameters = allParameters[tempIndex]
+                    sampling[t] += 1
+                    
+                    # loop over beta
+                    foundHit = 0
+                    for l in range(len(tempResult)):
+                        samplePoints = howToFitData(fit[tempModelIndex],tempResult[l])
+                        distance = distancefn(samplePoints, data)
+                        #distAvg += distance
+                        
+                        #Todo allow different epsilons for different models!!
+                        if(distance<=epsilon[0][t] and distance>=0):
+                            distance_file.write(repr(int(hits[t]+1))+", "+ str(foundHit) +'\t'+repr(distance)+'\t'+repr(tempModelIndex)+'\n')
+                            foundHit += 1
+                    
+                    if (foundHit>0):
+                        hits[t] += 1
+                        rate[t] = hits[t]/sampling[t]
+
+                        model_curr[i] = tempModelIndex
+                        parameters_curr[i] = tempParameters
+                        #input(parameters_curr[i])
+                        beta_values[i] = foundHit
+                        numbers[tempModelIndex][t] += 1
+                        
+                        i += 1
+                
             # end of loop over particles
         distance_file.close()
 
@@ -1159,7 +1295,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if(len(dead_models) > 0): print "dead_models:", dead_models
 
         rate_file = open(folder+'/rates.txt',"a")
-        rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t])+"\n")
+        rate_file.write(repr(t+1)+"\t"+repr(sampling[t])+"\t"+repr(rate[t]))
+        rate_file.write("\t" + str(round((time.time()-startTime)/60,2)) + " min\n")
         rate_file.close()
 
         if timing == True:
