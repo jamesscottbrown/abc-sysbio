@@ -68,12 +68,10 @@ def getKernel(kern,population):
 
 ##################compute the pdf of uniform distribution
 def getPdfUniform(scale1,scale2,parameter):
-    if ((parameter>scale2) or (parameter<scale1)): x=0.0
+    if ((parameter>scale2) or (parameter<scale1)):
+        return 0.0
     else:
-        scale=scale2-scale1
-        x=(scale*2)**(-1)
-
-    return x
+        return 1/(scale2-scale1)
 
 
 ##################compute the pdf of gauss distribution
