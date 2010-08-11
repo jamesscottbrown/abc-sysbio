@@ -3,6 +3,7 @@ import re, os, sys, pickle, time, math
 
 import numpy
 from numpy import random as rnd
+from scipy.stats import norm
 
 from abcodesolve        import abcodeint
 from sdeint             import sdeint
