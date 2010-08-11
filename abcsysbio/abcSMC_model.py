@@ -952,7 +952,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     #
     for t in range(0,npop):
 	i=0
-        distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"w")
+        distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"a")
+        traj_file=open(folder+'/traj_Population'+repr(t+1)+'.txt',"a")
 
         beta_values = numpy.zeros( [numOutput] )
 
@@ -1112,6 +1113,13 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                             accept[k] = 1
                             batch_beta[k] = batch_beta[k] + 1
 
+                            # output trajectory
+                            nrow, ncol = numpy.shape( points )
+                            for ic in range(ncol):
+                                for ir in range(nrow):
+                                    print >>traj_file, points[ir,ic],
+                                print >>traj_file, ""
+
                 # end of loop over beta
 
                 # copy accepted particles over
@@ -1216,6 +1224,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 
             # end of loop over particles
         distance_file.close()
+        traj_file.close()
 
         #
         # Compute the weights
