@@ -75,7 +75,7 @@ def sdeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01):
     X[0], parameters = func.rules(current_concentrations, parameters, t=time)
 
     while 1:
-        dX, W = func.modelfunction(X[0], next_time - time, parameters, t=next_time)
+        dX, W = func.modelfunction(X[0], next_time - time, parameters, time=next_time)
 
         #print 's', current_concentrations
         #print 'new', dX[0]
