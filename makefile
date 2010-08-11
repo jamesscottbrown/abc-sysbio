@@ -2,7 +2,7 @@
 # Edit the variables to suit your needs
 
 # VERSION OF THE PACKAGE TO TEST
-VERSION := 1.01
+VERSION := 1.02
 
 # LOCATION OF THE DOWNLOADED TAR BALL
 SOURCE := ../dev/abc-sysbio-area/abc-sysbio/dist/abc-sysbio-$(VERSION).tar.gz
