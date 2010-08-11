@@ -2,7 +2,7 @@ from math import *
 from numpy import *
 from abcsysbio.relations import *
 
-def modelfunction((species1,)=(2.0,),dt=0,parameter=(1.0,10.0,1.0,),t=0):
+def modelfunction((species1,)=(2.0,),dt=0,parameter=(1.0,10.0,1.0,),time=0):
 
 	compartment1=parameter[0]
 	parameter1=parameter[1]
