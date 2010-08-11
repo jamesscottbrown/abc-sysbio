@@ -953,7 +953,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     for t in range(0,npop):
 	i=0
         distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"a")
-        traj_file=open(folder+'/traj_Population'+repr(t+1)+'.txt',"a")
+        if runmode == 2 : traj_file=open(folder+'/traj_Population'+repr(t+1)+'.txt',"a")
 
         beta_values = numpy.zeros( [numOutput] )
 
@@ -1224,7 +1224,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 
             # end of loop over particles
         distance_file.close()
-        traj_file.close()
+        if runmode == 2 : traj_file.close()
 
         #
         # Compute the weights
