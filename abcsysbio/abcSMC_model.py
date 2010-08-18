@@ -908,7 +908,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             if int_type == 1:
                 import cudasim.Lsoda as Lsoda
                 codeFile = cudaKernels[i]
-                cudaModel.append(Lsoda.Lsoda(timepoints, codeFile))
+                cudaModel.append(Lsoda.Lsoda(timepoints, codeFile, dt=dt))
             elif int_type == 2:
                 import cudasim.EulerMaruyama as EulerMaruyama
                 codeFile = cudaKernels[i]
@@ -916,7 +916,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
             else:
                 import cudasim.Gillespie as Gillespie
                 codeFile = cudaKernels[i]
-                cudaModel.append(Gillespie.Gillespie(timepoints, codeFile, beta=beta))
+                cudaModel.append(Gillespie.Gillespie(timepoints, codeFile, dt=dt, beta=beta))
         
     #
     # Set distance function
@@ -953,7 +953,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
     for t in range(0,npop):
 	i=0
         distance_file=open(folder+'/distance_Population'+repr(t+1)+'.txt',"a")
-        if runmode == 2 : traj_file=open(folder+'/traj_Population'+repr(t+1)+'.txt',"a")
+        if runmode > 1: traj_file=open(folder+'/traj_Population'+repr(t+1)+'.txt',"a")
 
         beta_values = numpy.zeros( [numOutput] )
 
@@ -1170,9 +1170,9 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     
                     # create batchModel[k] many initValues
                     # ToDo allow more than one init Value!
-                    species = numpy.zeros((batchModel[k],len(InitValues[0])), dtype=numpy.float32)
+                    species = numpy.zeros((batchModel[k],len(InitValues[k])), dtype=numpy.float32)
                     for l in range(batchModel[k]):
-                        species[l] = InitValues[0]
+                        species[l,:] = InitValues[k][:]
                     
                     # simulate
                     result = cudaModel[k].run(modelParameters, species, seed=rnd.randint(0,4294967295))
@@ -1203,12 +1203,24 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                     for l in range(len(tempResult)):
                         samplePoints = howToFitData(fit[tempModelIndex],tempResult[l])
                         distance = distancefn(samplePoints, data)
-                        #distAvg += distance
                         
-                        #Todo allow different epsilons for different models!!
-                        if(distance<=epsilon[0][t] and distance>=0):
+                        dist=evaluateDistance(distance,epsilon,t)
+
+                        if dist == True:
                             distance_file.write(repr(int(hits[t]+1))+", "+ str(foundHit) +'\t'+repr(distance)+'\t'+repr(tempModelIndex)+'\n')
                             foundHit += 1
+                            
+                            # output trajectory
+                            nrow, ncol = numpy.shape( samplePoints )
+                            for ic in range(ncol):
+                                for ir in range(nrow):
+                                    print >>traj_file, samplePoints[ir,ic],
+                                print >>traj_file, ""
+                        
+                        #Todo allow different epsilons for different models!!
+                        #if(distance<=epsilon[0][t] and distance>=0):
+                            #distance_file.write(repr(int(hits[t]+1))+", "+ str(foundHit) +'\t'+repr(distance)+'\t'+repr(tempModelIndex)+'\n')
+                            #foundHit += 1
                     
                     if (foundHit>0):
                         hits[t] += 1
@@ -1224,7 +1236,7 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 
             # end of loop over particles
         distance_file.close()
-        if runmode == 2 : traj_file.close()
+        if runmode > 1 : traj_file.close()
 
         #
         # Compute the weights
