@@ -1158,6 +1158,8 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                 allParameters = []
                 allResultsIndices = range(batchSize)
                 for k in range(nmodel):
+                    if batchModel[k] == 0: continue
+
                     modelParameters = numpy.zeros((batchModel[k],len(priors[k])), dtype=numpy.float32 )
                     
                     # sample batchModel[k] many parameters for model k
@@ -1217,11 +1219,6 @@ def abcSimulator(ModelName,data,timepoints,numOutput, epsilon, InitValues,integr
                                     print >>traj_file, samplePoints[ir,ic],
                                 print >>traj_file, ""
                         
-                        #Todo allow different epsilons for different models!!
-                        #if(distance<=epsilon[0][t] and distance>=0):
-                            #distance_file.write(repr(int(hits[t]+1))+", "+ str(foundHit) +'\t'+repr(distance)+'\t'+repr(tempModelIndex)+'\n')
-                            #foundHit += 1
-                    
                     if (foundHit>0):
                         hits[t] += 1
                         rate[t] = hits[t]/sampling[t]
