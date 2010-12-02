@@ -1,0 +1,352 @@
+#!/usr/bin/python2.5
+
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+from pylab import *
+
+import abcsysbio
+import numpy
+import sys
+import re
+
+import sys
+sys.path.insert(0, ".")
+
+def printOptions():
+    
+    print "\nList of possible options:"
+
+    print "\n Input options:"
+    print "-i\t--infile\t declaration of the input file. This input file has to be provided to run the program!"
+    print "-pm\t--pythonmodel\t do not import model from sbml intead use .py file"
+
+    print "\n Algorithmic options:"
+    print "-sd\t--setseed\t seed the random number generator in numpy with an integer eg -sd=2, --setseed=2"
+    print "-rm\t--runmode\t integer specifying standard (0), fast (1), cuda (2) eg -rm=2, --runmode=2. default 0."
+    print "-cb\t--cudablocks\t number of thread blocks to run eg -cb=4, --cudablocks=4"
+    print "-ct\t--cudathreads\t number of threads per thread block to run eg -ct=512, --cudathreads=512"
+    print "-cc\t--cudacode\t cuda application code eg -cc=app.txt, --cudacode=app.txt"
+    print "-mt\t--mtdata\t path to Mersenne Twister data file eg -mt=MersenneTwister.dat"
+    print "-tm\t--timing\t print timing information"
+
+    print "\n Output options:"  
+    print "-of\t--outfolder\t write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)"
+    print "-f\t--fulloutput\t print epsilon, sampling steps and acceptence rates after each population"
+    print "-s\t--save\t\t no backup after each population"
+
+    print "\n Simulate options:"
+    print "-y\t--synthetic\t print a synthetic data set at the timepoints given in the input file, using initial conditions and constant parameters"
+    print "-S\t--simulate\t simulate the model over the range of timepoints, using initial conditions and constant parameters"
+    print "-sf\t--simfile\t output the simulated or synthetic data to a file, eg -sf=out.txt, --simfile=out.txt"
+
+    print "\n Plotting options:"
+    print "-d\t--diagnostic\t no printing of diagnostic plots"
+    print "-t\t--timeseries\t no plotting of simulation results after each population"
+    print "-p\t--plotdata\t no plotting of given data points"
+    print "\n-h\t--help\t\t print this list of options."
+
+    print "\n"
+
+    
+def main():
+    
+    diagnostic=True
+    pickling=True
+    file_exist=False
+    plot=True
+    plotTimeSeries=True
+    simulate=False
+    synthetic=False
+    full=False
+    usesbml=True
+    seed = None
+    runmode = 0
+    timing = False
+    nblock = None
+    nthread = None
+    fname = "_results_"
+    mt_data = "MersenneTwister.dat"
+    app_file = "app.txt"
+    simfile = "sim.txt"
+    custom_kernel = False
+    custom_distance = False
+
+    for i in range(1,len(sys.argv)):
+
+        if sys.argv[i].startswith('--'):
+            option = sys.argv[i][2:]
+          
+            if option == 'help':
+                printOptions()
+                sys.exit()
+            elif option == 'diagnostic': diagnostic=False
+            elif option == 'save': pickling=False
+            elif option == 'timeseries': plotTimeSeries=False
+            elif option == 'plotdata': plot=False
+            elif option == 'simulate': simulate=True
+            elif option == 'fulloutput': full=True
+            elif option == 'synthetic':
+                simulate=True
+                synthetic=True
+	    elif option == 'pythonmodel' : usesbml = False 
+            elif option[0:8] == 'setseed=' : seed = int( option[8:] )
+            elif option[0:8] == 'runmode=' : runmode = int( option[8:] )
+	    elif option[0:12] == 'cudathreads=' : nthread = int( option[12:] )
+	    elif option[0:11] == 'cudablocks=' : nblock = int( option[11:] )
+            elif option[0:10] == 'outfolder=' : fname = option[10:]
+            elif option[0:7] == 'mtdata=' : mt_data = option[7:]
+            elif option[0:9] == 'cudacode=' : app_file = option[9:]
+            elif option[0:8] == 'simfile=' : simfile = option[8:]
+	    elif option == 'timing' : timing = True 
+	    elif option == 'custk' : custom_kernel = True
+	    elif option == 'custd' : custom_distance = True
+	    elif option == 'infile': 
+                input_file=sys.argv[i+1]
+                file_exist=True
+	    elif not(sys.argv[i-1][2:] == 'infile'): 
+                print "\nunknown option "+sys.argv[i]
+                printOptions()
+                sys.exit()
+            
+        
+        elif sys.argv[i].startswith('-'):
+            option = sys.argv[i][1:]
+            if option == 'h':
+                printOptions()
+                sys.exit()
+            elif option == 'd': diagnostic=False
+            elif option == 's': pickling=False
+            elif option == 't': plotTimeSeries=False
+            elif option == 'p': plot=False
+            elif option == 'S': simulate=True
+            elif option == 'f': full=True
+            elif option == 'y':
+                simulate=True
+                synthetic=True
+	    elif option == 'pm' : usesbml = False
+            elif option[0:3] == 'sd=' : seed = int( option[3:] )
+            elif option[0:3] == 'rm=' : runmode = int( option[3:] )
+	    elif option[0:3] == 'cb=' : nblock = int( option[3:] )
+	    elif option[0:3] == 'ct=' : nthread = int( option[3:] )
+            elif option[0:3] == 'of=' : fname = option[3:]
+            elif option[0:3] == 'mt=' : mt_data = option[3:]
+            elif option[0:3] == 'cc=' : app_file = option[3:]
+            elif option[0:3] == 'sf=' : simfile = option[3:]
+            elif option == 'tm' : timing = True
+            elif option == 'i': 
+                input_file=sys.argv[i+1]
+                file_exist=True
+            elif not(sys.argv[i-1][2:] == 'i'): 
+                print "\nunknown option "+sys.argv[i]
+                printOptions()
+                sys.exit()
+        elif not((sys.argv[i-1][2:] == 'infile') or (sys.argv[i-1][1:] == 'i')):
+            print "\nunknown expression \""+sys.argv[i]+"\""
+            printOptions()
+            sys.exit()
+
+    # check arguments
+    if usesbml == True:
+        try: import libsbml
+        except ImportError:
+            print "ABORT: libSBML required for SBML parsing. Please install libSBML"
+            sys.exit()
+    
+    if runmode == 2:
+	if nthread == None or nblock == None:
+	    print "Must specify block and thread numbers in cuda mode" 
+            sys.exit()	
+
+    # set the seed
+    if seed != None:
+	print "#### Seeding random number generator : ", seed
+        numpy.random.seed(seed)
+
+                
+    if (file_exist==True and simulate==False):            
+	info = abcsysbio.parseInfo.getAlgorithmInfo(input_file)        
+	restart = 	info[0]
+	name = 		info[1]
+	data = 		info[2]
+	timepoints = 	info[3]
+	numOutput = 	info[4]
+	epsilon = 	info[5]
+	InitValues = 	info[6]	
+	integrationType = info[7]
+	modelWeight = 	info[8]
+	prior = 	info[9]
+	kernel = 	info[10]
+	sampleFromPrior = info[11]
+	source = 	info[12]
+	fit = 		info[13]
+	beta = 		info[14]
+	dt = 		info[15]
+	rtol = 		info[16]
+	atol = 		info[17]
+	constKernels = 	info[18]
+	modelKernel = 	info[19]
+
+        if plot==True:
+            figure(figsize=(10,7))
+            lines=plt.plot(timepoints,data,'o-')
+	    xlabel('time')
+            ylabel('Unit')
+	    specLeg = range(0,shape(data)[1])
+	    for leg in range(0,len(specLeg)):
+	    	specLeg[leg] = 'variable'+str(specLeg[leg]+1)
+	    figlegend((lines,),specLeg,'upper left')
+
+				
+            plt.savefig('_data')
+            clf()
+
+
+	modelCorrect = False
+        if usesbml == True : 
+            abcsysbio.importSBML(source,integrationType,name)
+            
+            modelCorrect,message=abcsysbio.checkInputArguments.checkInputABC(name,
+                                                                             data,
+                                                                             timepoints,
+                                                                             numOutput,
+                                                                             epsilon,
+                                                                             InitValues,
+                                                                             integrationType,
+                                                                             modelWeight,
+                                                                             prior,
+                                                                             kernel,
+                                                                             fit,
+                                                                             restart,
+                                                                             source,                            
+                                                                             constKernels,
+                                                                             fname,
+									     modelKernel,
+									     custom_distance)
+	else :
+	   
+            source = None
+            modelCorrect,message=abcsysbio.checkInputArguments.checkInputABC(name,
+                                                                             data,
+                                                                             timepoints,
+                                                                             numOutput,
+                                                                             epsilon,
+                                                                             InitValues,
+                                                                             integrationType,
+                                                                             modelWeight,
+                                                                             prior,
+                                                                             kernel,
+                                                                             fit,
+                                                                             restart,
+                                                                             source,
+                                                                             constKernels,
+                                                                             fname,
+									     modelKernel,
+									     custom_distance)         
+        if modelCorrect==False:
+            print message
+            sys.exit()
+
+        # Check that we can import scipy if we have ODE models
+        o = re.compile('ODE')
+        flag = False
+        for m in range( len(integrationType) ):
+            if o.search(integrationType[m]):
+                flag = True
+
+        if flag == True:
+            try: from scipy.integrate.odepack import odeint
+            except ImportError:
+                print "ABORT: scipy required for ODE modelling. Please install scipy"
+                sys.exit()
+
+	
+#####run ABCSMC
+
+	
+
+        modelDistribution, inferred_parameter, rate = abcsysbio.abcSMC_model.abcSimulator(name, 
+                                                                                          data, 		
+                                                                                          timepoints, 
+                                                                                          numOutput, 
+                                                                                          epsilon, 
+                                                                                          InitValues, 
+                                                                                          integrationType, 
+                                                                                          modelWeight, 
+                                                                                          prior, 
+                                                                                          kernel, 
+                                                                                          dt=dt,
+                                                                                          fit=fit, 
+                                                                                          sampleFromPrior=sampleFromPrior, 
+                                                                                          beta=beta, 
+                                                                                          restart=restart, 
+                                                                                          diagnostic=diagnostic, 
+                                                                                          pickling=pickling, 
+                                                                                          plotDataSeries=plotTimeSeries, 
+                                                                                          full=full, 
+                                                                                          constKernels=constKernels,
+											  runmode=runmode,
+											  timing=timing,
+											  nthread=nthread,
+											  nblock=nblock,
+                                                                                          fname=fname,
+                                                                                          mt_data=mt_data,
+                                                                                          app_file=app_file,
+											  custom_kernel=custom_kernel,
+											  custom_distance=custom_distance,
+											  modelKernel=modelKernel)
+
+	
+#####if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
+#####plots are made - do we want to do anythin else e.g. save the data to a text file?
+        
+    elif (file_exist==True and simulate==True):
+        name, timepoints, InitValues, integrationType, ConstantParameters, source, dt, rtol, atol = abcsysbio.parseInfo.getInfoForSimulation(input_file)
+
+        if usesbml == True : 
+            modelCorrect, message = abcsysbio.checkInputArguments.checkInputSimulation(name, 
+                                                                                       timepoints, 
+                                                                                       InitValues, 
+                                                                                       integrationType, 
+                                                                                       ConstantParameters, 
+                                                                                       source, 
+                                                                                       dt)
+            if modelCorrect == False:
+                print message
+                sys.exit()   
+
+            abcsysbio.importSBML(source,integrationType,name)
+
+        if synthetic!=True:
+            timepoints=numpy.arange(timepoints[0], timepoints[-1]+dt, dt)
+
+        f = open(simfile,'w')
+        for i in range(0, len(name)):
+            data=abcsysbio.abcSMC_model.simulateData(name,i,integrationType,InitValues,timepoints,ConstantParameters[i],dt)
+
+            print >>f, name[i]
+            for nd in range(len(timepoints)):
+                print >>f, timepoints[nd],
+                for np in range(len(data[0])):
+                    print >>f, data[nd][np],
+                print >>f, ""
+            print >>f, "\n"
+            
+            if synthetic==True:
+                #print >>simfile, name[i]
+                #print data
+                plt.plot(timepoints, data, 'o')
+                plt.savefig("Synthetic_Data_"+name[i])
+                clf()
+            else: 
+                plt.plot(timepoints, data)
+                plt.savefig("Simulated_Data_"+name[i])
+                clf()
+
+    else:
+        print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
+####plot data with final parameter
+#abcsysbio.getResults.plotTimeSeries(name[0],inferred_parameter,integrationType[0],InitValues[0],timepoints,populationNumber=5,amount=10,model=1)
+    
+
+main()

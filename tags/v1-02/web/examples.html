@@ -1,0 +1,234 @@
+<html>
+<head>
+<title>Web Site</title>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<style type="text/css">
+<!--
+body,td,th {
+	font-family: Myriad Pro;
+	font-size: 14px;
+}
+.style10 {
+	font-size: 28px;
+	font-weight: bold;
+	color: #003399;
+}
+.style11 {
+	font-size: 18px;
+	font-style: italic;
+	font-weight: bold;
+	color: #003399;
+}
+.style12 {font-size: 16px}
+.style13 {font-style: italic; color: #003399; font-size: 18px;}
+-->
+</style>
+</head>
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+
+<p align="center">&nbsp;</p>
+  <div align="center">
+    <table width="962" border="0" cellpadding="3" cellspacing="0" bordercolor="#000000">
+      <tr bgcolor="#003399">
+        <td colspan="4" bgcolor="#0074EE"></td>
+        <td width="24" bgcolor="#FFFFFF">&nbsp;</td>
+      </tr>
+      <tr>
+        <td colspan="3" bordercolor="#FFFFFF" bgcolor="#D4DFFF"><p align="center" class="style10"><br>
+          ABC-SysBio:</p>
+        <p align="center" class="style10">Examples</p>
+	<p align="center" class="style11"><a href="http://www3.imperial.ac.uk/theoreticalsystemsbiology" target="_blank">Theoretical Systems Biology Group, Imperial College</a></p>
+</p>
+	</td>
+	<td width="20" bordercolor="#FFFFFF" bgcolor="#D4DFFF">&nbsp;</td>
+        <td rowspan="10" bgcolor="#0074EE">&nbsp;</td>
+      </tr>
+      <tr>
+        <td colspan="3" rowspan="2" bordercolor="#FFFFFF" bgcolor="#FFFFFF"><span class="style10"><br></span>          
+	  <p align="center" class="style11">&nbsp;</p>     
+
+      <tr>
+        <td rowspan="8">&nbsp;</td>
+      </tr>
+      
+      <tr>
+        <td colspan="3" bgcolor="#FFFFFF"><h3 class="style11"><strong>Example 1: Model selection with ABC SMC - SIR models  using ODEs</strong></h3>
+          <p>We illustrate an example of the ABC SMC algorithm for model selection using a range of simple models that describe the epidemiology of infections diseases. This example reproduces the ndings of Toni et al. (2009). As described by Toni et al., SIR models describe the spread of such disease in a population of susceptible (S), infected (I ) and recovered (R) individuals (Anderson &amp; May, 1991). The three models used for this example use systems of ordinary differential equations (ODEs) to describe the change in the number of S, I and R indivuduals over time (See manual for details).</p>
+          <p>The package abc-sysbio is primarily written to handle SBML models. The BioModels Database (Le Novere et al., 2006), a database of SBML models, contains mathematical models of biological interest. These SIR models, however, are not available from the BioModels database, so SBML models have been constructed for the purpose of this example. To construct the models, we make use of SBML shorthand and its conversion tools (Gillespie et al., 2006), and construct the three SIR models, SIRmodel1.xml, SIRmodel2.xml and SIRmodel3.xml.</p>
+          <p><em><strong>Requires:</strong></em> scipy, libsbml, numpy, matplotlib<br>
+            <br>
+          <em><strong>To run:</strong></em></p>
+          <blockquote>
+            <blockquote>
+              <p>cd Example1<br>
+                run-abc-sysbio --infile input_file_SIR.txt -f</p>
+            </blockquote>
+          </blockquote>
+          <p><br>
+        </p></td>
+      </tr>
+      <tr>
+        <td colspan="2" bgcolor="#FFFFFF"><p><br>          
+          SIR model 1:<img src="pic/SIR1.png" width="165" height="87"><br>
+        </p>
+          <p><br>
+            SIR model 2:<br>
+            <img src="pic/SIR2.png" width="169" height="119"><br>
+            <br>
+            <br>
+            SIR model 3:<br>
+            <img src="pic/SIR3.png" width="193" height="89"><br>
+          </p></td>
+        <td width="701" bgcolor="#FFFFFF"><p><strong><em>Results:</em></strong></p>
+<p align="left">Model distributions:<br>
+        <img src="pic/example1a.png" alt="" width="563" height="429"></p></td>
+      </tr>
+      <tr>
+        <td colspan="3" bgcolor="#FFFFFF"><p>&nbsp;</p>
+          <p>Posterior parameter distributions for SIR model 1:</p>
+          <p><br>
+            <img src="pic/example1b.png" alt="" width="700" height="523"></p>
+          <p><br>
+          Simulated data with parameters from the posterior distribution (lines) and the data (dots): </p>
+          <p><img src="pic/example1c.png" width="423" height="314"></p>
+          <p>&nbsp;</p>
+          <hr>
+          <blockquote>
+            <blockquote>&nbsp;</blockquote>
+          </blockquote></td>
+      </tr>
+            <tr>
+        <td colspan="3" bgcolor="#FFFFFF"> 
+        <p>&nbsp;</p>
+        <h3 class="style11"><strong>Example 2: ABS SMC - Linear growth model using SDEs</strong></h3>
+        <p>In this section we perform ABC SMC for parameter inference in a stochastic linear growth model. This model is an instance when the exibility of the package is useful. The noise terms in the Python representation of the model automatically generated by the program are too large for the model to be simulated efficiently. In this example the Python file has been edited to reduce the magnitude of the noise terms.</p>
+        <blockquote>
+          <blockquote>
+            <blockquote>
+              <blockquote>
+                <blockquote>
+                  <p><em><strong>Requires:</strong></em> numpy, matplotlib<br>
+                    <br>
+                    <em><strong>To run:</strong></em></p>
+                  <blockquote>
+                    <blockquote>
+                      <p>cd Example2<br>
+run-abc-sysbio --infile input_file_lingrow.txt -pm -f</p>
+                    </blockquote>
+                  </blockquote>
+                </blockquote>
+              </blockquote>
+            </blockquote>
+          </blockquote>
+        </blockquote>
+        <p><strong><em>Results:</em></strong></p>
+        <p>Posterior parameter distribution:</p>
+        <p align="center"><img src="pic/example2a.png" width="278" height="206"> <img src="pic/example2c.png" width="276" height="205"> <img src="pic/example2d.png" width="261" height="204"></p>
+        <p>&nbsp;</p>
+        <p>Simulated data with parameters from the posterior distribution (lines) and the data (dots):<img src="pic/example2e.png" width="432" height="311"></p>
+        <p>&nbsp;</p>
+        <hr>
+        <p></p>
+        <p></p></td>
+      </tr>
+            <tr>
+        <td colspan="3" bgcolor="#FFFFFF"> 
+        <p>&nbsp;</p>
+        <h3 class="style11"><strong>Example 3: ABC Rejection sampler - Dimerisation reaction using Markov jump process and Gillespie algorithm</strong></h3>
+        <p>In an even simpler case than that described in Example 2, specifying a single epsilon will return a single population of accepted parameters, eectively implementing the ABC rejection algorithm (Pritchard et al., 1999). We give an example using the dimerisation model of Wilkinson (2006). This model has been written with appropriate rate laws for a discreet stochastic simulation using Gillespie's direct method (Gillespie, 1977).</p>
+        <p>The procedure for using abc-sysbio to implement the ABC rejection algorithm follows that of the use of the package to implement ABC SMC. By specifying a single epsilon together with a size for the population of accepted particles, a single population of accepted parameters is returned.        </p>
+        <blockquote>
+          <blockquote>
+            <blockquote>
+              <blockquote>
+                <blockquote>
+                  <p><em><strong>Requires: </strong></em>libsbml, numpy, matplotlib<br>
+                    <br>
+                    <em><strong>To run:</strong></em></p>
+                  <blockquote>
+                    <blockquote>
+                      <p>cd Example3<br>
+run-abc-sysbio -f -i input_file_abcRejection.txt</p>
+                    </blockquote>
+                  </blockquote>
+                </blockquote>
+              </blockquote>
+            </blockquote>
+          </blockquote>
+        </blockquote>
+        <p><strong><em>Results:</em></strong>        </p>
+        <p>Simulated data with parameters from the posterior distribution (lines) and the data (dots): <img src="pic/example3a.png" width="427" height="312"></p>
+        <p></p>
+        <p>Posterior parameter distributions for the 2 parameter of the dimerisation model:<br>        
+          <img src="pic/example3b.png" width="353" height="268"><img src="pic/example3c.png" width="350" height="270"></p>
+        <p>&nbsp; </p>
+        <hr>
+        <p></p>
+<p></p>
+<p></p></td>
+      </tr>
+            <tr>
+        <td colspan="3" bgcolor="#FFFFFF"> 
+        <p>&nbsp;</p>
+        <h3 class="style11"><strong>Example 4: ABC SMC on a CUDA device - Immigration death model using Markov jump process and Gillespie algorithm</strong></h3>
+        <p>Using Graphical Processing Units for simulation can increase performance by large factors; initial tests with run-abc-sysbio and a simple example gave speed ups of 20-30 times. run-abc-sysbio supports CUDA via pycuda (Kloeckner et al. (2009)). This must be installed and working before this example can be run. Currently, the user is required to write an application le in C but automatic generation of CUDA code will be implemented in the future. In addition, only the Gillespie algorithm is currently implemented.<br>
+          Example 4 that comes with the abc-sysbio package contains a simple model selection example using cuda. The data has been simulated under a stochastic immigration-death model. We will perform model selection using a stochastic immigration death model (true model) and a stochastic logistic growth model. The CUDA code is contained in immdeath_logistic.cu.</p>
+				   
+        <p>&nbsp;</p>
+        <p><em><strong>Requires:</strong></em> pycuda, numpy, matplotlib<br>
+          <br>
+          <em><strong>To run:</strong></em></p>
+        <p>cd Example4<br>
+          run-abc-sysbio -f -i input_file_pop.txt -sd=10 --runmode=2 -of=results -ct=512 -cb=16 --cudacode=immdeath_logistic.cu -pm -t</p>
+        <p>&nbsp; </p>
+        <p><strong><em>Results:</em></strong></p>
+        <p>Posterior parameter distribution:<br>
+          <img src="pic/example4a.png" width="253" height="196"> <img src="pic/example4b.png" width="255" height="191"> <img src="pic/example4c.png" width="272" height="187"></p>
+        <p>&nbsp;</p>
+<hr>
+        <p>&nbsp;</p>
+        <p></p></td>
+      </tr>
+            <tr>
+        <td colspan="3" bgcolor="#FFFFFF"> 
+        <p>&nbsp;</p>
+        <h3 class="style11"><strong>Example 5: ABC SMC - Repressilator model using ODEs</strong></h3>
+        <p>This is an other example to do parameter inference using ABC SMC. The aim is to infer the 4 parameter of the repressilator model (M.B. Elowitz and S. Leibler,  2000 ). In this case we do not use an SBML file as the starting point, but write our own python module (pm). </p>
+        <p>&nbsp;</p>
+        <blockquote>
+          <blockquote>
+            <blockquote>
+              <blockquote>
+                <blockquote>
+                  <p><em><strong>Requires:</strong></em> scipy, numpy, matplotlib<br>
+                    <br>
+                    <em><strong>To run:</strong></em></p>
+                  <blockquote>
+                    <blockquote>
+                      <p>cd Example5<br>
+run-abc-sysbio -i input_file_repressilator.txt -f -pm</p>
+                    </blockquote>
+                  </blockquote>
+                </blockquote>
+              </blockquote>
+            </blockquote>
+          </blockquote>
+        </blockquote>
+<p>&nbsp;</p>
+<p><strong><em>Results:</em></strong></p>
+<p>Posterior parameter distributions for the repressilator:</p>
+<p><img src="pic/example5a.png" width="683" height="520"></p>
+<p></p>
+<p></p>
+<p></p>
+<p></p></td>
+      </tr>
+      <tr>
+        <td colspan="4" bgcolor="#0074EE">&nbsp;</td>
+        <td bgcolor="#FFFFFF">&nbsp;</td>
+      </tr>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+include abccuda/MersenneTwister.dat
+include abccuda/MersenneTwister.cu
+include abccuda/cuLsoda_all.cu
+recursive-include examples *
+include doc/Manual.pdf
+include DEPENDENCIES.txt
