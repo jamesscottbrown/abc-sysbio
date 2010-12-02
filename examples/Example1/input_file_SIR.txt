@@ -1,0 +1,209 @@
+#Number of models for which details are described in this input file
+
+<modelnumber> 3
+
+#Restart from previous (pickled) population?
+
+<restart> False
+
+#Series of epsilons. (Comma-delimited list)
+#If the length of the epsilon series is one and you have only one model
+#you are effectively doing abc Rejection
+
+<epsilon> 20, 15, 10, 5, 3, 2.5, 2, 1.7, 1.5, 1.2, 1
+
+#Population size
+
+<population size> 1000
+
+#Beta is the number of times to simulate each sampled parameter set.
+#This is only applicable for models simulated using SDE.
+
+<beta> 1
+
+#Internal timestep for solver.
+#Make this small for a stiff model.
+
+<dt> 1
+
+#rtol and atol can be specified here.
+#If the model is stiff then setting these to small
+#might help the simulation to run.
+#Only applicable for models simulated using ODE.
+
+#<rtol>
+#<atol>
+
+#User-supplied data.
+
+<data>
+
+#times: For abc-SMC, times must be a comma-delimited list starting with 0.
+#For simulation only the first and last timepoints are used.
+#To make a synthetic data set give a comma-delimited list of timepoints at which data points are required.
+
+times:0.0, 0.6, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0
+
+#variables: For abc-SMC, comma-delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie).
+#Denote your data as variable1, variable2, ..., variableN.
+#For simulation or synthetic data sets these data are ignored.
+#See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model.
+
+variable1: 20.0, 0.12313, 0.12102, 0.09898, 0.37887, 1.00661, 1.20135, 1.46433, 1.37789, 1.57073, 1.46470, 1.24719, 1.56065
+variable2: 10.0, 13.16813, 7.17251, 2.36466, 0.92019, 0.61958, 0.17449, 0.28039, 0.09850, 0.03343, 0.28544, 0.10138, 0.21671
+variable3: 0.0, 9.42344, 11.18957, 10.03650, 6.87117, 4.44955, 3.01271, 1.76431, 1.28868, 0.81813, 0.52111, 0.22746, 0.19627
+//
+
+<model1>
+name: SIRmodel1
+source: SIRModel1.xml
+
+#type: the method used to simulate your model. ODE, SDE or Gillespie.
+
+type: ODE
+
+#Initial values: Comma-delimited list.
+#Initial values are taken from the SBML model and are in the same order as the species
+#are given in the model.
+
+initial values: 20.0, 10.0, 0.0
+
+#Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.
+#Otherwise, give a comma-delimited list of fitting instrictions the same length as the dimensions of your data.
+#Use speciesN to denote the Nth species in your model. Simple arithmatic operations can be performed on the species from your model.
+#For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2
+
+fit: None
+
+#Parameters:
+#Priors:
+#one of 
+#	constant, value
+#	uniform, lower, upper
+#	gaussian, mean, variance
+#Kernels: By default, gaussian with variance half the range of the prior distribution.
+#To force an alternative kernel use the switch in abcScript.py and give one of 
+#	uniform, lower, upper
+#	gaussian, mean, variance
+
+parameter1:
+	prior: constant, 1.0
+	kernel: uniform, -1.0,1.0
+parameter2:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter3:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter4:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter5:
+	prior: uniform, 0, 5
+	kernel: uniform, -1.0,1.0
+//
+
+<model2>
+name: SIRmodel2
+source: SIRModel2.xml
+
+#type: the method used to simulate your model. ODE, SDE or Gillespie.
+
+type: ODE
+
+#Initial values: Comma-delimited list.
+#Initial values are taken from the SBML model and are in the same order as the species
+#are given in the model.
+
+initial values: 20.0, 0.0, 10.0, 0.0, 
+
+#Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.
+#Otherwise, give a comma-delimited list of fitting instrictions the same length as the dimensions of your data.
+#Use speciesN to denote the Nth species in your model. Simple arithmatic operations can be performed on the species from your model.
+#For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2
+
+fit: species1, species3, species4
+
+#Parameters:
+#Priors:
+#one of 
+#	constant, value
+#	uniform, lower, upper
+#	gaussian, mean, variance
+#Kernels: By default, gaussian with variance half the range of the prior distribution.
+#To force an alternative kernel use the switch in abcScript.py and give one of 
+#	uniform, lower, upper
+#	gaussian, mean, variance
+
+parameter1:
+	prior: constant, 1.0
+	kernel: uniform, -1.0,1.0
+parameter2:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter3:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter4:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter5:
+	prior: uniform, 0, 5
+	kernel: uniform, -1.0,1.0
+parameter6:
+	prior: uniform, 0, 10
+	kernel: uniform, -0.10000000000000001,0.10000000000000001
+//
+
+<model3>
+name: SIRmodel3
+source: SIRModel3.xml
+
+#type: the method used to simulate your model. ODE, SDE or Gillespie.
+
+type: ODE
+
+#Initial values: Comma-delimited list.
+#Initial values are taken from the SBML model and are in the same order as the species
+#are given in the model.
+
+initial values: 20.0, 10.0, 0.0, 
+
+#Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.
+#Otherwise, give a comma-delimited list of fitting instrictions the same length as the dimensions of your data.
+#Use speciesN to denote the Nth species in your model. Simple arithmatic operations can be performed on the species from your model.
+#For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2
+
+fit: None
+
+#Parameters:
+#Priors:
+#one of 
+#	constant, value
+#	uniform, lower, upper
+#	gaussian, mean, variance
+#Kernels: By default, gaussian with variance half the range of the prior distribution.
+#To force an alternative kernel use the switch in abcScript.py and give one of 
+#	uniform, lower, upper
+#	gaussian, mean, variance
+
+parameter1:
+	prior: constant, 1.0
+	kernel: uniform, -1.0,1.0
+parameter2:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter3:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter4:
+	prior: uniform, 0, 5
+	kernel: uniform, -0.01,0.01
+parameter5:
+	prior: uniform, 0, 5
+	kernel: uniform, -1.0,1.0
+parameter6:
+	prior: uniform, 0, 10
+	kernel: uniform, -0.10000000000000001,0.10000000000000001
+//
+
