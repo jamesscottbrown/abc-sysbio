@@ -10,6 +10,11 @@ import numpy
 import sys
 import re
 
+from abcsysbio import parse_info
+from abcsysbio import model
+from abcsysbio import abcsmc
+from abcsysbio import input_output
+
 import sys
 sys.path.insert(0, ".")
 
@@ -153,11 +158,6 @@ def main():
             print "ABORT: libSBML required for SBML parsing. Please install libSBML"
             sys.exit()
     
-    if runmode == 2:
-	if nthread == None or nblock == None:
-	    print "Must specify block and thread numbers in cuda mode" 
-            sys.exit()	
-
     # set the seed
     if seed != None:
 	print "#### Seeding random number generator : ", seed
@@ -165,41 +165,39 @@ def main():
 
                 
     if (file_exist==True and simulate==False):            
-	info = abcsysbio.parseInfo.getAlgorithmInfo(input_file)        
-	restart = 	info[0]
-	name = 		info[1]
-	data = 		info[2]
-	timepoints = 	info[3]
-	numOutput = 	info[4]
-	epsilon = 	info[5]
-	InitValues = 	info[6]	
-	integrationType = info[7]
-	modelWeight = 	info[8]
-	prior = 	info[9]
-	kernel = 	info[10]
-	sampleFromPrior = info[11]
-	source = 	info[12]
-	fit = 		info[13]
-	beta = 		info[14]
-	dt = 		info[15]
-	rtol = 		info[16]
-	atol = 		info[17]
-	constKernels = 	info[18]
-	modelKernel = 	info[19]
+        info_new = parse_info.algorithm_info(input_file)
+        restart = 	info_new.restart
+	name = 		info_new.name
+	data = 		info_new.data
+	timepoints = 	info_new.timepoints
+	numOutput = 	info_new.numOutput
+	epsilon = 	info_new.epsilon
+	InitValues = 	info_new.initValues
+	integrationType = info_new.integrationType
+	modelWeight = 	info_new.modelWeight
+	prior = 	info_new.prior
+	kernel = 	info_new.kernel
+	sampleFromPrior = info_new.sampleFromPrior
+	source = 	info_new.source
+	fit = 		info_new.fit
+	beta = 		info_new.BETA
+	dt = 		info_new.dt
+	rtol = 		info_new.rtol
+	atol = 		info_new.atol
+	constKernels = 	info_new.constKern
+	modelKernel = 	info_new.modelkernel
 
-        if plot==True:
-            figure(figsize=(10,7))
-            lines=plt.plot(timepoints,data,'o-')
-	    xlabel('time')
-            ylabel('Unit')
-	    specLeg = range(0,shape(data)[1])
-	    for leg in range(0,len(specLeg)):
-	    	specLeg[leg] = 'variable'+str(specLeg[leg]+1)
-	    figlegend((lines,),specLeg,'upper left')
-
-				
-            plt.savefig('_data')
-            clf()
+        #if plot==True:
+        #    figure(figsize=(10,7))
+        #    lines=plt.plot(timepoints,data,'o-')
+	#    xlabel('time')
+        #    ylabel('Unit')
+	#    specLeg = range(0,shape(data)[1])
+	#    for leg in range(0,len(specLeg)):
+	#    	specLeg[leg] = 'variable'+str(specLeg[leg]+1)
+	#    figlegend((lines,),specLeg,'upper left')	
+        # plt.savefig('_data')
+        # clf()
 
 
 	modelCorrect = False
@@ -260,24 +258,56 @@ def main():
                 print "ABORT: scipy required for ODE modelling. Please install scipy"
                 sys.exit()
 
-	
-#####run ABCSMC
+                
+        ########################### MODEL CREATION
+        #
+        # create a list of model objects from the information we have
+        models = []
+        for i in range(info_new.modelnumber):
+            new_model = model.model( name=info_new.name[i], nspecies=len(info_new.initValues[i]), nparameters=len(info_new.prior[i]), prior=info_new.prior[i], 
+                                     source=info_new.name[i], integration=integrationType[i], fit=info_new.fit[i],
+                                     init = info_new.initValues[i], dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
+            
+            models.append( new_model )
+            
+        ########################### DATA CREATION
+        #
+        # create a data object
+        data_new = model.data( timepoints, info_new.data )
 
-	
+        ########################### IO
+        #
+        io = input_output.input_output(fname,info_new.restart)
+        io.create_output_folders(info_new.name, info_new.numOutput, pickling)
 
-        modelDistribution, inferred_parameter, rate = abcsysbio.abcSMC_model.abcSimulator(name, 
+        ########################### ABC SMC
+        #
+        # instantiate the abcsmc algorithm class
+        algorithm = abcsmc.abcsmc(models, info_new.numOutput, info_new.modelWeight, data=data_new)
+
+        # fill data from disk if required
+        if restart == True:
+            algorithm.fill_values( io.read_pickled(fname) )
+            
+        # run ABC SMC
+        #algorithm.run_fixed_schedule(info_new.epsilon[0], io)
+        algorithm.run_fixed_schedule([100], io)
+        
+        exit()
+	
+        # run ABCSMC
+        modelDistribution, inferred_parameter, rate = abcsysbio.abcSMC_model.abcSimulator(name, #
                                                                                           data, 		
-                                                                                          timepoints, 
+                                                                                          timepoints,  #
                                                                                           numOutput, 
                                                                                           epsilon, 
                                                                                           InitValues, 
-                                                                                          integrationType, 
+                                                                                          integrationType, # 
                                                                                           modelWeight, 
-                                                                                          prior, 
+                                                                                          prior, #
                                                                                           kernel, 
-                                                                                          dt=dt,
-                                                                                          fit=fit, 
-                                                                                          sampleFromPrior=sampleFromPrior, 
+                                                                                          dt=dt, #
+                                                                                          fit=fit, #  
                                                                                           beta=beta, 
                                                                                           restart=restart, 
                                                                                           diagnostic=diagnostic, 
@@ -285,13 +315,9 @@ def main():
                                                                                           plotDataSeries=plotTimeSeries, 
                                                                                           full=full, 
                                                                                           constKernels=constKernels,
-											  runmode=runmode,
+											  
 											  timing=timing,
-											  nthread=nthread,
-											  nblock=nblock,
                                                                                           fname=fname,
-                                                                                          mt_data=mt_data,
-                                                                                          app_file=app_file,
 											  custom_kernel=custom_kernel,
 											  custom_distance=custom_distance,
 											  modelKernel=modelKernel)
