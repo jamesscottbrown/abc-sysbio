@@ -2,10 +2,10 @@
 from distutils.core import setup
 
 setup(name='abc-sysbio',
-      version='1.02',
+      version='2.01',
       description='Approximate Bayesian Computation for systems biology',
 
-      author='Juliane Liepe, Chris Barnes, Erika Cule',
+      author='Chris Barnes, Juliane Liepe, Erika Cule',
 
       author_email='christopher.barnes@imperial.ac.uk,juliane.liepe08@imperial.ac.uk',
 
