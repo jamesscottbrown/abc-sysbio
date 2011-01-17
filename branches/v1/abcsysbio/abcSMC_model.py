@@ -96,7 +96,7 @@ def simulateData(ModelName,selected_model,integrationType,InitValues,timepoints,
     g=re.compile('Gillespie')
   
     module = __import__(ModelName[selected_model])
-    print ModelName[selected_model], module
+    #print ModelName[selected_model], module
 
     if o.match(integrationType[selected_model]):
         samplePoints=abcodeint(module, InitValues[selected_model], timepoints, sampleParameters, dt, rtol, atol)
