@@ -42,6 +42,7 @@ class abcsmc:
                  nbatch,
                  modelKernel,
                  debug,
+                 timing,
                  distancefn = euclidian.euclidianDistance,
                  kernelfn = kernels.getKernel,
                  kernelpdffn = kernels.getPdfParameterKernel,
@@ -49,6 +50,7 @@ class abcsmc:
         
         self.nmodel = len(models)
         self.models = copy.copy( models )
+        self.data = copy.deepcopy(data)
         
         self.nparticles = nparticles
 
@@ -73,7 +75,7 @@ class abcsmc:
         self.dead_models = []
         self.nbatch = nbatch
         self.debug = debug
-        self.data = copy.deepcopy(data)
+        self.timing = timing
     
         self.modelprior = modelprior[:]
         self.modelKernel = modelKernel
@@ -90,6 +92,7 @@ class abcsmc:
         self.sample_from_prior = True
 
     def run_fixed_schedule(self, epsilon, io):
+        all_start_time = time.time()
         for pop in range(len(epsilon)):
             start_time = time.time()
             if(pop==0 and self.sample_from_prior==True): 
@@ -97,7 +100,10 @@ class abcsmc:
             else:
                 results = self.iterate_one_population(epsilon[pop], prior=False)
             end_time = time.time()
-             
+
+            if self.timing == True:
+                print "####abcSimulator:runmode/pop/time:", pop+1, end_time - start_time
+
             io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels)
             io.write_data(pop, results, end_time-start_time, self.models, self.data)
 
@@ -106,6 +112,10 @@ class abcsmc:
                 print "\t sampling steps / acceptance rate :", self.sampled[pop], "/", self.rate[pop]
                 print "\t model marginals:", self.margins_prev
                 print "\t dead models    :", self.dead_models
+
+        if self.timing == True:
+            print "####abcSimulator:runmode/time:", time.time() - all_start_time
+
         return
             
 
