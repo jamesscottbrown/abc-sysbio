@@ -8,7 +8,7 @@ class algorithm_info:
     """
 
     def __init__(self, filename):
-        print filename
+        #print filename
 
         self.name=[]
         self.source=[]
