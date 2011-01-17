@@ -187,19 +187,6 @@ def main():
 	constKernels = 	info_new.constKern
 	modelKernel = 	info_new.modelkernel
 
-        #if plot==True:
-        #    figure(figsize=(10,7))
-        #    lines=plt.plot(timepoints,data,'o-')
-	#    xlabel('time')
-        #    ylabel('Unit')
-	#    specLeg = range(0,shape(data)[1])
-	#    for leg in range(0,len(specLeg)):
-	#    	specLeg[leg] = 'variable'+str(specLeg[leg]+1)
-	#    figlegend((lines,),specLeg,'upper left')	
-        # plt.savefig('_data')
-        # clf()
-
-
 	modelCorrect = False
         if usesbml == True : 
             abcsysbio.importSBML(source,integrationType,name)
@@ -277,50 +264,39 @@ def main():
 
         ########################### IO
         #
-        io = input_output.input_output(fname,info_new.restart)
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
         io.create_output_folders(info_new.name, info_new.numOutput, pickling)
+	if plot == True:
+	    io.plot_data(data_new)
 
         ########################### ABC SMC
         #
         # instantiate the abcsmc algorithm class
-        algorithm = abcsmc.abcsmc(models, info_new.numOutput, info_new.modelWeight, data=data_new)
+	debug = 0
+	if full == True: debug = 1
+	
+        algorithm = abcsmc.abcsmc(models, info_new.numOutput, info_new.modelWeight, data=data_new, beta = info_new.BETA, nbatch=10, modelKernel=info_new.modelkernel, debug=debug)
 
         # fill data from disk if required
         if restart == True:
             algorithm.fill_values( io.read_pickled(fname) )
             
         # run ABC SMC
-        #algorithm.run_fixed_schedule(info_new.epsilon[0], io)
-        algorithm.run_fixed_schedule([100], io)
+
+	# transpose epsilon so it is epsilon[npop][ndistance]
+	tepsilon = []
+	for i in range(len(info_new.epsilon[0])):
+            e = []
+            for j in range(len(info_new.epsilon)):
+                e.append( info_new.epsilon[j][i] )
+            tepsilon.append(e)
+
+	#print "####", info_new.epsilon
+        #print "####", tepsilon
+
+        algorithm.run_fixed_schedule(tepsilon, io)
         
         exit()
-	
-        # run ABCSMC
-        modelDistribution, inferred_parameter, rate = abcsysbio.abcSMC_model.abcSimulator(name, #
-                                                                                          data, 		
-                                                                                          timepoints,  #
-                                                                                          numOutput, 
-                                                                                          epsilon, 
-                                                                                          InitValues, 
-                                                                                          integrationType, # 
-                                                                                          modelWeight, 
-                                                                                          prior, #
-                                                                                          kernel, 
-                                                                                          dt=dt, #
-                                                                                          fit=fit, #  
-                                                                                          beta=beta, 
-                                                                                          restart=restart, 
-                                                                                          diagnostic=diagnostic, 
-                                                                                          pickling=pickling, 
-                                                                                          plotDataSeries=plotTimeSeries, 
-                                                                                          full=full, 
-                                                                                          constKernels=constKernels,
-											  
-											  timing=timing,
-                                                                                          fname=fname,
-											  custom_kernel=custom_kernel,
-											  custom_distance=custom_distance,
-											  modelKernel=modelKernel)
 
 	
 #####if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
