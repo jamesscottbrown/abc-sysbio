@@ -5,18 +5,32 @@ from getResults import getAllScatterPlots
 from getResults import getAllHistograms
 from getResults import plotTimeSeries
 from getResults import getModelDistribution
+from getResults import plotData
 
 class input_output:
     
-    def __init__(self, folder, restart):
+    def __init__(self, folder, restart, diagnostic, plotDataSeries):
         self.folder = folder
+        self.diagnostic = diagnostic
+        self.plotDataSeries = plotDataSeries
 
+        # Hold all data here for plotting purposes.
+        # May want to remove this as could get large
+        self.all_results = []
+        
         if restart==True:
             self.folder = self.folder + '_restart'
 
+    def plot_data(self, data):
+        plotData( data, self.folder+'/_data' )
+
+
     ################write rates, distances, trajectories    
-    def write_data(self, population, results, timing, models, diagnostic=True):
+    def write_data(self, population, results, timing, models, data):
+
         # results abcsmc_results class
+        self.all_results.append( results )
+        
         rate_file = open(self.folder+'/rates.txt',"a")
         rate_file.write(repr(population+1)+"\t"+repr(results.sampled)+"\t"+repr(results.rate))
         rate_file.write("\t" + str(round(timing,2)) + " secs\n")
@@ -46,74 +60,108 @@ class input_output:
 
         nmodels = len(models)
         for mod in range(nmodels):
-            print self.folder + '/results_' + models[mod].name
+            #print self.folder + '/results_' + models[mod].name
             try:
-                print self.folder + '/results_' + models[mod].name
+                #print self.folder + '/results_' + models[mod].name
                 os.chdir(self.folder + '/results_' + models[mod].name)
-                print os.getcwd()
+                #print os.getcwd()
                 os.mkdir("Population_" + repr(population+1))
                 os.chdir("../..")
             except:
                 print "\nCan not create the folder Population_"+repr(population+1)+"!\n"
                 sys.exit()
 
-        #if nmodels>1 and diagnostic==True:
-        #    getModelDistribution(results.margins,epsilon,rate,PlotName=folder+'/ModelDistribution')
+        # count number of particles in each model so that we can skip empty models
+        counts = numpy.zeros([nmodels])
+        nparticles = len(results.weights)
+        for np in range(nparticles):
+            counts[ results.models[np] ] = counts[ results.models[np] ] + 1
+            
 
-        population_mod=[]
-        weights_mod=[]
+        # print out particles and weights if there are particles
         for mod in range(nmodels):
-            weight_file=open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Weights'+repr(population+1)+".txt","w")
-            param_file = open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Population'+repr(population+1)+".txt","w") 
-            PlotName = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/ScatterPlots_Population' + repr(population+1)
-            PlotName2 = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/weightedHistograms_Population' + repr(population+1)
+            if counts[mod] > 0:
+                weight_file=open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Weights'+repr(population+1)+".txt","w")
+                param_file = open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Population'+repr(population+1)+".txt","w") 
+         
+                nparticles = len(results.weights)
+                for g in range(nparticles):
+                    if( results.models[g] == mod ):
+                        for k in range(len(results.parameters[g])):
+                            print >>param_file, results.parameters[g][k],
+                        print >>param_file, ""
 
-            nparticles = len(results.weights)
-            for g in range(nparticles):
-                print g
-                if( results.models[g] == mod ):
-                    print g, results.models[g]
+                weight_file.close()
+                param_file.close()
 
-                    for k in range(len(results.parameters[g])):
-                        print >>param_file, results.parameters[g][k],
-                    print >>param_file, ""
 
-            weight_file.close()
-            param_file.close()
+        # do diagnostics such as scatter plots, histograms and model distribution
+        npop = len(self.all_results)
+        if self.diagnostic == True:
             
-            #if diagnostic==True:
-            #    population_mod.append([])
-            #    weights_mod.append([])
-            #    for eps in range(len(parameters[0])):
-            #        population_mod[mod].append([])
-            #        weights_mod[mod].append([])
-
-            #getAllScatterPlots(population_mod,weights_mod,populations=numpy.arange(1,t+2,1),PlotName=PlotName,model=mod+1)
-            #getAllHistograms(population_mod,weights_mod,population=t+1,PlotName=PlotName2, model=mod+1)
+            if nmodels > 1:
+                # create matrix [npop][nmodel]
+                m = numpy.zeros( [ len(self.all_results), nmodels ] )
+                r = []
+                e = []
+                for i in range( len(self.all_results) ):
+                    m[i,:] = self.all_results[i].margins
+                    r.append( self.all_results[i].rate )
+                    e.append( self.all_results[i].epsilon )
             
+                getModelDistribution(m,e,r,PlotName=self.folder+'/ModelDistribution')
 
-    ################make some nice plots
-    def make_analysis_plots(folder, diagnostic, plotDataSeries, timepoints, fit, dt, data, t, nmodel, ModelName, integrationType,
-                            InitValues, priors, population, numbers, modelDistribution, weights, epsilon, rate ):            
+            # for scatter plots and histograms we require container [model][population][parameter][values]
+            population_mod=[]
+            weights_mod=[]
+            
+            for mod in range(nmodels):
+                if counts[mod] > 0:
+                    PlotName = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/ScatterPlots_Population' + repr(population+1)
+                    PlotName2 = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/weightedHistograms_Population' + repr(population+1)
+                
+                    population_mod.append([])
+                    weights_mod.append([])
 
-        if plotDataSeries==True:
-            for mod in range(0,nmodel):
-                x=2
-                if numbers[mod][t]<x: x=int(numbers[mod][t])
-                plotTimeSeries(ModelName[mod],
-                               population,
-                               integrationType[mod],
-                               InitValues[mod],
-                               timepoints,
-                               fit[mod],
-                               populationNumber=t+1,
-                               dt=dt,
-                               amount=x,
-                               model=mod,
-                               filename=folder+'/results_'+ModelName[mod]+'/Population_'+repr(t+1)+'/Timeseries_Population'+repr(t+1),
-                               data=data,
-                               plotdata=True)
+                    for eps in range( npop ):
+                        population_mod[mod].append([])
+                        weights_mod[mod].append([])
 
+                        non_const = 0
+                        for param in range(models[mod].nparameters):
+                            if not( models[mod].prior[param][0]==0 ):
+                                population_mod[mod][eps].append([])
+                                weights_mod[mod][eps].append([])
+
+                                nparticles = len(self.all_results[eps].weights)
+                                for np in range( nparticles ):
+                                    if self.all_results[eps].models[np] == mod:
+                                        # print mod, eps, param, self.all_results[eps].models[np], self.all_results[eps].parameters[np][param]
+                                        population_mod[mod][eps][non_const].append( self.all_results[eps].parameters[np][param] )
+                                        weights_mod[mod][eps][non_const].append( self.all_results[eps].weights[np] )
+
+                                non_const = non_const + 1
+
+                    getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(npop),PlotName=PlotName,model=mod+1)
+                    getAllHistograms(population_mod, weights_mod, population=npop, PlotName=PlotName2, model=mod+1)
+
+            if self.plotDataSeries == True:
+                for mod in range(nmodels):
+                    # get the first n of the accepted particles for this model
+                    pars = []
+                    n = 10
+                    count = 0
+                    nparticles = len(results.weights)
+                    for np in range(nparticles):
+                        if results.models[np] == mod and count < n:
+                            pars.append( results.parameters[np] )
+                            count = count + 1
+
+                    if len(pars) > 0:
+                        filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
+                        plotTimeSeries(models[mod],pars,data,filename,plotdata=True)
+            
+                                
     ################create output folders
     def create_output_folders(self, modelnames, numOutput, pickling):
         try:
