@@ -6,7 +6,9 @@ from matplotlib.ticker import FormatStrFormatter
 from pylab import *
 
 # need to get howToFitData
-import abcsysbio.abcSMC_model
+#import abcsysbio.abcSMC_model
+import abcsmc
+from abcsmc import howToFitData
 
 # weighted histogramming 
 def bin_data(d, w, nbins):
@@ -101,65 +103,36 @@ def printModelDistribution(matrix,eps,filename='model_distribution.txt'):
         out_file.write("\n")
     out_file.close()
 
+def plotData(data, filename):
+    matplotlib.pyplot.subplot(111)
+    clf()
+    matplotlib.pyplot.plot(data.timepoints,data.values,'o')
+    xlabel('time')
+    ylabel('Unit')
+    matplotlib.pyplot.savefig(filename)
+    matplotlib.pylab.clf()
 
-
-def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,populationNumber=1,dt=0.1,amount=1,model=1,filename='TimeSeries',data=None,plotdata=False):
+def plotTimeSeries(model, pars, data, filename, plotdata=True):
 
     """
     Plot simulated trajectories from the model with accepted parameters.
         
     ***** args *****
     
-    ModelName:
-
-            Name of the Python file representing the model.
-    
-    matrix:
-
-            Matrix of accepted parameters
-
-    integrationType:
-
-            Integration type for simulating the model.
-            One of ODE, SDE or Gillespie
-
-    InitValues:
-
-            Initial values for the simulation
-
-    timepoints:
-
-            Times at which the simulation should be made.
-
-    fit:
-
-            Fitting instructions for the trajectories from the model.
-
-    ***** kwargs *****
-    
-    populationNumber:
-
-            Index for the matrix, which population to plot
-          
-    dt:
-
-            Internal timestep for the simulation.
-
-    amount:
-
-            Number of trajectories to plot.
-
     model:
 
-            Index for the matrix, which model to plot parameters for.
+            model object
 
+    pars:
+            2D list of parameters for plotting to be done
+    
+    data:
+
+            data object
+   
     filename:
 
             Name of the output file to write to.
-
-    data:
-
-            Data to plot over the trajectories.
 
     plotdata:
 
@@ -167,42 +140,24 @@ def plotTimeSeries(ModelName,matrix,integrationType,InitValues,timepoints,fit,po
             Whether or not to plot the data over the trajectories.
 
     """
+
+    # do the simulations
+    nsim = len(pars)
+    sims = model.simulate( pars, data.timepoints, nsim, beta = 1 )
         
-    module = __import__(ModelName)
-
-    o=re.compile('ODE')
-    s=re.compile('SDE')
-    g=re.compile('Gillespie')
-
     matplotlib.pyplot.subplot(111)
-    
-    time_start=timepoints[0]
-    time_end=timepoints[-1]
-    step=(time_end-time_start)/500
-
-    timepoints_new=arange(time_start,time_end+step,step)
-
     clf()
-    for i in range(0,amount):
-        parameter=[]
-        for j in range(0,len(matrix[int(model)][populationNumber-1])):
-            parameter.append(matrix[int(model)][int(populationNumber)-1][j][i])
+    for i in range(nsim):
+        beta = 0
+        points = sims[i,beta,:,:]
+        points_sim = abcsmc.howToFitData(model.fit,points)
+        #print data.timepoints
+        #print points_sim
+        
+        matplotlib.pyplot.plot(data.timepoints,points_sim)
 
-        if o.match(integrationType):
-            from abcsysbio import abcodesolve
-            data_sim=abcodesolve.abcodeint(module, InitValues, timepoints_new,parameter, dt)
-        if s.match(integrationType):
-            from abcsysbio import sdeint
-            data_sim=sdeint.sdeint(module,InitValues,parameter,timepoints_new,dt=0.01)
-        if g.match(integrationType):
-            from abcsysbio import GillespieAlgorithm    
-            data_sim=GillespieAlgorithm.GillespieInt(module, InitValues,parameter, timepoints_new)
-
-        points_sim = abcsysbio.abcSMC_model.howToFitData(fit,data_sim)
-
-        matplotlib.pyplot.plot(timepoints_new,points_sim)
     if plotdata==True: 
-        matplotlib.pyplot.plot(timepoints,data,'o')
+        matplotlib.pyplot.plot(data.timepoints,data.values,'o')
         xlabel('time')
         ylabel('Unit')
    
