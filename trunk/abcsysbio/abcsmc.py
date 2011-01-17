@@ -17,7 +17,8 @@ class abcsmc_results:
                  margins, 
                  models, 
                  weights, 
-                 parameters):
+                 parameters,
+                 epsilon):
         self.naccepted = naccepted
         self.sampled = sampled
         self.rate = rate
@@ -27,6 +28,7 @@ class abcsmc_results:
         self.models = models
         self.weights = weights
         self.parameters = parameters
+        self.epsilon = epsilon
 
 class abcsmc:
 
@@ -35,7 +37,11 @@ class abcsmc:
                  models, 
                  nparticles, 
                  modelprior, 
-                 data, 
+                 data,
+                 beta,
+                 nbatch,
+                 modelKernel,
+                 debug,
                  distancefn = euclidian.euclidianDistance,
                  kernelfn = kernels.getKernel,
                  kernelpdffn = kernels.getPdfParameterKernel,
@@ -63,14 +69,14 @@ class abcsmc:
         self.kernelpdffn = kernels.getPdfParameterKernel
         self.perturbfn = kernels.perturbParticle
 
-        self.beta = 1
+        self.beta = beta
         self.dead_models = []
-        self.nbatch = 10
-        self.debug = 1
+        self.nbatch = nbatch
+        self.debug = debug
         self.data = copy.deepcopy(data)
     
         self.modelprior = modelprior[:]
-        self.modelKernel = 0.7
+        self.modelKernel = modelKernel
         self.kernels = []
         for i in range(self.nmodel):
             self.kernels.append([])
@@ -93,10 +99,10 @@ class abcsmc:
             end_time = time.time()
              
             io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels)
-            io.write_data(pop, results, end_time-start_time, self.models)
+            io.write_data(pop, results, end_time-start_time, self.models, self.data)
 
             if self.debug == 1:
-                print "### population ", pop
+                print "### population ", pop+1
                 print "\t sampling steps / acceptance rate :", self.sampled[pop], "/", self.rate[pop]
                 print "\t model marginals:", self.margins_prev
                 print "\t dead models    :", self.dead_models
@@ -206,7 +212,8 @@ class abcsmc:
                                  self.margins_prev, 
                                  self.model_prev, 
                                  self.weights_prev, 
-                                 self.parameters_prev )
+                                 self.parameters_prev,
+                                 next_epsilon)
 
         return results
 
@@ -267,10 +274,14 @@ class abcsmc:
                         #print 'samplePoints', samplePoints
                         points = howToFitData( self.models[ m ].fit, samplePoints )
                         traj.append( points )
-                        distance=self.distancefn(points, self.data.values)
+                        distance=self.distancefn(points, self.data.values, this_model_parameters[i], m)
                         this_dist.append( distance )
 
-                        if(distance <= this_epsilon and distance >= 0):
+                        dist = evaluateDistance(distance, this_epsilon )
+                        #if(distance <= this_epsilon and distance >= 0):
+                        #    ret[mapping[i]] = ret[mapping[i]] + 1
+
+                        if dist == True:
                             ret[mapping[i]] = ret[mapping[i]] + 1
 
                         if self.debug == 2:print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, mapping[i], ret[mapping[i]]
@@ -475,3 +486,18 @@ def getPdfModelKernel(m, m0, modelK, nmodel, dead_models):
             return modelK
         else:
             return (1-modelK)/(nmodel-ndead)
+
+def evaluateDistance(distance,epsilon):
+    #print 'd:', distance
+    #print 'e:', epsilon
+
+    accepted = False
+    for i in range(len(epsilon)):
+        #print "d:", distance[i], epsilon[i][t]
+        if(distance[i]<epsilon[i] and distance[i]>=0 ):
+            accepted = True
+        else: 
+            accepted = False
+            break
+
+    return accepted
