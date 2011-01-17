@@ -1,17 +1,28 @@
-# The abc-sysbio package @ 2009
-# Erika Cule and Juliane Liepe
+# The abc-sysbio package @ 2011
+# Chris Barnes, Juliane Liepe and Erika Cule
 # Centre for Bioinformatics
 # Imperial College London
 
 from generateTemplate import generateTemplate
-from abcSMC_model import abcSimulator
-from parseInfo import getAlgorithmInfo
 from checkInputArguments import checkInputABC
 from SBMLparse import importSBML
-from evaluate import evaluateDistance
 
-__all__ = [ 'abcSMC_model', 'GillespieAlgorithm', 'sdeint', 'abcodesolve', 'checkInputABC', 'checkInputArguments',
-            'euclidian', 'getAlgorithmInfo', 'getResults', 'parseInfo', ]
+
+__all__ = [ 'GillespieAlgorithm',
+            'sdeint',
+            'abcodesolve',
+            'checkInputABC',
+            'checkInputArguments',
+            'generateTemplate',
+            'relations.py',
+            'euclidian',
+            'getResults',
+            'input_output',
+            'abcsmc',
+            'input_output',
+            'kernels',
+            'parse_info',
+            'statistics' ]
 
 
 
