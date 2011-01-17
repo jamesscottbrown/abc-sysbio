@@ -1,7 +1,7 @@
 import numpy
 import sys
 
-def euclidianDistance(data1, data2, epsilon=0):
+def euclidianDistance(data1, data2, parameters, model):
     """Returns the euclidian distance between two data sets.
     Data sets must have the same dimensions.
 
@@ -22,7 +22,7 @@ def euclidianDistance(data1, data2, epsilon=0):
         distance = numpy.sqrt(numpy.sum(z))
 	
     if distance < 0:
-        return None
+        return [None]
     else:
-        return distance
+        return [distance]
         
