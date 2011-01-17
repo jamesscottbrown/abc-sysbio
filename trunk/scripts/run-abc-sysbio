@@ -14,6 +14,9 @@ from abcsysbio import parse_info
 from abcsysbio import model
 from abcsysbio import abcsmc
 from abcsysbio import input_output
+from abcsysbio import checkInputArguments
+from abcsysbio import kernels
+from abcsysbio import euclidian
 
 import sys
 sys.path.insert(0, ".")
@@ -71,7 +74,6 @@ def main():
     nblock = None
     nthread = None
     fname = "_results_"
-    mt_data = "MersenneTwister.dat"
     app_file = "app.txt"
     simfile = "sim.txt"
     custom_kernel = False
@@ -151,99 +153,50 @@ def main():
             printOptions()
             sys.exit()
 
-    # check arguments
+    if file_exist == False:
+        print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
+        sys.exit()
+
+    # parse the input file
+    info_new = parse_info.algorithm_info(input_file) 
+
+    # Check that we have libSBML if it is requested
     if usesbml == True:
         try: import libsbml
         except ImportError:
             print "ABORT: libSBML required for SBML parsing. Please install libSBML"
             sys.exit()
-    
-    # set the seed
-    if seed != None:
-	print "#### Seeding random number generator : ", seed
-        numpy.random.seed(seed)
 
-                
-    if (file_exist==True and simulate==False):            
-        info_new = parse_info.algorithm_info(input_file)
-        restart = 	info_new.restart
-	name = 		info_new.name
-	data = 		info_new.data
-	timepoints = 	info_new.timepoints
-	numOutput = 	info_new.numOutput
-	epsilon = 	info_new.epsilon
-	InitValues = 	info_new.initValues
-	integrationType = info_new.integrationType
-	modelWeight = 	info_new.modelWeight
-	prior = 	info_new.prior
-	kernel = 	info_new.kernel
-	sampleFromPrior = info_new.sampleFromPrior
-	source = 	info_new.source
-	fit = 		info_new.fit
-	beta = 		info_new.BETA
-	dt = 		info_new.dt
-	rtol = 		info_new.rtol
-	atol = 		info_new.atol
-	constKernels = 	info_new.constKern
-	modelKernel = 	info_new.modelkernel
-
-	modelCorrect = False
-        if usesbml == True : 
-            abcsysbio.importSBML(source,integrationType,name)
-            
-            modelCorrect,message=abcsysbio.checkInputArguments.checkInputABC(name,
-                                                                             data,
-                                                                             timepoints,
-                                                                             numOutput,
-                                                                             epsilon,
-                                                                             InitValues,
-                                                                             integrationType,
-                                                                             modelWeight,
-                                                                             prior,
-                                                                             kernel,
-                                                                             fit,
-                                                                             restart,
-                                                                             source,                            
-                                                                             constKernels,
-                                                                             fname,
-									     modelKernel,
-									     custom_distance)
-	else :
-	   
-            source = None
-            modelCorrect,message=abcsysbio.checkInputArguments.checkInputABC(name,
-                                                                             data,
-                                                                             timepoints,
-                                                                             numOutput,
-                                                                             epsilon,
-                                                                             InitValues,
-                                                                             integrationType,
-                                                                             modelWeight,
-                                                                             prior,
-                                                                             kernel,
-                                                                             fit,
-                                                                             restart,
-                                                                             source,
-                                                                             constKernels,
-                                                                             fname,
-									     modelKernel,
-									     custom_distance)         
-        if modelCorrect==False:
-            print message
-            sys.exit()
-
-        # Check that we can import scipy if we have ODE models
-        o = re.compile('ODE')
-        flag = False
-        for m in range( len(integrationType) ):
-            if o.search(integrationType[m]):
-                flag = True
-
-        if flag == True:
+    # Check that we can import scipy if we have ODE models
+    o = re.compile('ODE')
+    for m in range( len(info_new.integrationType) ):
+        if o.search(info_new.integrationType[m]):
             try: from scipy.integrate.odepack import odeint
             except ImportError:
                 print "ABORT: scipy required for ODE modelling. Please install scipy"
                 sys.exit()
+            break
+    
+    # set the random seeds
+    if seed != None:
+	print "#### Seeding random number generator : ", seed
+        numpy.random.seed(seed)
+
+        
+    if simulate==False :            
+
+        # Check the information is correct for inference
+	modelCorrect = False
+        if usesbml == True : 
+            abcsysbio.importSBML(info_new.source,info_new.integrationType,info_new.name)
+            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
+        else:
+            info_new.source = None
+            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
+               
+        if modelCorrect==False:
+            print message
+            sys.exit()
 
                 
         ########################### MODEL CREATION
@@ -252,7 +205,7 @@ def main():
         models = []
         for i in range(info_new.modelnumber):
             new_model = model.model( name=info_new.name[i], nspecies=len(info_new.initValues[i]), nparameters=len(info_new.prior[i]), prior=info_new.prior[i], 
-                                     source=info_new.name[i], integration=integrationType[i], fit=info_new.fit[i],
+                                     source=info_new.name[i], integration=info_new.integrationType[i], fit=info_new.fit[i],
                                      init = info_new.initValues[i], dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
             
             models.append( new_model )
@@ -260,7 +213,7 @@ def main():
         ########################### DATA CREATION
         #
         # create a data object
-        data_new = model.data( timepoints, info_new.data )
+        data_new = model.data( info_new.timepoints, info_new.data )
 
         ########################### IO
         #
@@ -271,18 +224,32 @@ def main():
 
         ########################### ABC SMC
         #
-        # instantiate the abcsmc algorithm class
 	debug = 0
 	if full == True: debug = 1
-	
-        algorithm = abcsmc.abcsmc(models, info_new.numOutput, info_new.modelWeight, data=data_new, beta = info_new.BETA, nbatch=10, modelKernel=info_new.modelkernel, debug=debug)
+
+        # set the required distance and kernel functions
+        distancefn = euclidian.euclidianDistance
+        kernelfn = kernels.getKernel
+        kernelpdffn = kernels.getPdfParameterKernel
+        perturbfn = kernels.perturbParticle
+
+        if custom_distance == True or custom_kernel == True:
+            import customABC
+            if custom_distance == True:
+                distancefn = customABC.distance
+            if custom_kernel == True:
+                kernelfn = customABC.getKernel
+                kernelpdffn = customABC.getPdfParameterKernel
+                perturbfn = customABC.perturbParticle
+
+        # instantiate the abcsmc algorithm class
+        algorithm = abcsmc.abcsmc(models, info_new.numOutput, info_new.modelWeight, data=data_new, beta = info_new.BETA, nbatch=10,
+                                  modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernelfn=kernelfn, kernelpdffn=kernelpdffn, perturbfn=perturbfn )
 
         # fill data from disk if required
-        if restart == True:
-            algorithm.fill_values( io.read_pickled(fname) )
+        if info_new.restart == True:
+            algorithm.fill_values( io.read_pickled(info_new.fname) )
             
-        # run ABC SMC
-
 	# transpose epsilon so it is epsilon[npop][ndistance]
 	tepsilon = []
 	for i in range(len(info_new.epsilon[0])):
@@ -291,64 +258,58 @@ def main():
                 e.append( info_new.epsilon[j][i] )
             tepsilon.append(e)
 
-	#print "####", info_new.epsilon
-        #print "####", tepsilon
-
+        # run ABC SMC
         algorithm.run_fixed_schedule(tepsilon, io)
         
         exit()
 
+    else :
+        print "simulations not implemented!"
 	
-#####if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
-#####plots are made - do we want to do anythin else e.g. save the data to a text file?
+        # if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
+        # plots are made - do we want to do anythin else e.g. save the data to a text file?
         
-    elif (file_exist==True and simulate==True):
-        name, timepoints, InitValues, integrationType, ConstantParameters, source, dt, rtol, atol = abcsysbio.parseInfo.getInfoForSimulation(input_file)
+        ## name, timepoints, InitValues, integrationType, ConstantParameters, source, dt, rtol, atol = abcsysbio.parseInfo.getInfoForSimulation(input_file)
 
-        if usesbml == True : 
-            modelCorrect, message = abcsysbio.checkInputArguments.checkInputSimulation(name, 
-                                                                                       timepoints, 
-                                                                                       InitValues, 
-                                                                                       integrationType, 
-                                                                                       ConstantParameters, 
-                                                                                       source, 
-                                                                                       dt)
-            if modelCorrect == False:
-                print message
-                sys.exit()   
+##         if usesbml == True : 
+##             modelCorrect, message = abcsysbio.checkInputArguments.checkInputSimulation(name, 
+##                                                                                        timepoints, 
+##                                                                                        InitValues, 
+##                                                                                        integrationType, 
+##                                                                                        ConstantParameters, 
+##                                                                                        source, 
+##                                                                                        dt)
+##             if modelCorrect == False:
+##                 print message
+##                 sys.exit()   
 
-            abcsysbio.importSBML(source,integrationType,name)
+##             abcsysbio.importSBML(source,integrationType,name)
 
-        if synthetic!=True:
-            timepoints=numpy.arange(timepoints[0], timepoints[-1]+dt, dt)
+##         if synthetic!=True:
+##             timepoints=numpy.arange(timepoints[0], timepoints[-1]+dt, dt)
 
-        f = open(simfile,'w')
-        for i in range(0, len(name)):
-            data=abcsysbio.abcSMC_model.simulateData(name,i,integrationType,InitValues,timepoints,ConstantParameters[i],dt)
+##         f = open(simfile,'w')
+##         for i in range(0, len(name)):
+##             data=abcsysbio.abcSMC_model.simulateData(name,i,integrationType,InitValues,timepoints,ConstantParameters[i],dt)
 
-            print >>f, name[i]
-            for nd in range(len(timepoints)):
-                print >>f, timepoints[nd],
-                for np in range(len(data[0])):
-                    print >>f, data[nd][np],
-                print >>f, ""
-            print >>f, "\n"
+##             print >>f, name[i]
+##             for nd in range(len(timepoints)):
+##                 print >>f, timepoints[nd],
+##                 for np in range(len(data[0])):
+##                     print >>f, data[nd][np],
+##                 print >>f, ""
+##             print >>f, "\n"
             
-            if synthetic==True:
-                #print >>simfile, name[i]
-                #print data
-                plt.plot(timepoints, data, 'o')
-                plt.savefig("Synthetic_Data_"+name[i])
-                clf()
-            else: 
-                plt.plot(timepoints, data)
-                plt.savefig("Simulated_Data_"+name[i])
-                clf()
+##             if synthetic==True:
+##                 #print >>simfile, name[i]
+##                 #print data
+##                 plt.plot(timepoints, data, 'o')
+##                 plt.savefig("Synthetic_Data_"+name[i])
+##                 clf()
+##             else: 
+##                 plt.plot(timepoints, data)
+##                 plt.savefig("Simulated_Data_"+name[i])
+##                 clf()
 
-    else:
-        print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
-####plot data with final parameter
-#abcsysbio.getResults.plotTimeSeries(name[0],inferred_parameter,integrationType[0],InitValues[0],timepoints,populationNumber=5,amount=10,model=1)
-    
 
 main()
