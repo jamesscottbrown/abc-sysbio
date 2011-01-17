@@ -1,54 +1,38 @@
 import pickle
 import re
 
-def checkInputABC(ModelName,data,timepoints,numOutput, epsilon, InitValues,integrationType,modelWeights,priors,kernel,fit,restart,source,constKernels,fname,modelKernel,custom_distance):
+def checkInputABC(info_new , fname, custom_distance ):
+                  
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to run the abc-SMC algorithm.
     Return boolean, string (empty if boolean is True)
 
-    ***** args *****
-
-    ModelName:
-        A list of strings
-
-    data:
-        A numpy array
-        
-    timepoints:
-        A list of floats
-
-    numOutputs:
-        An integer
-
-    epsilon:
-        A list of floats
-
-    InitValues:
-        An array of floats
-
-    integrationType:
-        A list of strings
-
-    modelWeights:
-        A list of floats
-
-    priors:
-        An list of 3-element-long lists
-
-    kernel:
-        A list of 3-element-long lists
-
-    fit:
-        A list of strings
-
-    restart:
-        Boolean
-
-    source:
-        A list of strings
-
+    Takes as input an algorithm_info object, the output folder name, and whether custom distance is specified
+    
     """
+
+    restart = 	        info_new.restart
+    ModelName = 	info_new.name
+    data = 		info_new.data
+    timepoints = 	info_new.timepoints
+    numOutput = 	info_new.numOutput
+    epsilon = 	        info_new.epsilon
+    InitValues = 	info_new.initValues
+    integrationType =   info_new.integrationType
+    modelWeights = 	info_new.modelWeight
+    priors = 	        info_new.prior
+    kernel = 	        info_new.kernel
+    source = 	        info_new.source
+    fit = 		info_new.fit
+    beta = 		info_new.BETA
+    dt = 		info_new.dt
+    rtol = 		info_new.rtol
+    atol = 		info_new.atol
+    constKernels = 	info_new.constKern
+    modelKernel = 	info_new.modelkernel
+
+    
     ### check general properties of the given arguments that are independent of the model
 
     for i in range(0, len(ModelName)):
