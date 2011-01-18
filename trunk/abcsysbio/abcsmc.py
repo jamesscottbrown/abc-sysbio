@@ -22,12 +22,12 @@ class abcsmc_results:
         self.naccepted = naccepted
         self.sampled = sampled
         self.rate = rate
-        self.trajectories = trajectories
-        self.distances = distances
-        self.margins = margins
-        self.models = models
-        self.weights = weights
-        self.parameters = parameters
+        self.trajectories = copy.deepcopy(trajectories)
+        self.distances = copy.deepcopy(distances)
+        self.margins = copy.deepcopy(margins)
+        self.models = copy.deepcopy(models)
+        self.weights = copy.deepcopy(weights)
+        self.parameters = copy.deepcopy(parameters)
         self.epsilon = epsilon
 
 class abcsmc:
@@ -65,6 +65,8 @@ class abcsmc:
         self.margins_curr    = [0  for i in range(self.nmodel)] 
         
         self.b = [0  for i in range(0,nparticles)]
+        self.distances = []
+        self.trajectories = []
 
         self.distancefn = distancefn
         self.kernelfn = kernels.getKernel
@@ -134,7 +136,7 @@ class abcsmc:
                 sampled_models = self.sampleTheModelFromPrior()
                 sampled_params = self.sampleTheParameterFromPrior(sampled_models)
                 
-            accepted_index, trajectories, distances = self.simulate_and_compare_to_data(sampled_models,sampled_params,next_epsilon)
+            accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models,sampled_params,next_epsilon)
 
             for i in range(self.nbatch):
                 if naccepted < self.nparticles:
@@ -149,6 +151,9 @@ class abcsmc:
                         self.parameters_curr[naccepted].append(sampled_params[i][p])
 
                     self.b[naccepted] = accepted_index[i]
+                    self.trajectories.append( copy.deepcopy(traj[i]) )
+                    self.distances.append( copy.deepcopy(distances[i]) )
+                    
                     naccepted = naccepted + 1
 
             
@@ -217,13 +222,16 @@ class abcsmc:
         results = abcsmc_results(naccepted, 
                                  sampled,
                                  naccepted/float(sampled), 
-                                 trajectories, 
-                                 distances, 
+                                 self.trajectories, 
+                                 self.distances, 
                                  self.margins_prev, 
                                  self.model_prev, 
                                  self.weights_prev, 
                                  self.parameters_prev,
                                  next_epsilon)
+
+        self.trajectories = []
+        self.distances = []
 
         return results
 
@@ -254,7 +262,7 @@ class abcsmc:
         ret = [0 for it in range(self.nbatch)]
         traj = []
         distances = []
-
+    
         n_to_simulate = [0 for it in range(self.nmodel)]
         mods = numpy.array( sampled_models )
         
@@ -276,28 +284,30 @@ class abcsmc:
                 #print "this_model_parameters", this_model_parameters
                 sims = self.models[ m ].simulate( this_model_parameters, self.data.timepoints, n_to_simulate, self.beta )
                 if self.debug == 2:print '\t\t\tsimulation dimensions:', sims.shape
-
+                
                 for i in range(n_to_simulate):
+                    # store the trajectories and distances in a list of length beta
                     this_dist = []
+                    this_traj = []
+                    
                     for k in range(self.beta):
                         samplePoints = sims[i,k,:,:]
-                        #print 'samplePoints', samplePoints
                         points = howToFitData( self.models[ m ].fit, samplePoints )
-                        traj.append( points )
-                        distance=self.distancefn(points, self.data.values, this_model_parameters[i], m)
-                        this_dist.append( distance )
-
+                        distance = self.distancefn(points, self.data.values, this_model_parameters[i], m)
                         dist = evaluateDistance(distance, this_epsilon )
-                        #if(distance <= this_epsilon and distance >= 0):
-                        #    ret[mapping[i]] = ret[mapping[i]] + 1
 
+                        this_dist.append( distance )
+                        this_traj.append( points )
+                       
                         if dist == True:
                             ret[mapping[i]] = ret[mapping[i]] + 1
-
+                            
                         if self.debug == 2:print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, mapping[i], ret[mapping[i]]
-                    
+
+                    traj.append( this_traj )
                     distances.append( this_dist )
-        return ret[:], traj, distances
+                
+        return ret[:], distances, traj
         
 
     def sampleTheModelFromPrior(self):
@@ -307,7 +317,7 @@ class abcsmc:
                 ret[i] = statistics.w_choice( range(self.nmodel), self.modelprior )
         
         return ret[:]
-
+   
     def sampleTheParameterFromPrior(self, sampled_models):
         ret = []
  
