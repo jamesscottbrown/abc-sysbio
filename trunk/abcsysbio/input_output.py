@@ -36,21 +36,23 @@ class input_output:
         rate_file.write("\t" + str(round(timing,2)) + " secs\n")
         rate_file.close()
 
-
+        # distances are stored as [nparticle][nbeta][d1, d2, d3 .... ]
         distance_file=open(self.folder + '/distance_Population' + repr(population+1) + '.txt',"a")
-        for i in range(len(results.distances)): 
+        for i in range(len(results.distances)):
             for j in range(len(results.distances[i])):
                 print >>distance_file, i+1, j, results.distances[i][j], results.models[i]
         distance_file.close()
 
+         # trajectories are stored as [nparticle][nbeta][ species ][ times ]
         traj_file=open(self.folder + '/traj_Population' + repr(population+1) + '.txt',"a")
         for i in range(len(results.trajectories)):
-            arr = results.trajectories[i]
-            nrow, ncol = numpy.shape( arr )
-            for ic in range(ncol):
-                for ir in range(nrow):
-                    print >>traj_file, arr[ir,ic],
-                print >>traj_file, ""
+            for j in range(len(results.trajectories[i])): 
+                arr = results.trajectories[i][j]
+                nrow, ncol = numpy.shape( arr )
+                for ic in range(ncol):
+                    for ir in range(nrow):
+                        print >>traj_file, arr[ir,ic],
+                    print >>traj_file, ""
         traj_file.close()
 
         model_file = open(self.folder + '/ModelDistribution.txt',"a")
@@ -116,13 +118,13 @@ class input_output:
             weights_mod=[]
             
             for mod in range(nmodels):
+                population_mod.append([])
+                weights_mod.append([])
+
                 if counts[mod] > 0:
                     PlotName = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/ScatterPlots_Population' + repr(population+1)
                     PlotName2 = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/weightedHistograms_Population' + repr(population+1)
                 
-                    population_mod.append([])
-                    weights_mod.append([])
-
                     for eps in range( npop ):
                         population_mod[mod].append([])
                         weights_mod[mod].append([])
