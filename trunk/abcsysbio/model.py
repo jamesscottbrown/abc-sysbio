@@ -67,9 +67,44 @@ class model:
                         ret[i,j,k,l] = dat[k,l]
                         
         return ret
+
+class cuda_model:
     
-           
+    # instantiation
+    def __init__(self, name, nspecies, nparameters, prior, source, integration, fit, init, dt, beta, timepoints):
+        self.nspecies = nspecies
+        self.nparameters = nparameters
+        self.name = name
+        self.prior = [x[:] for x in prior]
+        self.source = source
+        self.integration = integration
+        self.fit = fit
+        self.cudaCode = self.name +  '.cu' 
+        self.init = init
+        self.dt = dt
+        self.beta = beta
+        self.timepoints = timepoints
+       
+        if self.integration=='ODE':
+            import cudasim.Lsoda as Lsoda
+            self.modelInstance = Lsoda.Lsoda(self.timepoints, self.cudaCode, dt=self.dt)
+        elif self.integration=='SDE':
+            import cudasim.EulerMaruyama as EulerMaruyama
+            self.modelInstance = EulerMaruyama.EulerMaruyama(self.timepoints, self.cudaCode, beta=self.beta, dt=self.dt)
+        elif self.integration=='Gillespie':
+            import cudasim.Gillespie as Gillespie
+            self.modelInstance = Gillespie.Gillespie(self.timepoints, self.cudaCode, beta=self.beta, dt=self.dt)
+
+    def simulate(self, p, t, n, beta):
+        # note that in this function t and beta are not used as they are specified at compile time
         
+        species = []
+        for i in range(n):
+            species.append( self.init )
+        
+        result = self.modelInstance.run(p, species)
+        return result
+    
 
 class data:
     def __init__(self, timepoints, values):
