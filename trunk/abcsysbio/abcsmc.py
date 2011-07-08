@@ -7,6 +7,58 @@ from abcsysbio import euclidian
 from abcsysbio import kernels
 from abcsysbio import statistics
 
+"""
+priors: 
+              a 3D list.
+              The first dimension represents the number of models, the second dimension
+              represents the number of parameter for a particular model and the third dimension
+              represents the distribution for this parameter and has a constant length of 3.
+              The first entry for each parameter is an integer number that stands for a
+              specific distribution.
+              
+              Implemented distributions are:
+              0   ---   constant parameter.
+                        Example: constant parameter with value 12.3
+                        [0 , 12.3 , x] , where x can be any number
+
+              1   ---   normal distribution. 
+                        Example: normal distribution in mean 10 and sd 1
+                        [1 , 10 , 1]
+
+              2   ---   uniform distribution. 
+                        Example: uniform distribution in the range 0.1 to 50
+                        [2 , 0.1 , 50]
+
+              3   ---   lognormal distribution.
+                        Example: lognormal distribution with mean 3 and varianz 1.5
+                        [3 , 3 , 1.5]
+
+              Example:
+              1 model with 3 parameter, the first two parameter have uniform prior between 0 and
+              5, the third parameter has lognormal prior with mean 1 and varianz 3.
+              [ [ [1,0,5],[1,0,5],[2,1,3] ], ]
+              2 models where the first model has 2 parameter (the first is constant 3 and the 
+              second is uniform between 0 and 1) and the second model has 1 lognormal parameter
+              with 0 mean and varianz 0.5
+              [ [ [0,3,0],[1,0,1] ] , [ [2,0,0.5],] ]
+
+fit:      
+              a 2D list of strings.
+              This list contains the fitting instructions and therefore defines how to fit the
+              experimental data to the systems variables. The first dimension represents the 
+              models to be investigated, the second dimension represents the amount of data.
+              
+              Example:
+              1 model with 7 species, 3 data series
+              fit = [ ['species1+species2' , 'species5' , '3*species4-species7'], ]
+              2 models with each 7 species, 2 data series
+              fit = [ ['species1' , 'species2*species3'] , ['species1' , 'species2*species4'] ]
+              
+              The default value is 'None', i.e. the order of data series corresponds exactly 
+              to the order of species.
+"""
+
+
 class abcsmc_results:
     def __init__(self, 
                  naccepted, 
