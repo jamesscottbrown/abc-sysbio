@@ -22,7 +22,7 @@
 
 # Number of particles
 <particles>
-  500
+  50
 </particles>
 
 # Beta is the number of times to simulate each sampled parameter set.
@@ -91,9 +91,9 @@
     # Initial values: whitespace delimited list.
     # Initial values are taken from the SBML model and are in the same order as the species are given in the model.
     
-    <initialvalues>
-      2.0
-    </initialvalues>
+    #<initialvalues>
+    #  2.0
+    #</initialvalues>
 
     # Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.
     # Otherwise, give a comma-delimited list of fitting instrictions the same length as the dimensions of your data.
@@ -112,16 +112,29 @@
     #       lognormal, location, scale
 
     <parameters>
+      
       <parameter1>
 	constant 1.0
       </parameter1>
+      
       <parameter2>
 	uniform 0 50
       </parameter2>
+      
       <parameter3>
 	uniform 0 5
       </parameter3>
+
     </parameters>
+
+    <initial>
+      
+      <ic1>
+	uniform 0 5.0
+      </ic1>
+   
+    </initial>
+
 
   </model1>
 
