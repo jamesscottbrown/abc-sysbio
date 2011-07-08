@@ -1,580 +1,358 @@
 # Algorithm information
+
 import re, sys, numpy
+
+from xml.dom import minidom
+
+# implemented priors
+re_prior_const=re.compile('constant')
+re_prior_uni=re.compile('uniform')
+re_prior_normal=re.compile('normal')
+re_prior_logn=re.compile('lognormal') 
+
+# implemented kernels
+re_kernel_uniform=re.compile('uniform')
+re_kernel_normal=re.compile('normal')
+
+# True/False
+re_true=re.compile('True')
+re_none=re.compile('None')
+
+def parse_required_single_value( node, tagname, message, cast ):
+    try:
+        data = node.getElementsByTagName(tagname)[0].firstChild.data
+    except:
+        print message
+        sys.exit()
+
+    ret = 0
+    try:
+        ret = cast( data )
+    except:
+        print message
+        sys.exit()
+
+    return(ret)
+
+def parse_required_vector_value( node, tagname, message, cast ):
+    try:
+        data = node.getElementsByTagName(tagname)[0].firstChild.data
+    except:
+        print message
+        sys.exit()
+
+    tmp = str( data ).split()
+    ret = []
+    try:
+        ret = [ cast(i) for i in tmp ]
+    except:
+        print message
+        sys.exit()
+
+    if len(ret) == 0:
+        print message
+        sys.exit()
+
+    return(ret)
+
+def parse_fitting_information( node ):
+    fitref = node.getElementsByTagName('fit')[0]
+    tmp = str( fitref.firstChild.data ).split()
+    ret = []
+
+    if len(tmp) == 1 and re_none.match( tmp[0] ):
+        return None
+    else:
+        for i in tmp:
+            # replace species with samplePoints            
+            ttmp = re.sub('species','samplePoints', i )
+
+            # find all instances of samplePoints[ ] and extract the list of species numbers
+            sp_strs = re.findall("samplePoints([0-9]+)",ttmp)
+            sp_nums = [int(j) for j in sp_strs]
+            sp_nums.sort()
+            sp_nums.reverse()
+
+            # loop over the species numbers and replace
+            for n in sp_nums:
+                ttmp = re.sub('ts'+str(n),'ts[:,'+str(n-1)+']',ttmp)
+
+            ret.append( ttmp )
+
+        return( ret )
 
 class algorithm_info:
     """
-    A class to parse the user-provided input file and return all information required to run the abc-SMC algorithm. 
-
-    """
-
+    A class to parse the user-provided input file and return all information required to run the abc-SMC algorithm.
+    
+    """ 
+    
     def __init__(self, filename):
-        #print filename
+        xmldoc = minidom.parse(filename)
 
-        self.name=[]
-        self.source=[]
-        self.initValues=[]
-        self.integrationType=[]
-        self.prior=[]
-        self.kernel=[]
-        self.epsilon=[]
-        self.modelWeight=[]
-        self.timepoints=[]
-        self.data=[]
-        self.fit = []
         self.modelnumber = 0
-        self.numOutput = 0
+        self.restart = False
+        self.particles = 0
+        self.beta = 0
         self.dt = 0
-        self.BETA=1
-        self.restart=False
-        self.modelkernel=0.7
-        self.constKern=False
-        self.rtol=None
-        self.atol=None
-        self.sampleFromPrior=False
-
-        modnum=re.compile('<modelnumber>')
-        numout=re.compile('<population size>')
-        eps=re.compile('<epsilon\d*>')
-        dat=re.compile('<data>')
-        datfile=re.compile('<datafile>')
-        flowdatfile=re.compile('<flowdatafile>')
-        res=re.compile('<restart>\s*True')
-        beta=re.compile('<beta>')
-        times=re.compile('times:')
-        var=re.compile('variable\d+:')
-        numvar=re.compile('number of variables:')
-        s=re.compile('\/\/\n')
-        model=re.compile('model\d+:')
-        timestep=re.compile('<dt>')
-        rtolRE=re.compile('<rtol>')
-        atolRE=re.compile('<atol>')
-        constKernels = re.compile('<consant kernels>')
-        modelKernel = re.compile('<model kernel>')
-    
-        plus=re.compile('\+')
-        minus=re.compile('\-')
-        multiplikation=re.compile('\*')
-
-        n=re.compile('name:')
-        q=re.compile('source:')
-        t=re.compile('type:')
-        init=re.compile('initial values:')
-
-        REtrue=re.compile('[true]|[True]')
-    
-        # f is the regular expression to find the fit information in the input file
-        f=re.compile('fit:')
-        # noneRE is the regular expression to find if fit is none.
-        # This is not an ideal solution
-        noneRE=re.compile('None')
-        # commaRE finds , surrounded by zero or more blank spaces
-        commaRE=re.compile('\s*,\s*')
-    
-        modweight=re.compile('<model weights>')
-    
-        newLine=re.compile('\n')
-        # digit=re.compile('\,*\s*(.+?)\s*\,')
-        digit=re.compile('-?\d+\.*\d*e?\+?-?\d*') # change the format to identify a digit (int and floats)
-        dig=re.compile('\d+')
-    
-        param=re.compile('parameter\d')
-        const=re.compile('constant')
-        uni=re.compile('uniform')
-        gauss=re.compile('gauss')
-        logn=re.compile('lognormal')
-        pri=re.compile('prior:')
-        kern=re.compile('kernel:')
-
-        commentRE=re.compile('^\#+')
-    
-        # beta
-        try:
-            f_info=open(filename)
-            for line in f_info.readlines():
-                if commentRE.match(line): continue
-                elif beta.match(line):
-                    try:
-                        self.BETA=int(beta.sub('',line))
-                    except:
-                        print "\n Please provide an integer value for beta <beta> in file '"+filename+"'\n"
-                        sys.exit()
-                    break;
-            f_info.close()
-        except:
-            print "\n can not open '"+filename+"'\n"
-            sys.exit()
-
-
-        # restart?
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif res.match(line) and REtrue.search(line):
-                self.restart=True
-                break;
-        f_info.close()
-
-        # how many models
-        found_modelnumber=False
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif modnum.match(line):
-                try:
-                    self.modelnumber=int(modnum.sub('',line))
-                except:
-                    print "\n Please provide an integer value for modelnumber <modelnumber> in file '"+filename+"'\n"
-                    sys.exit()
-                found_modelnumber=True
-                break;
-        f_info.close()
-    
-        if found_modelnumber==False:
-            print "\n No value for modelnumber  <modelnumber> is given in file '"+filename+"'\n"
-            sys.exit()
-
-
-        # model kernel
-        if self.modelnumber>1:
-            f_info=open(filename)
-            for line in f_info.readlines():
-                if commentRE.match(line): continue
-                elif modelKernel.match(line):
-                    try:
-                        self.modelkernel=float(modelKernel.sub('',line))
-                    except:
-                        print "\n Please provide an float value for model kernel <model kernel> in file '"+filename+"'\n"
-                        sys.exit()
-                    break;
-            f_info.close()
-
-        # get epsilon
-        foundEps = -1
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif eps.match(line):
-                if foundEps ==(-1):
-                    foundEps = 0
-                    self.epsilon.append([])
-                    sequence=eps.sub('',line)
-                    seq=digit.findall(sequence)
-                    for x in range(0,len(seq)):
-                        try:
-                            self.epsilon[foundEps].append(float(seq[x]))
-                        except:
-                            print "\nMaximum distance values <epsilon> have a wrong format in file '"+filename+"'\n"
-                            sys.exit()
-                else:
-                    foundEps = foundEps + 1
-                    self.epsilon.append([])
-                    sequence=eps.sub('',line)
-                    seq=digit.findall(sequence)
-                    for x in range(0,len(seq)):
-                        try:
-                            self.epsilon[foundEps].append(float(seq[x]))
-                        except:
-                            print "\nMaximum distance values <epsilon> have a wrong format in file '"+filename+"'\n"
-                            sys.exit()
-
-
-        f_info.close()
-
-
-        # get dt
-        found_dt=False
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif timestep.match(line):
-                try:
-                    self.dt=float(timestep.sub('',line))
-                except:
-                    print "\nValue for internal timestep <dt> has a wrong format in file '"+filename+"'\n"
-                    sys.exit()
-                found_dt=True
-                break
-        f_info.close()
-    
-        if found_dt==False:
-            print "\n No value for the internal timestep <dt> is given in file ' "+filename+"'\n"
-            sys.exit()
-
-
-        # use constant kernels?
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif constKernels.match(line) and REtrue.search(line):
-                self.constKern=True
-                break;
-        f_info.close()
-
-
-        # get rtol and atol
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif rtolRE.match(line):
-                try:
-                    self.rtol=float(rtolRE.sub('',line))
-                except:
-                    print "\nValue for <rtol> has a wrong format in file '"+filename+"'\n"
-                    sys.exit()
-            elif atolRE.match(line):
-                try:
-                    self.atol=float(atolRE.sub('',line))
-                except:
-                    print "\nValue for <atol> has a wrong format in file '"+filename+"'\n"
-                    sys.exit()
-        f_info.close()
-
-
-        # get model weights
-        weightsFound=False
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif modweight.match(line):
-                weightsFound=True
-                sequence=modweight.sub('',line)
-                seq=digit.findall(sequence)
-                for x in range(0,len(seq)):
-                    try:
-                        self.modelWeight.append(float(seq[x]))
-                    except:
-                        print "\nValues for model weights <modelweights> have a wrong format in file '"+filename+"'\n"
-                        sys.exit()
-                break;
-        f_info.close()
-
-        if weightsFound==False:
-            for x in range(0,self.modelnumber):
-                self.modelWeight.append(1.0/float(self.modelnumber))
-
-
-        # get num Output (population size)
-        found_numOutput=False
-        f_info=open(filename)
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif numout.match(line):
-                try:
-                    self.numOutput=int(numout.sub('',line))
-                    found_numOut=True
-                    break;
-                except:
-                    print "\n Please provide an integer value for the population size <population size> in file '"+filename+"'\n"
-        f_info.close()
-
-        if self.numOutput==False:
-            print "\n No value for the population size <population size> is given in file '"+filename+"'\n"
-            sys.exit()
-
-        # get flow cytometry type data
-        f_info=open(filename)
-
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            else:
-
-                if flowdatfile.match(line):
-                    store = []
-
-                    try:
-                        datafile = flowdatfile.sub('',line).strip()
-                        print 'reading datafile:', datafile
-                    
-                        tf = open(datafile,'r')
-
-                    except:
-                        print "\n Please provide a valid file for <flowdatafile> in file '"+filename+"'\n"
-
-                    currenttime = None
-                    self.data = []
-                    store_m = []
-                    for dline in tf:
-                        fields = dline.strip().split(' ');
-
-                        tinfile = float(fields[0])
-                    
-                        if tinfile > currenttime:
-                            # add current store_m to data
-                            if currenttime != None :
-                                self.data.append( store_m[:] )
-
-                            # new time point
-                            self.timepoints.append( tinfile )
-                            store_m = []
-
-                            currenttime = tinfile
-                    
-                        elif tinfile < currenttime:
-                            print "\n Times in flowdata are non increasing \n"
-                            sys.exit()
-                    
-                        store_m.append( fields[1:] )
-
-                    # at the end require append of current matrix
-                    self.data.append( store_m[:] )
-
-                    for i in range(len(self.timepoints)):
-                        for j in range(3):
-                            print self.timepoints[i], self.data[i][j][:]
-                
-                    sys.exit()
-                    break;
-
-        # get data
-        f_info=open(filename)
-
-        stop=False
-        dataFound=False
-        dataFromFile = []
-        maskFromFile = []
-        for line in f_info.readlines():
-            if commentRE.match(line): continue
-            elif(stop==True): break
-            else:
-
-                if dat.match(line):
-                    dataFound=True
+        self.epsilon = []
+        self.times = []
+        self.ntimes = 0
+        self.data = []
         
-                if (s.match(line) and dataFound==True):
-                    stop=True
-            
-                if (stop==False and dataFound==True):
-                    if times.match(line):
-                        sequence=times.sub('',line)
-                        seq=digit.findall(sequence)
-                        for x in range(0,len(seq)):
-                            self.timepoints.append(float(seq[x]))
-                    if var.match(line):
-                        sequence=var.sub('',line)
-
-                        # get the data values
-                        seq = re.split(',',sequence.strip())
-                    
-                        # detect NA values
-                        mask = [ re.match("\s*NA\s*", seq[i]) != None for i in range(len(seq)) ]
-                    
-                        # set NA values to zero
-                        for i in range(len(seq)):
-                            if( mask[i] == True): seq[i] = 0
-                    
-                        dataFromFile.append(seq)
-                        maskFromFile.append(mask)
-
-                if datfile.match(line):
-                    store = []
-                    try:
-                        datafile = datfile.sub('',line).strip()
-                        print 'reading datafile:', datafile
-                    
-                        tf = open(datafile,'r')
-
-                    except:
-                        print "\n Please provide a valid file for <datafile> in file '"+filename+"'\n"
-                    
-                    for dline in tf:
-                        fields = dline.strip().split(' ');
-                        self.timepoints.append(float(fields[0]))
-
-                        tstore = []
-                        for i in range(1,len(fields)):
-                            tstore.append(fields[i])
-
-                        store.append( tstore[:] )
-                    
-                    nvars = len(store[0])
-                    ntimes = len(self.timepoints)
-            
-                    for nv in range(nvars):
-                        species = [ store[nt][nv] for nt in range(ntimes) ]
-
-                        # detect NA values
-                        mask = [ re.match("\s*NA\s*", species[nt]) != None for nt in range(ntimes) ]
-
-                        # set NA values to zero
-                        for i in range(ntimes):
-                            if( mask[i] == True): species[i] = 0
-
-                        dataFromFile.append(species)
-                        maskFromFile.append(mask)
-
-                    dataFound=True
-                    break;
-                
-            
-                
-
-        f_info.close()
-        data_unmasked = numpy.zeros([len(self.timepoints),len(dataFromFile)])
-        data_mask = numpy.zeros([len(self.timepoints),len(dataFromFile)])
-        for x in range(0, len(dataFromFile)):
-            try:
-                data_unmasked[:,x]=dataFromFile[x]
-                data_mask[:,x]=maskFromFile[x]
-            except:
-                print "\n<data> is wrong defined: length of 'times' and 'variables' are not the same!\n"
-
-        self.data = numpy.ma.array(data_unmasked, mask = data_mask)
-
-        # print data
-        # for i in range(len(self.timepoints)):
-        #    print self.timepoints[i], data[i,:].transpose()
-        # sys.exit()
-
-        # get model properties
-        for i in range(0,self.modelnumber):
-    
-            self.initValues.append([])
-            stop=False
-            rightModel=False
-            model=re.compile('<model%s>' %(i+1))
-            f_info=open(filename)
-            paramFound=False
-            k=0
-            prior0=[]
-            kernel0=[]
-
-            for line in f_info.readlines():
-                if commentRE.match(line): continue
-                elif stop==True:
-                    break
-                else:
-                    if s.match(line) and rightModel==True:
-                        stop=True
-                    if stop==False and rightModel==True:
-                
-                        if n.match(line): 
-                            sequence=n.sub('',line)
-                            self.name.append(sequence.strip())
-                        if q.match(line): 
-                            sequence=q.sub('',line)
-                            self.source.append(sequence.strip())
-                        if t.match(line): 
-                            sequence=t.sub('',line)
-                            self.integrationType.append(sequence.strip())            
-                
-                        if init.match(line):
-                            sequence=init.sub('',line)
-                            seq=digit.findall(sequence)
-                            for x in range(0,len(seq)):
-                                try:
-                                    self.initValues[i].append(float(seq[x]))
-                                except:
-                                    print "\nInitial values for model "+self.name[i]+" have a wrong format in file '"+filename+"'\n"
-                                    sys.exit()
-
-                    
-                        if paramFound==True and pri.search(line):
-                            sequence=pri.sub('',line)
-                            prior0.append([0,0,0])
-                            kernel0.append([0,0,0])
-                            if const.search(sequence):
-                                prior0[k][0]=0
-                                seq0=const.sub('',sequence)
-                                seq=digit.findall(seq0)
-                                try:
-                                    prior0[k][1]=float(seq[0])
-                                except:
-                                    print "\nValue of the prior for model "+self.name[i]+" have a wrong format in file '"+filename+"'\n"
-                                    sys.exit()
-                            if uni.search(sequence): 
-                                prior0[k][0]=2
-                                seq0=uni.sub('',sequence)
-                                seq=digit.findall(seq0)
-                                try:
-                                    prior0[k][1]=float(seq[0])
-                                    prior0[k][2]=float(seq[1])
-                                except:
-                                    print "\nValue of the prior for model "+self.name[i]+" have a wrong format in file '"+filename+"'\n"
-                                    sys.exit()
-                            if logn.search(sequence): 
-                                prior0[k][0]=3
-                                seq0=logn.sub('',sequence)
-                                seq=digit.findall(seq0)
-                                prior0[k][1]=float(seq[0])
-                                prior0[k][2]=float(seq[1])
-                            if prior0[k][0]==0: 
-                                paramFound=False
-                                k=k+1
-                
-                        if paramFound==True and kern.search(line):
-                            sequence=kern.sub('',line)
-                            if uni.search(sequence): 
-                                kernel0[k][0]=1
-                                seq=digit.findall(sequence)
-                                kernel0[k][1]=float(seq[0])
-                                kernel0[k][2]=float(seq[1])
-                            if gauss.search(sequence): 
-                                kernel0[k][0]=2
-                                seq=digit.findall(sequence)
-                                kernel0[k][1]=float(seq[0])
-                                kernel0[k][2]=float(seq[1])
-                            k=k+1
-                            paramFound=False
-                          
-                        if param.match(line):
-                            paramFound=True
-                
-                    if model.match(line):
-                        rightModel=True
-
-            self.prior.append(prior0)
-            self.kernel.append(kernel0)
-
-            f_info.close()
         
-        # get fitting rules
-        speciesIntRE = re.compile('species\d+\n|species\d+\s+|species\d+\+|species\d+\-|species\d+\*|species\d+$')
-        speciesRE = re.compile('species')
-        operatorRE = re.compile('\+|\-|\*')
-        speciesZeroRE = re.compile('species0')
-        f_info=open(filename)
+        self.nmodels = 0
+        self.nparameters = []
+        self.nspecies = []
+        self.name = []
+        self.source = []
+        self.init = []
+        self.type = []
+        self.prior = []
+        self.fit = []
 
-        for line in f_info.readlines():
-        ##
-        ##The fitting rules need to be written differently
-        ##if samplePoints is one-dimensional
-        ##or two-dimensional
-        ##I really need a two-dimensional model
-        ##to play with
-        ##This information could be obtained from the length of "Initial Values"
-        ##
-            index = 0
-            if commentRE.match(line): continue
-            elif f.match(line):
-                line = f.sub('', line)
-                if noneRE.search(line):
-                    self.fit.append(None)
-                    index = index + 1
-                else:
-                    self.fit.append([])
-                    dimensionsOfModel = len(self.initValues[index])
-                    self.fit[-1]=line.strip().split(',')
-                    for i in range(0, len(self.fit[-1])):
-                        self.fit[-1][i] = self.fit[-1][i].strip()
-                        if speciesZeroRE.search(self.fit[-1][i]):
-                            print "\nIncorrect species indexing!\n"
-                            sys.exit()
-                        if dimensionsOfModel == 1:
-                            self.fit[-1][i]=speciesIntRE.sub('samplePoints', self.fit[-1][i])
+        self.modelkernel = 0.7
+        self.kernel = 0
+        self.modelprior = []
+        self.rtol = 1e-5
+        self.atol = 1e-5
+
+        ##################################################
+        ## Required arguments
+
+        ### get number of models
+        self.modelnumber = parse_required_single_value( xmldoc, "modelnumber", "Please provide an integer value for <modelnumber>", int )
+
+        ### get number of particles
+        self.particles = parse_required_single_value( xmldoc, "particles", "Please provide an integer value for <particles>", int )
+
+        ### get beta value
+        self.beta = parse_required_single_value( xmldoc, "beta", "Please provide an integer value for <beta>", int )
+        
+        ### get dt
+        self.dt = parse_required_single_value( xmldoc, "dt", "Please provide an float value for <dt>", float )
+
+        ### get epsilon
+        # first do a scan to get the number of epsilon series and the number of epsilon in the series
+        neps1 = 0
+        neps2 = 0
+        epsref = xmldoc.getElementsByTagName('epsilon')[0]
+        for e in epsref.childNodes:
+            if e.nodeType == e.ELEMENT_NODE:
+                neps1 += 1
+                neps2 = len( str( e.firstChild.data ).split() )
+
+        # create matrix
+        self.epsilon = numpy.zeros([neps1,neps2])
+        i1 = 0
+        for e in epsref.childNodes:
+            if e.nodeType == e.ELEMENT_NODE:
+                tmp = str( e.firstChild.data ).split()
+
+                for i in range(neps2):
+                    self.epsilon[i1,i] = float( tmp[i] )
+
+                i1 += 1  
+
+        ##self.epsilon = parse_required_vector_value( xmldoc, "epsilon", "Please provide a whitespace separated list of values for <epsilon>" , float )
+
+        ### get data attributes
+        dataref = xmldoc.getElementsByTagName('data')[0]
+        # times
+        self.times = parse_required_vector_value( dataref, "times", "Please provide a whitespace separated list of values for <data><times>" , float )
+        self.ntimes = len(self.times)
+
+        # variables
+        # first do a scan to get the number of timeseries
+        nvar = 0
+        varref = dataref.getElementsByTagName('variables')[0]
+        for v in varref.childNodes:
+            if v.nodeType == v.ELEMENT_NODE:
+                nvar += 1
+
+        # create matrix
+        self.data = numpy.zeros([self.ntimes,nvar])
+        nvar = 0
+        for v in varref.childNodes:
+            if v.nodeType == v.ELEMENT_NODE:
+                tmp = str( v.firstChild.data ).split()
+
+                for i in range(self.ntimes):
+                    self.data[i,nvar] = float( tmp[i] )
+
+                nvar += 1        
+                
+                
+        ### get model attributes
+        modelref = xmldoc.getElementsByTagName('models')[0]
+        for m in modelref.childNodes:
+            if m.nodeType == v.ELEMENT_NODE:
+                self.nmodels += 1
+                self.prior.append([])
+
+                self.name.append( str(m.getElementsByTagName('name')[0].firstChild.data).strip() )
+                self.source.append( str(m.getElementsByTagName('source')[0].firstChild.data).strip() )
+                self.type.append( str(m.getElementsByTagName('type')[0].firstChild.data).strip() )
+                
+                self.fit.append( parse_fitting_information( m )  )
+
+                initref = m.getElementsByTagName('initialvalues')[0]
+                tmp = str( initref.firstChild.data ).split()
+                self.init.append( [ float(i) for i in tmp ] )
+                self.nspecies.append( len( self.init[self.nmodels-1] ) )
+
+                nparameter = 0
+                paramref = m.getElementsByTagName('parameters')[0]
+                for p in paramref.childNodes:
+                    if p.nodeType == p.ELEMENT_NODE:
+                        nparameter += 1
+                        prior_tmp = [0,0,0]
+                        tmp = str( p.firstChild.data ).split()
+                        
+                        if re_prior_const.match( tmp[0] ):
+                            prior_tmp[0] = 0
+                            try:
+                                prior_tmp[1] = float( tmp[1] )
+                            except:
+                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+                                sys.exit()
+                                
+                        elif re_prior_normal.match( tmp[0] ):
+                            prior_tmp[0] = 1
+                            try:
+                                prior_tmp[1] = float( tmp[1] )
+                                prior_tmp[2] = float( tmp[2] )
+                            except:
+                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+                                sys.exit()
+
+                        elif re_prior_uni.match( tmp[0] ):
+                            prior_tmp[0] = 2
+                            try:
+                                prior_tmp[1] = float( tmp[1] )
+                                prior_tmp[2] = float( tmp[2] )
+                            except:
+                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+                                sys.exit()
+                                
+                        elif re_prior_logn.match( tmp[0] ):
+                            prior_tmp[0] = 3
+                            try:
+                                prior_tmp[1] = float( tmp[1] )
+                                prior_tmp[2] = float( tmp[2] )
+                            except:
+                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+                                sys.exit()
                         else:
-                            for m in speciesIntRE.finditer(self.fit[-1][i]):
-                                mySpecies = str(m.group())
-                                mySpecies = operatorRE.sub('', mySpecies)                          
-                                mySpeciesIndex = speciesRE.sub('', mySpecies)
-                                mySpecies = re.compile(mySpecies)
-                                mySpeciesIndex = int(mySpeciesIndex)
-                                mySpeciesIndex = mySpeciesIndex-1
-                                mySpeciesIndex = str(mySpeciesIndex)
-                                self.fit[-1][i]=mySpecies.sub('samplePoints[:,'+mySpeciesIndex+']', self.fit[-1][i])
+                            print "\nIn model", self.name[self.nmodels-1], " supplied parameter prior ", tmp[0], " unsupported"
+                            sys.exit()
+                        
+                        self.prior[self.nmodels-1].append( prior_tmp )
 
-        f_info.close()
+                if nparameter == 0:
+                    print "\nNo parameters specified in model ", self.name[self.nmodels-1]
+                    sys.exit()
+                self.nparameters.append( nparameter )
+                
+        if self.nmodels == 0:
+            print "\nNo models specified"
+            sys.exit()
+
+        ##################################################
+        ## Optional arguments
+
+        ### get restart
+        try:
+            tmp = str( xmldoc.getElementsByTagName('restart')[0].firstChild.data ).strip()
+            if re_true.match( tmp ):
+                self.restart = True
+        except:
+            null = 0
+
+        ### get model kernel
+        try:
+            data = xmldoc.getElementsByTagName('modelkernel')[0].firstChild.data
+            try:
+                self.modelkernel = float(data)
+            except:
+                print "\n#################\n<modelkernel> must be a float so I am going to ignore your argument"
+                
+            if self.modelkernel > 1.0:
+                print "\n#################\n<modelkernel> must be <= 1.0  so I am going to ignore your argument"
+                self.modelkernel = 0.7
+        except:
+            null = 0
+
+        ### get kernel
+        try:
+            data = str(xmldoc.getElementsByTagName('kernel')[0].firstChild.data).strip()
+            if re_kernel_uniform.match( data ):
+                self.kernel = 0
+            elif re_kernel_normal.match( data ):
+                self.kernel = 1
+            else:
+                print "\n#################\n<kernel> must be one of uniform, normal  so I am going to ignore your argument"
+        except:
+            null = 0
+
+
+        ### get model priors
+        self.modelprior = [1/float(self.nmodels) for i in range(self.nmodels) ]
+        try:
+            data = xmldoc.getElementsByTagName("modelprior")[0].firstChild.data
+            tmp = str( data ).split()
+            #print tmp
+            ret = []
+            try:
+                 ret = [ float(i) for i in tmp ]
+            except:
+                print "\n#################\n<modelprior> must be a vector of floats so I am going to ignore your argument"
+
+            if sum(ret) != 1.0 or len(ret) != self.nmodels:
+                print "\n#################\n<modelprior> must sum to one and be the same length as the number of models so I am going to ignore your argument"
+            else:
+                self.modelprior = ret[:]
+        except:
+            null = 0
+                
+
+    def print_info(self):
+        print "\nALGORITHM INFO"
+        print "modelnumber:", self.modelnumber
+        print "restart:", self.restart
+        print "particles:", self.particles
+        print "beta:", self.beta
+        print "dt:", self.dt
+        print "epsilon:" 
+        for i in range(self.epsilon.shape[0]):
+            print "\t", 
+            for j in range(self.epsilon.shape[1]):
+                print "", self.epsilon[i,j],
+            print ""
+        print "kernel:", self.kernel
+        print "model kernel:", self.modelkernel
+        print "model prior:", self.modelprior
         
-    
-    #return restart,name,data,timepoints,numOutput,epsilon,initValues,integrationType,modelWeight,prior,kernel,sampleFromPrior,source,fit,BETA,dt, rtol, atol,constKern,modelkernel
+        print "DATA:"
+        print "\ttimes:", self.times
+        print "\tvars:" 
+        for i in range(len(self.data[0,:])):
+            print "\t", 
+            for j in range(self.ntimes):
+                print "", self.data[j,i],
+            print ""
         
-    
+        print "MODELS:", self.nmodels
+        for i in range(self.nmodels):
+            print "\t", "npar:", self.nparameters[i]
+            print "\t", "nspecies:", self.nspecies[i]
+            print "\t", "name:", self.name[i]
+            print "\t", "source:", self.source[i]
+            print "\t", "type:", self.type[i]
+            print "\t", "fit:", self.fit[i]
+            print "\t", "init:", self.init[i]
+            print "\t", "prior:", self.prior[i]
+            print "\n"
+
+###x = algorithm_info('input.xml')
+###x.print_info()
