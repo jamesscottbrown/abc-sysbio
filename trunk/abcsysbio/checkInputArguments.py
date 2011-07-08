@@ -15,21 +15,21 @@ def checkInputABC(info_new , fname, custom_distance ):
     restart = 	        info_new.restart
     ModelName = 	info_new.name
     data = 		info_new.data
-    timepoints = 	info_new.timepoints
-    numOutput = 	info_new.numOutput
+    timepoints = 	info_new.times
+    numOutput = 	info_new.particles
     epsilon = 	        info_new.epsilon
-    InitValues = 	info_new.initValues
-    integrationType =   info_new.integrationType
-    modelWeights = 	info_new.modelWeight
+    InitValues = 	info_new.init
+    integrationType =   info_new.type
+    modelWeights = 	info_new.modelprior
     priors = 	        info_new.prior
     kernel = 	        info_new.kernel
     source = 	        info_new.source
     fit = 		info_new.fit
-    beta = 		info_new.BETA
+    beta = 		info_new.beta
     dt = 		info_new.dt
     rtol = 		info_new.rtol
     atol = 		info_new.atol
-    constKernels = 	info_new.constKern
+    ###constKernels = 	info_new.constKern
     modelKernel = 	info_new.modelkernel
 
     
@@ -57,8 +57,8 @@ def checkInputABC(info_new , fname, custom_distance ):
     if not len(ModelName)==len(InitValues):
 	return False,"\nPlease provide initial values for each model!\n"
     
-    if not len(priors)==len(kernel):
-	return False,"\nPlease provide a pertubation kernel for each prior distribution!\n"
+    ##if not len(priors)==len(kernel):
+    ##	return False,"\nPlease provide a pertubation kernel for each prior distribution!\n"
 
     if not modelKernel>0.0:
 	return False,"\nPlease provide a model Kernel larger than 0!\n"
@@ -145,13 +145,13 @@ def checkInputABC(info_new , fname, custom_distance ):
 	for param in range(0,len(priors[mod])):
 	    if not len(priors[mod][param])==3:
 		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
-	    if not len(kernel[mod][param])==3:
-		return False, "\nThe pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
+	    ##if not len(kernel[mod][param])==3:
+	    ##	return False, "\nThe pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
 	    
 	    if not (priors[mod][param][0]==0 or priors[mod][param][0]==2 or priors[mod][param][0]==3):
 		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
-	    if not (kernel[mod][param][0]==1 or kernel[mod][param][0]==2) and not priors[mod][param][0]==0:
-		return False, "\nThe pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
+	    ##if not (kernel[mod][param][0]==1 or kernel[mod][param][0]==2) and not priors[mod][param][0]==0:
+	    ##	return False, "\nThe pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
 
 	    if priors[mod][param][0]==2:
 		if not priors[mod][param][1]<priors[mod][param][2]:
@@ -161,15 +161,15 @@ def checkInputABC(info_new , fname, custom_distance ):
 		if not (priors[mod][param][1]>=0 or priors[mod][param][2]>=0):
 		    return False, "\nThe mean or scale of the lognormal prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
 	    
-	    if kernel[mod][param][0]==1 and not priors[mod][param][0]==0:
-                if constKernels==False:
-                    if not kernel[mod][param][1]<kernel[mod][param][2]:
-                        return False, "\nThe range of the uniform pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
+	    ##if kernel[mod][param][0]==1 and not priors[mod][param][0]==0:
+            ##    if constKernels==False:
+            ##        if not kernel[mod][param][1]<kernel[mod][param][2]:
+            ##            return False, "\nThe range of the uniform pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
 	    
-	    if kernel[mod][param][0]==2 and not priors[mod][param][0]==0:
-                if constKernels==False:
-                    if not kernel[mod][param][2]>0:
-                        return False, "\nThe variance of the gaussian pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
+	    ##if kernel[mod][param][0]==2 and not priors[mod][param][0]==0:
+            ##    if constKernels==False:
+            ##        if not kernel[mod][param][2]>0:
+            ##            return False, "\nThe variance of the gaussian pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
 
 
     ### check arguments connected to pickling
