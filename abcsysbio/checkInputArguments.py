@@ -18,10 +18,11 @@ def checkInputABC(info_new , fname, custom_distance ):
     timepoints = 	info_new.times
     numOutput = 	info_new.particles
     epsilon = 	        info_new.epsilon
-    InitValues = 	info_new.init
+    ##InitValues = 	info_new.init
     integrationType =   info_new.type
     modelWeights = 	info_new.modelprior
     priors = 	        info_new.prior
+    x0priors =          info_new.x0prior
     kernel = 	        info_new.kernel
     source = 	        info_new.source
     fit = 		info_new.fit
@@ -29,7 +30,6 @@ def checkInputABC(info_new , fname, custom_distance ):
     dt = 		info_new.dt
     rtol = 		info_new.rtol
     atol = 		info_new.atol
-    ###constKernels = 	info_new.constKern
     modelKernel = 	info_new.modelkernel
 
     
@@ -54,12 +54,9 @@ def checkInputABC(info_new , fname, custom_distance ):
     if not len(ModelName)==len(priors):
 	return False,"\nPlease provide prior distributions for each model!\n"
     
-    if not len(ModelName)==len(InitValues):
+    if not len(ModelName)==len(x0priors):
 	return False,"\nPlease provide initial values for each model!\n"
     
-    ##if not len(priors)==len(kernel):
-    ##	return False,"\nPlease provide a pertubation kernel for each prior distribution!\n"
-
     if not modelKernel>0.0:
 	return False,"\nPlease provide a model Kernel larger than 0!\n"
     
@@ -123,7 +120,7 @@ def checkInputABC(info_new , fname, custom_distance ):
             if not len(priors[mod])==numParameters:
                 return False,"\nThe number of given prior distributions for model "+ModelName[mod]+" is not correct!\n"
             
-            if not len(InitValues[mod])==numSpecies:
+            if not len(x0priors[mod])==numSpecies:
                 return False,"\nPlease provide an initial value for each species in model "+ModelName[mod]+"!\n"
 
 	  # number species:  fit-data-variables
