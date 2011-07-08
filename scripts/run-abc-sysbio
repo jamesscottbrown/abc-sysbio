@@ -100,10 +100,7 @@ def main():
 	    elif option == 'pythonmodel' : usesbml = False 
             elif option[0:8] == 'setseed=' : seed = int( option[8:] )
             elif option[0:8] == 'runmode=' : runmode = int( option[8:] )
-	    elif option[0:12] == 'cudathreads=' : nthread = int( option[12:] )
-	    elif option[0:11] == 'cudablocks=' : nblock = int( option[11:] )
             elif option[0:10] == 'outfolder=' : fname = option[10:]
-            elif option[0:7] == 'mtdata=' : mt_data = option[7:]
             elif option[0:9] == 'cudacode=' : app_file = option[9:]
             elif option[0:8] == 'simfile=' : simfile = option[8:]
 	    elif option == 'timing' : timing = True 
@@ -137,10 +134,7 @@ def main():
 	    elif option == 'pm' : usesbml = False
             elif option[0:3] == 'sd=' : seed = int( option[3:] )
             elif option[0:3] == 'rm=' : runmode = int( option[3:] )
-	    elif option[0:3] == 'cb=' : nblock = int( option[3:] )
-	    elif option[0:3] == 'ct=' : nthread = int( option[3:] )
             elif option[0:3] == 'of=' : fname = option[3:]
-            elif option[0:3] == 'mt=' : mt_data = option[3:]
             elif option[0:3] == 'cc=' : app_file = option[3:]
             elif option[0:3] == 'sf=' : simfile = option[3:]
             elif option == 'tm' : timing = True
@@ -162,6 +156,7 @@ def main():
 
     # parse the input file
     info_new = parse_info.algorithm_info(input_file) 
+    info_new.print_info()
 
     # Check that we have libSBML if it is requested
     if usesbml == True:
@@ -172,8 +167,8 @@ def main():
 
     # Check that we can import scipy if we have ODE models
     o = re.compile('ODE')
-    for m in range( len(info_new.integrationType) ):
-        if o.search(info_new.integrationType[m]):
+    for m in range( info_new.nmodels ):
+        if o.search(info_new.type[m]):
             try: from scipy.integrate.odepack import odeint
             except ImportError:
                 print "ABORT: scipy required for ODE modelling. Please install scipy"
@@ -199,10 +194,10 @@ def main():
 	modelCorrect = False
         if usesbml == True : 
             if( use_cuda == False):
-                abcsysbio.importSBML(info_new.source,info_new.integrationType,info_new.name)
+                abcsysbio.importSBML(info_new.source,info_new.type,info_new.name)
             else:
                 import cudasim.SBMLParser
-                itype = info_new.integrationType[:]
+                itype = info_new.type[:]
                
                 for i in range(len(itype)):
                     if itype[i] == "Gillespie" : itype[i] = "MJP"
@@ -225,25 +220,25 @@ def main():
         models = []
         for i in range(info_new.modelnumber):
             if( use_cuda == False ):
-                new_model = model.model( name=info_new.name[i], nspecies=len(info_new.initValues[i]), nparameters=len(info_new.prior[i]), prior=info_new.prior[i], 
-                                         source=info_new.name[i], integration=info_new.integrationType[i], fit=info_new.fit[i],
-                                         init = info_new.initValues[i], dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
+                new_model = model.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], prior=info_new.prior[i], 
+                                         source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                         init = info_new.init[i], dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
             else:
                 new_model = model.cuda_model( name=info_new.name[i], nspecies=len(info_new.initValues[i]), nparameters=len(info_new.prior[i]), prior=info_new.prior[i], 
-                                              source=info_new.name[i], integration=info_new.integrationType[i], fit=info_new.fit[i],
-                                              init = info_new.initValues[i], dt=info_new.dt, beta=info_new.BETA, timepoints=info_new.timepoints)
+                                              source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                              init = info_new.initValues[i], dt=info_new.dt, beta=info_new.BETA, timepoints=info_new.times)
             
             models.append( new_model )
             
         ########################### DATA CREATION
         #
         # create a data object
-        data_new = model.data( info_new.timepoints, info_new.data )
+        data_new = model.data( info_new.times, info_new.data )
 
         ########################### IO
         #
         io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
-        io.create_output_folders(info_new.name, info_new.numOutput, pickling)
+        io.create_output_folders(info_new.name, info_new.particles, pickling)
 	if plot == True:
 	    io.plot_data(data_new)
 
@@ -272,7 +267,7 @@ def main():
             nbatch = 25000/info_new.BETA
 
         # instantiate the abcsmc algorithm class
-        algorithm = abcsmc.abcsmc(models, info_new.numOutput, info_new.modelWeight, data=data_new, beta = info_new.BETA, nbatch=nbatch,
+        algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
                                   modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernelfn=kernelfn, kernelpdffn=kernelpdffn, perturbfn=perturbfn )
 
         # fill data from disk if required
@@ -280,12 +275,12 @@ def main():
             algorithm.fill_values( io.read_pickled(info_new.fname) )
             
 	# transpose epsilon so it is epsilon[npop][ndistance]
-	tepsilon = []
-	for i in range(len(info_new.epsilon[0])):
-            e = []
-            for j in range(len(info_new.epsilon)):
-                e.append( info_new.epsilon[j][i] )
-            tepsilon.append(e)
+	tepsilon = info_new.epsilon.transpose()
+	#for i in range(len(info_new.epsilon[0])):
+        #    e = []
+        #    for j in range(len(info_new.epsilon)):
+        #        e.append( info_new.epsilon[j][i] )
+        #    tepsilon.append(e)
 
         # run ABC SMC
         algorithm.run_fixed_schedule(tepsilon, io)
@@ -298,13 +293,13 @@ def main():
         # if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
         # plots are made - do we want to do anythin else e.g. save the data to a text file?
         
-        ## name, timepoints, InitValues, integrationType, ConstantParameters, source, dt, rtol, atol = abcsysbio.parseInfo.getInfoForSimulation(input_file)
+        ## name, timepoints, InitValues, type, ConstantParameters, source, dt, rtol, atol = abcsysbio.parseInfo.getInfoForSimulation(input_file)
 
 ##         if usesbml == True : 
 ##             modelCorrect, message = abcsysbio.checkInputArguments.checkInputSimulation(name, 
 ##                                                                                        timepoints, 
 ##                                                                                        InitValues, 
-##                                                                                        integrationType, 
+##                                                                                        type, 
 ##                                                                                        ConstantParameters, 
 ##                                                                                        source, 
 ##                                                                                        dt)
@@ -312,14 +307,14 @@ def main():
 ##                 print message
 ##                 sys.exit()   
 
-##             abcsysbio.importSBML(source,integrationType,name)
+##             abcsysbio.importSBML(source,type,name)
 
 ##         if synthetic!=True:
 ##             timepoints=numpy.arange(timepoints[0], timepoints[-1]+dt, dt)
 
 ##         f = open(simfile,'w')
 ##         for i in range(0, len(name)):
-##             data=abcsysbio.abcSMC_model.simulateData(name,i,integrationType,InitValues,timepoints,ConstantParameters[i],dt)
+##             data=abcsysbio.abcSMC_model.simulateData(name,i,type,InitValues,timepoints,ConstantParameters[i],dt)
 
 ##             print >>f, name[i]
 ##             for nd in range(len(timepoints)):
