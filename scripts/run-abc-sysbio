@@ -220,13 +220,14 @@ def main():
         models = []
         for i in range(info_new.modelnumber):
             if( use_cuda == False ):
-                new_model = model.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], prior=info_new.prior[i], 
+                new_model = model.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
+                                         prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                          source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                         init = info_new.init[i], dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
+                                         dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
             else:
-                new_model = model.cuda_model( name=info_new.name[i], nspecies=len(info_new.initValues[i]), nparameters=len(info_new.prior[i]), prior=info_new.prior[i], 
+                new_model = model.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], prior=info_new.prior[i], 
                                               source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                              init = info_new.initValues[i], dt=info_new.dt, beta=info_new.BETA, timepoints=info_new.times)
+                                              init = info_new.init[i], dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times)
             
             models.append( new_model )
             
