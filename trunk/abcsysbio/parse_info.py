@@ -55,6 +55,49 @@ def parse_required_vector_value( node, tagname, message, cast ):
 
     return(ret)
 
+def process_prior( tmp ):
+    prior_tmp = [0,0,0]
+
+    if re_prior_const.match( tmp[0] ):
+        prior_tmp[0] = 0
+        try:
+            prior_tmp[1] = float( tmp[1] )
+        except:
+            print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+            sys.exit()
+                                
+    elif re_prior_normal.match( tmp[0] ):
+        prior_tmp[0] = 1
+        try:
+            prior_tmp[1] = float( tmp[1] )
+            prior_tmp[2] = float( tmp[2] )
+        except:
+            print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+            sys.exit()
+
+    elif re_prior_uni.match( tmp[0] ):
+        prior_tmp[0] = 2
+        try:
+            prior_tmp[1] = float( tmp[1] )
+            prior_tmp[2] = float( tmp[2] )
+        except:
+            print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+            sys.exit()
+                                
+    elif re_prior_logn.match( tmp[0] ):
+        prior_tmp[0] = 3
+        try:
+            prior_tmp[1] = float( tmp[1] )
+            prior_tmp[2] = float( tmp[2] )
+        except:
+            print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+            sys.exit()
+    else:
+        print "\nSupplied parameter prior ", tmp[0], " unsupported"
+        sys.exit()
+
+    return prior_tmp
+
 def parse_fitting_information( node ):
     fitref = node.getElementsByTagName('fit')[0]
     tmp = str( fitref.firstChild.data ).split()
@@ -106,9 +149,10 @@ class algorithm_info:
         self.nspecies = []
         self.name = []
         self.source = []
-        self.init = []
+        ##self.init = []
         self.type = []
         self.prior = []
+        self.x0prior = []
         self.fit = []
 
         self.modelkernel = 0.7
@@ -189,6 +233,7 @@ class algorithm_info:
             if m.nodeType == v.ELEMENT_NODE:
                 self.nmodels += 1
                 self.prior.append([])
+                self.x0prior.append([])
 
                 self.name.append( str(m.getElementsByTagName('name')[0].firstChild.data).strip() )
                 self.source.append( str(m.getElementsByTagName('source')[0].firstChild.data).strip() )
@@ -196,10 +241,10 @@ class algorithm_info:
                 
                 self.fit.append( parse_fitting_information( m )  )
 
-                initref = m.getElementsByTagName('initialvalues')[0]
-                tmp = str( initref.firstChild.data ).split()
-                self.init.append( [ float(i) for i in tmp ] )
-                self.nspecies.append( len( self.init[self.nmodels-1] ) )
+                #initref = m.getElementsByTagName('initialvalues')[0]
+                #tmp = str( initref.firstChild.data ).split()
+                #self.init.append( [ float(i) for i in tmp ] )
+                #self.nspecies.append( len( self.init[self.nmodels-1] ) )
 
                 nparameter = 0
                 paramref = m.getElementsByTagName('parameters')[0]
@@ -208,51 +253,25 @@ class algorithm_info:
                         nparameter += 1
                         prior_tmp = [0,0,0]
                         tmp = str( p.firstChild.data ).split()
-                        
-                        if re_prior_const.match( tmp[0] ):
-                            prior_tmp[0] = 0
-                            try:
-                                prior_tmp[1] = float( tmp[1] )
-                            except:
-                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
-                                sys.exit()
-                                
-                        elif re_prior_normal.match( tmp[0] ):
-                            prior_tmp[0] = 1
-                            try:
-                                prior_tmp[1] = float( tmp[1] )
-                                prior_tmp[2] = float( tmp[2] )
-                            except:
-                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
-                                sys.exit()
+                        self.prior[self.nmodels-1].append( process_prior( tmp ) )
 
-                        elif re_prior_uni.match( tmp[0] ):
-                            prior_tmp[0] = 2
-                            try:
-                                prior_tmp[1] = float( tmp[1] )
-                                prior_tmp[2] = float( tmp[2] )
-                            except:
-                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
-                                sys.exit()
-                                
-                        elif re_prior_logn.match( tmp[0] ):
-                            prior_tmp[0] = 3
-                            try:
-                                prior_tmp[1] = float( tmp[1] )
-                                prior_tmp[2] = float( tmp[2] )
-                            except:
-                                print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
-                                sys.exit()
-                        else:
-                            print "\nIn model", self.name[self.nmodels-1], " supplied parameter prior ", tmp[0], " unsupported"
-                            sys.exit()
-                        
-                        self.prior[self.nmodels-1].append( prior_tmp )
+                ninit = 0
+                initref = m.getElementsByTagName('initial')[0]
+                for inn in initref.childNodes:
+                    if inn.nodeType == inn.ELEMENT_NODE:
+                        ninit += 1
+                        prior_tmp = [0,0,0]
+                        tmp = str( inn.firstChild.data ).split()
+                        self.x0prior[self.nmodels-1].append( process_prior( tmp ) )
 
                 if nparameter == 0:
                     print "\nNo parameters specified in model ", self.name[self.nmodels-1]
                     sys.exit()
+                if ninit == 0:
+                    print "\nNo initial conditions specified in model ", self.name[self.nmodels-1]
+                    sys.exit()
                 self.nparameters.append( nparameter )
+                self.nspecies.append( ninit )
                 
         if self.nmodels == 0:
             print "\nNo models specified"
@@ -350,7 +369,7 @@ class algorithm_info:
             print "\t", "source:", self.source[i]
             print "\t", "type:", self.type[i]
             print "\t", "fit:", self.fit[i]
-            print "\t", "init:", self.init[i]
+            print "\t", "init:", self.x0prior[i]
             print "\t", "prior:", self.prior[i]
             print "\n"
 
