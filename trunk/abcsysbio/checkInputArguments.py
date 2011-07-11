@@ -18,7 +18,6 @@ def checkInputABC(info_new , fname, custom_distance ):
     timepoints = 	info_new.times
     numOutput = 	info_new.particles
     epsilon = 	        info_new.epsilon
-    ##InitValues = 	info_new.init
     integrationType =   info_new.type
     modelWeights = 	info_new.modelprior
     priors = 	        info_new.prior
@@ -186,35 +185,25 @@ def checkInputABC(info_new , fname, custom_distance ):
 
     return True,""
 
-def checkInputSimulation(name, timepoints, InitValues, IntegrationType, ConstantParameters, source, dt):
+##def checkInputSimulation(name, timepoints, InitValues, IntegrationType, ConstantParameters, source, dt):
+def checkInputSimulation(info_new , fname):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to simulate the model.
     Return boolean, string (empty if boolean is True)
-
-    ***** args *****
-
-    name:
-        A list of strings
-
-    timepoints:
-        A list of floats
-
-    InitValues:
-        A list of floats
-
-    IntegrationType:
-        A list of strings
-
-    ConstantParameters:
-        An array of floats
-
-    source:
-        A list of strings
-
-    dt:
-        A float
+    
     """
+
+    name = 	info_new.name
+    timepoints = 	info_new.times
+    IntegrationType =   info_new.type
+    modelWeights = 	info_new.modelprior
+    priors = 	        info_new.prior
+    x0priors =          info_new.x0prior
+    source = 	        info_new.source
+    fit = 		info_new.fit
+    beta = 		info_new.beta
+    dt = 		info_new.dt
 
     for i in range(0, len(name)):
         if name[i] == "":
@@ -222,12 +211,6 @@ def checkInputSimulation(name, timepoints, InitValues, IntegrationType, Constant
 
     if not len(name)==len(IntegrationType):
         return False, "\nPlease provide the same number of model names and and integration types!\n"
-
-    if not len(name)==len(source):
-        return False, "\nPlease provide the same number of model names and sources.\n"
-
-    if not len(source)==len(IntegrationType):
-        return False, "\nPlease provide the same number of sources and integration types\n"
 
     ### check model specific properties (comparing with SBML model)
     if not source==None:
@@ -262,10 +245,10 @@ def checkInputSimulation(name, timepoints, InitValues, IntegrationType, Constant
                     numParameters=numParameters+1
                     numSpecies=numSpecies-1
 
-            if not len(ConstantParameters[mod])==numParameters:
+            if not info_new.nparameters[mod] == numParameters:
                 return False,"\nThe number of given parameters for model "+name[mod]+" is not correct!\n"
             
-            if not len(InitValues[mod])==numSpecies:
+            if not len(info_new.x0prior[mod]) == numSpecies:
                 return False,"\nPlease provide an initial value for each species in model "+name[mod]+"!\n"
 
     if len(timepoints)==0:
