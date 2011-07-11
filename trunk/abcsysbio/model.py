@@ -7,17 +7,25 @@ from abcsysbio import GillespieAlgorithm
 class model:
     
     # instantiation
-    def __init__(self, name, nspecies, nparameters, prior, source, integration, fit, init, dt, atol, rtol):
-        self.nspecies = nspecies
-        self.nparameters = nparameters
+    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, atol, rtol):
+
         self.name = name
+        self.nspecies = nspecies
+
+        ## combine the parameters with the species
+        self.kparameters = nparameters
+        self.nparameters = nparameters + nspecies
+        
         self.prior = [x[:] for x in prior]
+        for x in x0prior:
+            self.prior.append( x[:] )
+
         self.source = source
         self.integration = integration
         self.fit = fit
 
         self.module = __import__(source)
-        self.init = init
+        
         self.dt = dt
         self.atol = atol
         self.rtol = rtol
@@ -35,7 +43,7 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                dat = abcodesolve.abcodeint(func=self.module, InitValues=self.init, timepoints=t, parameters=p[i], dt=self.dt, atol=self.atol, rtol=self.rtol )
+                dat = abcodesolve.abcodeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], timepoints=t, parameters=p[i][0:self.kparameters], dt=self.dt, atol=self.atol, rtol=self.rtol )
                 for k in range(len(t)):
                     for l in range(self.nspecies):
                         ret[i,j,k,l] = dat[k,l]
@@ -48,7 +56,7 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                dat = sdeint.sdeint(func=self.module, InitValues=self.init, parameter=p[i], timepoints=t, dt=self.dt )
+                dat = sdeint.sdeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], parameter=p[i][0:self.kparameters], timepoints=t, dt=self.dt )
                 for k in range(len(t)):
                     for l in range(self.nspecies):
                         ret[i,j,k,l] = dat[k,l]
@@ -71,16 +79,22 @@ class model:
 class cuda_model:
     
     # instantiation
-    def __init__(self, name, nspecies, nparameters, prior, source, integration, fit, init, dt, beta, timepoints):
+    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, timepoints):
         self.nspecies = nspecies
-        self.nparameters = nparameters
         self.name = name
+
+        ## combine the parameters with the species
+        self.kparameters = nparameters
+        self.nparameters = nparameters + nspecies
+        
         self.prior = [x[:] for x in prior]
+        for x in x0prior:
+            self.prior.append( x[:] )
+        
         self.source = source
         self.integration = integration
         self.fit = fit
         self.cudaCode = self.name +  '.cu' 
-        self.init = init
         self.dt = dt
         self.beta = beta
         self.timepoints = timepoints
@@ -99,10 +113,13 @@ class cuda_model:
         # note that in this function t and beta are not used as they are specified at compile time
         
         species = []
+        pp = []
+
         for i in range(n):
-            species.append( self.init )
-        
-        result = self.modelInstance.run(p, species)
+            species.append( p[i][self.kparameters:self.nparameters] )
+            pp.append( p[i][0:self.kparameters] )
+
+        result = self.modelInstance.run(pp, species)
         return result
     
 
