@@ -173,6 +173,48 @@ class abcsmc:
         return
             
 
+    def run_simulations(self, io):
+
+        naccepted = 0
+        sampled = 0
+
+        while(naccepted < self.nparticles):
+            if self.debug == 2:print "\t****batch"
+            sampled_models = self.sampleTheModelFromPrior()
+            sampled_params = self.sampleTheParameterFromPrior(sampled_models)
+                
+            accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models,sampled_params,this_epsilon=0,do_comp=False)
+
+            for i in range(self.nbatch):
+                if naccepted < self.nparticles:
+                    sampled = sampled + 1
+
+                if naccepted < self.nparticles and accepted_index[i] > 0 : 
+                    
+                    self.model_curr[naccepted] = sampled_models[i]
+                    if self.debug == 2:print "\t****accepted", i, accepted_index[i], sampled_models[i]
+                    
+                    for p in range( self.models[ sampled_models[i] ].nparameters ):
+                        self.parameters_curr[naccepted].append(sampled_params[i][p])
+
+                    self.b[naccepted] = accepted_index[i]
+                    self.trajectories.append( copy.deepcopy(traj[i]) )
+                    self.distances.append( copy.deepcopy(distances[i]) )
+                    
+                    naccepted = naccepted + 1
+
+            if self.debug == 2:print "\t****end  batch naccepted/sampled:", naccepted,  sampled
+
+        # Finished loop over particles
+        if self.debug == 2:print "**** end of population naccepted/sampled:", naccepted,  sampled
+
+        results = abcsmc_results(naccepted, sampled, naccepted/float(sampled), self.trajectories, self.distances, 
+                                 0, self.model_curr, 0, self.parameters_curr, 0)
+
+        io.write_data_simulation(0, results, 0, self.models, self.data)
+        
+
+
     def iterate_one_population(self, next_epsilon, prior):
         if self.debug == 2:print "\n\n****iterate_one_population: next_epsilon, prior", next_epsilon, prior
 
@@ -307,7 +349,7 @@ class abcsmc:
         
         self.sample_from_prior = False
 
-    def simulate_and_compare_to_data(self, sampled_models, sampled_params, this_epsilon):
+    def simulate_and_compare_to_data(self, sampled_models, sampled_params, this_epsilon, do_comp=True):
         # Here do the simulations for each model together
         if self.debug == 2:print '\t\t\t***simulate_and_compare_to_data'
 
@@ -345,8 +387,12 @@ class abcsmc:
                     for k in range(self.beta):
                         samplePoints = sims[i,k,:,:]
                         points = howToFitData( self.models[ m ].fit, samplePoints )
-                        distance = self.distancefn(points, self.data.values, this_model_parameters[i], m)
-                        dist = evaluateDistance(distance, this_epsilon )
+                        if do_comp == True:
+                            distance = self.distancefn(points, self.data.values, this_model_parameters[i], m)
+                            dist = evaluateDistance(distance, this_epsilon )
+                        else:
+                            distance = 0
+                            dist = True
 
                         this_dist.append( distance )
                         this_traj.append( points )
@@ -359,8 +405,7 @@ class abcsmc:
                     traj.append( this_traj )
                     distances.append( this_dist )
                 
-        return ret[:], distances, traj
-        
+        return ret[:], distances, traj    
 
     def sampleTheModelFromPrior(self):
         ret = [0 for it in range(self.nbatch)]
