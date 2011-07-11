@@ -13,7 +13,7 @@
 # Beta is the number of times to simulate each sampled parameter set.
 # This is only applicable for models simulated using SDE and Gillespie.
 <beta>
-  1 
+  3
 </beta>
 
 # Internal timestep for solvers
@@ -85,9 +85,9 @@
     </parameters>
 
     <initial>
-      
+      #constant 2.0
       <ic1>
-	constant 2.0
+        uniform 0 5
       </ic1>
    
     </initial>
