@@ -30,6 +30,8 @@ class input_output:
 
         # results abcsmc_results class
         self.all_results.append( results )
+
+        beta = len(results.trajectories[0])
         
         rate_file = open(self.folder+'/rates.txt',"a")
         rate_file.write(repr(population+1)+"\t"+repr(results.sampled)+"\t"+repr(results.rate))
@@ -43,13 +45,14 @@ class input_output:
                 print >>distance_file, i+1, j, results.distances[i][j], results.models[i]
         distance_file.close()
 
-         # trajectories are stored as [nparticle][nbeta][ species ][ times ]
+        # trajectories are stored as [nparticle][nbeta][ species ][ times ]
         traj_file=open(self.folder + '/traj_Population' + repr(population+1) + '.txt',"a")
         for i in range(len(results.trajectories)):
             for j in range(len(results.trajectories[i])): 
                 arr = results.trajectories[i][j]
                 nrow, ncol = numpy.shape( arr )
                 for ic in range(ncol):
+                    print >>traj_file, i, j, results.models[i], ic, 
                     for ir in range(nrow):
                         print >>traj_file, arr[ir,ic],
                     print >>traj_file, ""
@@ -92,6 +95,8 @@ class input_output:
                         for k in range(len(results.parameters[g])):
                             print >>param_file, results.parameters[g][k],
                         print >>param_file, ""
+
+                        print >>weight_file, results.weights[g]
 
                 weight_file.close()
                 param_file.close()
@@ -161,11 +166,65 @@ class input_output:
 
                     if len(pars) > 0:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
-                        plotTimeSeries(models[mod],pars,data,filename,plotdata=True)
-            
-                                
+                        plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=True)
+
+
+    ################ writes trajectories and parameters from simulations    
+    def write_data_simulation(self, population, results, timing, models, data):
+
+        # results abcsmc_results class
+        self.all_results.append( results )
+
+        nparticles = len(results.trajectories)
+        beta = len(results.trajectories[0])
+
+        # trajectories are stored as [nparticle][nbeta][ species ][ times ]
+        traj_file=open(self.folder + '/trajectories.txt',"a")
+        for i in range(nparticles):
+            for j in range(beta): 
+                arr = results.trajectories[i][j]
+                nrow, ncol = numpy.shape( arr )
+                for ic in range(ncol):
+                    print >>traj_file, i, j, results.models[i], ic, 
+                    for ir in range(nrow):
+                        print >>traj_file, arr[ir,ic],
+                    print >>traj_file, ""
+        traj_file.close()
+
+        # dump out all the parameters
+        param_file=open(self.folder + '/particles.txt',"a")
+        for i in range(nparticles):
+            print >>param_file, i, results.models[i],
+            for j in results.parameters[i]:
+                print >>param_file, j,
+            print >>param_file, ""
+        param_file.close()
+
+        # do timeseries plots
+        npop = len(self.all_results)
+        nmodels = len(models)
+
+        # separate timeseries for each model
+        for mod in range(nmodels):
+            # get the first n of the accepted particles for this model
+            pars = []
+            n = nparticles
+            count = 0
+            for np in range(nparticles):
+                if results.models[np] == mod and count < n:
+                    pars.append( results.parameters[np] )
+                    count = count + 1
+
+            if len(pars) > 0:
+                filename = self.folder + '/' + models[mod].name + '_timeseries'
+                plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=False)
+                
+                        
     ################create output folders
-    def create_output_folders(self, modelnames, numOutput, pickling):
+    def create_output_folders(self, modelnames, numOutput, pickling, simulation):
+
+        if simulation == True: pickling = False
+
         try:
             os.mkdir(self.folder)
             os.chdir(self.folder)
@@ -173,12 +232,13 @@ class input_output:
             print "\nThe folder "+ self.folder +" already exists!\n"
             sys.exit()
 
-        for mod in modelnames:
-            try:
-                os.mkdir('results_' + mod)
-            except:
-                print "\nThe folder "+ self.folder + "/results_" + mod +" already exists!\n"
-                sys.exit()
+        if simulation == False:
+            for mod in modelnames:
+                try:
+                    os.mkdir('results_' + mod)
+                except:
+                    print "\nThe folder "+ self.folder + "/results_" + mod +" already exists!\n"
+                    sys.exit()
 
         os.chdir('..')
 
