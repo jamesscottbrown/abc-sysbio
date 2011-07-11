@@ -112,7 +112,7 @@ def plotData(data, filename):
     matplotlib.pyplot.savefig(filename)
     matplotlib.pylab.clf()
 
-def plotTimeSeries(model, pars, data, filename, plotdata=True):
+def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
 
     """
     Plot simulated trajectories from the model with accepted parameters.
@@ -148,13 +148,13 @@ def plotTimeSeries(model, pars, data, filename, plotdata=True):
     matplotlib.pyplot.subplot(111)
     clf()
     for i in range(nsim):
-        beta = 0
-        points = sims[i,beta,:,:]
-        points_sim = abcsmc.howToFitData(model.fit,points)
-        #print data.timepoints
-        #print points_sim
+        for j in range(beta):
+            points = sims[i,j,:,:]
+            points_sim = abcsmc.howToFitData(model.fit,points)
+            # print data.timepoints
+            # print points_sim
         
-        matplotlib.pyplot.plot(data.timepoints,points_sim)
+            matplotlib.pyplot.plot(data.timepoints,points_sim)
 
     if plotdata==True: 
         matplotlib.pyplot.plot(data.timepoints,data.values,'o')
