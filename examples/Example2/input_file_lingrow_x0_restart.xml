@@ -7,7 +7,7 @@
 
 # Restart from previous (pickled) population?
 <restart> 
-  False
+  True
 </restart>
 
 # Series of epsilons. (Comma-delimited list)
@@ -16,7 +16,7 @@
 
 <epsilon> 
   <e1>
-    5.0 4.0 3.0 
+    2.5 2.0 1.5 1.0
   </e1>
 </epsilon>
 
@@ -123,7 +123,7 @@
     <initial>
       
       <ic1>
-	constant 2.0
+	uniform 0 5.0
       </ic1>
    
     </initial>

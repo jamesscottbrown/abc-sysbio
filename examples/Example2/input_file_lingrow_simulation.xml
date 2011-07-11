@@ -5,21 +5,6 @@
   1
 </modelnumber>
 
-# Restart from previous (pickled) population?
-<restart> 
-  False
-</restart>
-
-# Series of epsilons. (Comma-delimited list)
-# If the length of the epsilon series is one and you have only one model
-# you are effectively doing abc Rejection
-
-<epsilon> 
-  <e1>
-    5.0 4.0 3.0 
-  </e1>
-</epsilon>
-
 # Number of particles
 <particles>
   500
@@ -36,16 +21,6 @@
   0.01 
 </dt>
 
-# Type of kernels to use (default uniform)
-<kernel>
-  uniform
-</kernel>
-
-# Model perturbation kernel  (default 0.7)
-<modelkernel>
-  0.7
-</modelkernel>
-
 # Model prior (default uniform over models)
 <modelprior>
   1.0
@@ -59,17 +34,6 @@
   <times>
     0 1 2 3 4 5 6 7 8 9 10 
   </times>
-
-  # variables: For abc-SMC, whitespace delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie).
-  # You can denote the names of the variables to be anything although they will labeled internally in order ie variable1, variable2, ..., variableN.
-  # For simulation or synthetic data sets these data are ignored.
-  # See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model.
-
-  <variables>
-    <v1>
-      2.0 6.95179937 8.56370876 8.98447127 9.83093446 9.62018385 9.62319942 10.04279309 9.97753801 9.70874283 10.0961697 
-    </v1>    
-</variables>
 </data>
 
 <models>
