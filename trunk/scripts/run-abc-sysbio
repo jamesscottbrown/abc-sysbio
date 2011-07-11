@@ -183,150 +183,118 @@ def main():
 	print "#### Seeding random number generator : ", seed
         numpy.random.seed(seed)
 
-        
-    if simulate==False :            
 
-        # Check the information is correct for inference
-	modelCorrect = False
-        if usesbml == True : 
-            if( use_cuda == False):
-                abcsysbio.importSBML(info_new.source,info_new.type,info_new.name)
-            else:
-                import cudasim.SBMLParser
-                itype = info_new.type[:]
-               
-                for i in range(len(itype)):
-                    if itype[i] == "Gillespie" : itype[i] = "MJP"
-                    
-                cudasim.SBMLParser.importSBMLCUDA(info_new.source, itype, ModelName=info_new.name, method=None, outpath="./")
+    # Check the information is correct for simulation or inference
+    modelCorrect = False
+    if usesbml == True : 
+        if( use_cuda == False):
+            abcsysbio.importSBML(info_new.source,info_new.type,info_new.name)
+        else:
+            import cudasim.SBMLParser
+            itype = info_new.type[:]
 
+            for i in range(len(itype)):
+                if itype[i] == "Gillespie" : itype[i] = "MJP"
+
+            cudasim.SBMLParser.importSBMLCUDA(info_new.source, itype, ModelName=info_new.name, method=None, outpath="./")
+
+        if simulate==False :
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
         else:
-            info_new.source = None
+            modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
+    else:
+        info_new.source = None
+        if simulate==False :
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
-               
-        if modelCorrect==False:
-            print message
-            sys.exit()
+        else:
+            modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
 
-                
-        ########################### MODEL CREATION
-        #
-        # create a list of model objects from the information we have
-        models = []
-        for i in range(info_new.modelnumber):
-            if( use_cuda == False ):
-                new_model = model.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
-                                         prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                         source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                         dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
-            else:
-                new_model = model.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
-					      prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                              source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                              dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times)
-            
-            models.append( new_model )
-            
-        ########################### DATA CREATION
-        #
-        # create a data object
-        data_new = model.data( info_new.times, info_new.data )
+    if modelCorrect==False:
+        print message
+        sys.exit()
 
-        ########################### IO
-        #
-        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
-        io.create_output_folders(info_new.name, info_new.particles, pickling)
-	if plot == True:
-	    io.plot_data(data_new)
 
-        ########################### ABC SMC
-        #
-	debug = 0
-	if full == True: debug = 1
+    ########################### MODEL CREATION
+    #
+    # create a list of model objects from the information we have
+    models = []
+    for i in range(info_new.modelnumber):
+        if( use_cuda == False ):
+            new_model = model.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
+                                     prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                     source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                     dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
+        else:
+            new_model = model.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
+                                          prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                          source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times)
 
-        # set the required distance and kernel functions
-        distancefn = euclidian.euclidianDistance
-        kernelfn = kernels.getKernel
-        kernelpdffn = kernels.getPdfParameterKernel
-        perturbfn = kernels.perturbParticle
+        models.append( new_model )
 
-        if custom_distance == True or custom_kernel == True:
-            import customABC
-            if custom_distance == True:
-                distancefn = customABC.distance
-            if custom_kernel == True:
-                kernelfn = customABC.getKernel
-                kernelpdffn = customABC.getPdfParameterKernel
-                perturbfn = customABC.perturbParticle
+    ########################### DATA CREATION
+    #
+    # create a data object
+    data_new = model.data( info_new.times, info_new.data )
 
-        nbatch = 10
-        if use_cuda == True:
-            nbatch = 25000/info_new.beta
+    ########################### IO
+    #
+    io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
+    io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
+    if plot == True and simulate == False:
+        io.plot_data(data_new)
 
-        # instantiate the abcsmc algorithm class
-        algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
-                                  modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernelfn=kernelfn, kernelpdffn=kernelpdffn, perturbfn=perturbfn )
+    ########################### BATCHES
+    #
+    nbatch = 10
+    if use_cuda == True:
+        nbatch = 25000/info_new.beta
+
+    ########################### ABC SMC
+    #
+    debug = 0
+    if full == True: debug = 1
+
+    # set the required distance and kernel functions
+    distancefn = euclidian.euclidianDistance
+    kernelfn = kernels.getKernel
+    kernelpdffn = kernels.getPdfParameterKernel
+    perturbfn = kernels.perturbParticle
+
+    if custom_distance == True or custom_kernel == True:
+        import customABC
+        if custom_distance == True:
+            distancefn = customABC.distance
+        if custom_kernel == True:
+            kernelfn = customABC.getKernel
+            kernelpdffn = customABC.getPdfParameterKernel
+            perturbfn = customABC.perturbParticle
+
+    # instantiate the abcsmc algorithm class
+    algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
+                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernelfn=kernelfn,
+                              kernelpdffn=kernelpdffn, perturbfn=perturbfn )
+    
+    if simulate==False :
 
         # fill data from disk if required
         if info_new.restart == True:
             algorithm.fill_values( io.read_pickled(fname) )
-            
-	# transpose epsilon so it is epsilon[npop][ndistance]
-	tepsilon = info_new.epsilon.transpose()
+
+        # transpose epsilon so it is epsilon[npop][ndistance]
+        tepsilon = info_new.epsilon.transpose()
 
         # run ABC SMC
         algorithm.run_fixed_schedule(tepsilon, io)
-        
+
         exit()
 
     else :
-        print "simulations not implemented!"
+
+        # run simulations only
+        algorithm.run_simulations(io)
+
+        exit()
 	
-        # if -S or --simulate option applies, simulate data at timepoints in infile using initialValues in infile.
-        # plots are made - do we want to do anythin else e.g. save the data to a text file?
-        
-        ## name, timepoints, InitValues, type, ConstantParameters, source, dt, rtol, atol = abcsysbio.parseInfo.getInfoForSimulation(input_file)
-
-##         if usesbml == True : 
-##             modelCorrect, message = abcsysbio.checkInputArguments.checkInputSimulation(name, 
-##                                                                                        timepoints, 
-##                                                                                        InitValues, 
-##                                                                                        type, 
-##                                                                                        ConstantParameters, 
-##                                                                                        source, 
-##                                                                                        dt)
-##             if modelCorrect == False:
-##                 print message
-##                 sys.exit()   
-
-##             abcsysbio.importSBML(source,type,name)
-
-##         if synthetic!=True:
-##             timepoints=numpy.arange(timepoints[0], timepoints[-1]+dt, dt)
-
-##         f = open(simfile,'w')
-##         for i in range(0, len(name)):
-##             data=abcsysbio.abcSMC_model.simulateData(name,i,type,InitValues,timepoints,ConstantParameters[i],dt)
-
-##             print >>f, name[i]
-##             for nd in range(len(timepoints)):
-##                 print >>f, timepoints[nd],
-##                 for np in range(len(data[0])):
-##                     print >>f, data[nd][np],
-##                 print >>f, ""
-##             print >>f, "\n"
-            
-##             if synthetic==True:
-##                 #print >>simfile, name[i]
-##                 #print data
-##                 plt.plot(timepoints, data, 'o')
-##                 plt.savefig("Synthetic_Data_"+name[i])
-##                 clf()
-##             else: 
-##                 plt.plot(timepoints, data)
-##                 plt.savefig("Simulated_Data_"+name[i])
-##                 clf()
-
 
 main()
