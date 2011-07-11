@@ -130,8 +130,9 @@ class algorithm_info:
     
     """ 
     
-    def __init__(self, filename):
+    def __init__(self, filename, simulate):
         xmldoc = minidom.parse(filename)
+        self.simulate = simulate
 
         self.modelnumber = 0
         self.restart = False
@@ -149,7 +150,6 @@ class algorithm_info:
         self.nspecies = []
         self.name = []
         self.source = []
-        ##self.init = []
         self.type = []
         self.prior = []
         self.x0prior = []
@@ -177,28 +177,27 @@ class algorithm_info:
         self.dt = parse_required_single_value( xmldoc, "dt", "Please provide an float value for <dt>", float )
 
         ### get epsilon
-        # first do a scan to get the number of epsilon series and the number of epsilon in the series
-        neps1 = 0
-        neps2 = 0
-        epsref = xmldoc.getElementsByTagName('epsilon')[0]
-        for e in epsref.childNodes:
-            if e.nodeType == e.ELEMENT_NODE:
-                neps1 += 1
-                neps2 = len( str( e.firstChild.data ).split() )
+        if simulate == False:
+            # first do a scan to get the number of epsilon series and the number of epsilon in the series
+            neps1 = 0
+            neps2 = 0
+            epsref = xmldoc.getElementsByTagName('epsilon')[0]
+            for e in epsref.childNodes:
+                if e.nodeType == e.ELEMENT_NODE:
+                    neps1 += 1
+                    neps2 = len( str( e.firstChild.data ).split() )
 
-        # create matrix
-        self.epsilon = numpy.zeros([neps1,neps2])
-        i1 = 0
-        for e in epsref.childNodes:
-            if e.nodeType == e.ELEMENT_NODE:
-                tmp = str( e.firstChild.data ).split()
+            # create matrix
+            self.epsilon = numpy.zeros([neps1,neps2])
+            i1 = 0
+            for e in epsref.childNodes:
+                if e.nodeType == e.ELEMENT_NODE:
+                    tmp = str( e.firstChild.data ).split()
 
-                for i in range(neps2):
-                    self.epsilon[i1,i] = float( tmp[i] )
+                    for i in range(neps2):
+                        self.epsilon[i1,i] = float( tmp[i] )
 
-                i1 += 1  
-
-        ##self.epsilon = parse_required_vector_value( xmldoc, "epsilon", "Please provide a whitespace separated list of values for <epsilon>" , float )
+                    i1 += 1  
 
         ### get data attributes
         dataref = xmldoc.getElementsByTagName('data')[0]
@@ -207,30 +206,31 @@ class algorithm_info:
         self.ntimes = len(self.times)
 
         # variables
-        # first do a scan to get the number of timeseries
-        nvar = 0
-        varref = dataref.getElementsByTagName('variables')[0]
-        for v in varref.childNodes:
-            if v.nodeType == v.ELEMENT_NODE:
-                nvar += 1
+        if simulate == False:
+            # first do a scan to get the number of timeseries
+            nvar = 0
+            varref = dataref.getElementsByTagName('variables')[0]
+            for v in varref.childNodes:
+                if v.nodeType == v.ELEMENT_NODE:
+                    nvar += 1
 
-        # create matrix
-        self.data = numpy.zeros([self.ntimes,nvar])
-        nvar = 0
-        for v in varref.childNodes:
-            if v.nodeType == v.ELEMENT_NODE:
-                tmp = str( v.firstChild.data ).split()
+            # create matrix
+            self.data = numpy.zeros([self.ntimes,nvar])
+            nvar = 0
+            for v in varref.childNodes:
+                if v.nodeType == v.ELEMENT_NODE:
+                    tmp = str( v.firstChild.data ).split()
 
-                for i in range(self.ntimes):
-                    self.data[i,nvar] = float( tmp[i] )
+                    for i in range(self.ntimes):
+                        self.data[i,nvar] = float( tmp[i] )
 
-                nvar += 1        
+                    nvar += 1        
                 
                 
         ### get model attributes
         modelref = xmldoc.getElementsByTagName('models')[0]
         for m in modelref.childNodes:
-            if m.nodeType == v.ELEMENT_NODE:
+            if m.nodeType == m.ELEMENT_NODE:
                 self.nmodels += 1
                 self.prior.append([])
                 self.x0prior.append([])
@@ -342,24 +342,27 @@ class algorithm_info:
         print "particles:", self.particles
         print "beta:", self.beta
         print "dt:", self.dt
-        print "epsilon:" 
-        for i in range(self.epsilon.shape[0]):
-            print "\t", 
-            for j in range(self.epsilon.shape[1]):
-                print "", self.epsilon[i,j],
-            print ""
-        print "kernel:", self.kernel
-        print "model kernel:", self.modelkernel
+        if self.simulate == False:
+            print "epsilon:" 
+            for i in range(self.epsilon.shape[0]):
+                print "\t", 
+                for j in range(self.epsilon.shape[1]):
+                    print "", self.epsilon[i,j],
+                print ""
+
+            print "kernel:", self.kernel
+            print "model kernel:", self.modelkernel
         print "model prior:", self.modelprior
         
         print "DATA:"
         print "\ttimes:", self.times
-        print "\tvars:" 
-        for i in range(len(self.data[0,:])):
-            print "\t", 
-            for j in range(self.ntimes):
-                print "", self.data[j,i],
-            print ""
+        if self.simulate == False:
+            print "\tvars:" 
+            for i in range(len(self.data[0,:])):
+                print "\t", 
+                for j in range(self.ntimes):
+                    print "", self.data[j,i],
+                print ""
         
         print "MODELS:", self.nmodels
         for i in range(self.nmodels):
@@ -371,6 +374,7 @@ class algorithm_info:
             print "\t", "fit:", self.fit[i]
             print "\t", "init:", self.x0prior[i]
             print "\t", "prior:", self.prior[i]
+            print "\t", "x0prior:", self.x0prior[i]
             print "\n"
 
 ###x = algorithm_info('input.xml')
