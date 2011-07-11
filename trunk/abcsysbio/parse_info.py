@@ -374,7 +374,6 @@ class algorithm_info:
             print "\t", "fit:", self.fit[i]
             print "\t", "init:", self.x0prior[i]
             print "\t", "prior:", self.prior[i]
-            print "\t", "x0prior:", self.x0prior[i]
             print "\n"
 
 ###x = algorithm_info('input.xml')
