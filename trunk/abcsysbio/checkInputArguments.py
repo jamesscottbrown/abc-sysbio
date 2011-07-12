@@ -138,17 +138,17 @@ def checkInputABC(info_new , fname, custom_distance ):
 	if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):
 	    return False,"\nThe integration type for model "+ModelName[mod]+" does not exist!\n"
 
+        for ic in range(len(x0priors[mod])):
+             if not (x0priors[mod][ic][0]==0 or x0priors[mod][ic][0]==1 or x0priors[mod][ic][0]==2 or x0priors[mod][ic][0]==3):
+		return False, "\nThe prior distribution of initial condition "+repr(ic+1)+" in model "+ModelName[mod]+" does not exist!\n"           
+
 	for param in range(0,len(priors[mod])):
 	    if not len(priors[mod][param])==3:
 		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
-	    ##if not len(kernel[mod][param])==3:
-	    ##	return False, "\nThe pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
 	    
-	    if not (priors[mod][param][0]==0 or priors[mod][param][0]==2 or priors[mod][param][0]==3):
+	    if not (priors[mod][param][0]==0 or priors[mod][param][0]==1 or priors[mod][param][0]==2 or priors[mod][param][0]==3):
 		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
-	    ##if not (kernel[mod][param][0]==1 or kernel[mod][param][0]==2) and not priors[mod][param][0]==0:
-	    ##	return False, "\nThe pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
-
+            
 	    if priors[mod][param][0]==2:
 		if not priors[mod][param][1]<priors[mod][param][2]:
 		    return False, "\nThe range of the uniform prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
