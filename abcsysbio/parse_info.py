@@ -156,7 +156,7 @@ class algorithm_info:
         self.fit = []
 
         self.modelkernel = 0.7
-        self.kernel = 0
+        self.kernel = 1
         self.modelprior = []
         self.rtol = 1e-5
         self.atol = 1e-5
@@ -306,9 +306,9 @@ class algorithm_info:
         try:
             data = str(xmldoc.getElementsByTagName('kernel')[0].firstChild.data).strip()
             if re_kernel_uniform.match( data ):
-                self.kernel = 0
-            elif re_kernel_normal.match( data ):
                 self.kernel = 1
+            elif re_kernel_normal.match( data ):
+                self.kernel = 2
             else:
                 print "\n#################\n<kernel> must be one of uniform, normal  so I am going to ignore your argument"
         except:
