@@ -1,5 +1,6 @@
 # statistical functions
 
+from numpy import *
 from numpy import random as rnd
 
 ################## multinomial sampling
@@ -18,15 +19,28 @@ def getPdfUniform(scale1,scale2,parameter):
     else:
         return 1/(scale2-scale1)
 
-
 ################## compute the pdf of gauss distribution
 def getPdfGauss(mean,scale,parameter):
-    x=((math.sqrt(2*math.pi)*scale)**(-1))*math.exp(-1.0*((parameter-mean)**2)/(2.0*scale**2))
+    x = exp( -0.5*(parameter-mean)*(parameter-mean)/(scale*scale) )
+    x = x/( scale*sqrt(2*pi) )
     return x
-
 
 ################ compute the pdf of lognormal distribution
 def getPdfLognormal(mean,sigm,parameter):
-    x=((sqrt(2*math.pi)*sigm*parameter)**(-1))*exp(-0.5*(((math.ln(parameter)-sigm)**2)/sigm)**2)
+    x = exp(-0.5*(log(parameter)-mean)*(log(parameter)-mean)/(sigm*sigm) )
+    x = x/( parameter*sigm*sqrt(2*pi) )
     return x
 
+################ compute weighted variance
+################ http://adorio-research.org/wordpress/?p=259
+def wtvar(X, W, method = "R"):
+  sumW = sum(W)
+  if method == "nist":
+    xbarwt = sum([w * x for w,x in zip(W, X)])/sumW    # fixed.2009.03.07, divisor added.
+    Np = sum([ 1 if (w != 0) else 0 for w in W])
+    D = sumW * (Np-1.0)/Np
+    return sum([w * (x - xbarwt)**2 for w,x in zip(W,X)])/D
+  else: # default is R 
+    sumW2 = sum([w **2 for w in W])
+    xbarwt = sum([(w * x)  for (w,x) in zip(W, X)])/sumW
+    return sum([(w * (x - xbarwt)**2) for (w,x) in zip(W, X)])* sumW/(sumW**2 - sumW2)
