@@ -22,7 +22,7 @@ priors:
                         [0 , 12.3 , x] , where x can be any number
 
               1   ---   normal distribution. 
-                        Example: normal distribution in mean 10 and sd 1
+                        Example: normal distribution in mean 10 and var 1
                         [1 , 10 , 1]
 
               2   ---   uniform distribution. 
@@ -30,7 +30,7 @@ priors:
                         [2 , 0.1 , 50]
 
               3   ---   lognormal distribution.
-                        Example: lognormal distribution with mean 3 and varianz 1.5
+                        Example: lognormal distribution with mean 3 and var 1.5
                         [3 , 3 , 1.5]
 
               Example:
@@ -96,6 +96,7 @@ class abcsmc:
                  debug,
                  timing,
                  distancefn = euclidian.euclidianDistance,
+                 kernel_type = 1,
                  kernelfn = kernels.getKernel,
                  kernelpdffn = kernels.getPdfParameterKernel,
                  perturbfn = kernels.perturbParticle):
@@ -121,6 +122,7 @@ class abcsmc:
         self.trajectories = []
 
         self.distancefn = distancefn
+        self.kernel_type = kernel_type
         self.kernelfn = kernels.getKernel
         self.kernelpdffn = kernels.getPdfParameterKernel
         self.perturbfn = kernels.perturbParticle
@@ -133,12 +135,15 @@ class abcsmc:
     
         self.modelprior = modelprior[:]
         self.modelKernel = modelKernel
+        self.kernel_aux = [0 for i in range(0,nparticles)]
+
         self.kernels = []
         for i in range(self.nmodel):
             self.kernels.append([])
             for j in range(self.models[i].nparameters):
-                self.kernels[i].append( [1, -1, 1 ] ) # uniform kernels
-            
+                # kernel info will get set after first population
+                self.kernels[i].append( [kernel_type, 0, 0 ] ) 
+
         self.hits = []
         self.sampled = []
         self.rate = []
@@ -302,13 +307,20 @@ class abcsmc:
         for mod in range(self.nmodel):
             this_model_index = numpy.arange(self.nparticles)[ numpy.array(self.model_prev) == mod ]
             this_population = numpy.zeros([ len(this_model_index), self.models[mod].nparameters ])
+            this_weights = numpy.zeros( len(this_model_index) ) 
            
             if len(this_model_index) > 0:
                 for it in range(len(this_model_index)):
                     this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
+                    this_weights[it] = self.weights_prev[ this_model_index[it] ]
             
-                self.kernels[mod] = self.kernelfn( self.kernels[mod], this_population )[:]
+                self.kernels[mod] = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )[:]
 
+        #
+        # Kernel auxilliary information
+        #
+        self.kernel_aux = kernels.getAuxilliaryInfo(self.kernel_type, self.model_prev, self.parameters_prev, self.models, self.kernels )[:]
+        
         self.hits.append( naccepted )
         self.sampled.append( sampled )
         self.rate.append( naccepted/float(sampled) )
@@ -426,14 +438,18 @@ class abcsmc:
             for n in range(self.models[ sampled_models[i] ].nparameters):
                 if self.models[ sampled_models[i] ].prior[n][0] == 0: 
                     reti[n]=self.models[ sampled_models[i] ].prior[n][1]
+
+                if self.models[ sampled_models[i] ].prior[n][0] == 1: 
+                    reti[n]=rnd.normal( loc=self.models[ sampled_models[i] ].prior[n][1],
+                                        scale=numpy.sqrt(self.models[ sampled_models[i] ].prior[n][2]) )
                 
                 if self.models[ sampled_models[i] ].prior[n][0] == 2: 
                     reti[n]=rnd.uniform( low=self.models[ sampled_models[i] ].prior[n][1],
                                          high=self.models[ sampled_models[i] ].prior[n][2])
 
                 if self.models[ sampled_models[i] ].prior[n][0] == 3: 
-                    reti[n]=rnd.lognormal(self.models[ sampled_models[i] ].prior[n][1],
-                                          self.models[ sampled_models[i] ].prior[n][2])
+                    reti[n]=rnd.lognormal(mean=self.models[ sampled_models[i] ].prior[n][1],
+                                          sigma=numpy.sqrt(self.models[ sampled_models[i] ].prior[n][2]) )
             
             ret.append( reti[:] )
             
@@ -513,15 +529,20 @@ class abcsmc:
                 x = 1.0
                 if self.models[ this_model ].prior[n][0]==0:
                     x=1
+
+                if self.models[ this_model ].prior[n][0]==1: 
+                    x=statistics.getPdfGauss(self.models[ this_model ].prior[n][1],
+                                             numpy.sqrt(self.models[ this_model ].prior[n][2]),
+                                             this_param[n])
                 
                 if self.models[ this_model ].prior[n][0]==2: 
                     x=statistics.getPdfUniform(self.models[ this_model ].prior[n][1],
                                                self.models[ this_model ].prior[n][2],
                                                this_param[n])
-                
+    
                 if self.models[ this_model ].prior[n][0]==3: 
                     x=statistics.getPdfLognormal(self.models[ this_model ].prior[n][1],
-                                                 self.models[ this_model ].prior[n][2],
+                                                 numpy.sqrt(self.models[ this_model ].prior[n][2]),
                                                  this_param[n])
                 pprob = pprob*x
 
@@ -536,8 +557,10 @@ class abcsmc:
 
                 if(int(this_model) == int(self.model_prev[j]) ):
                     # print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
-                    if self.debug == 2: print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j], self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model] )
-                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model] )
+                    if self.debug == 2:
+                        print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
+                        self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j] )
+                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j] )
 
                 if self.debug == 2: print "\tnumer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, self.margins_prev[this_model]
 
