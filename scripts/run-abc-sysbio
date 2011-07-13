@@ -254,6 +254,7 @@ def main():
     #
     debug = 0
     if full == True: debug = 1
+    #debug = 2
 
     # set the required distance and kernel functions
     distancefn = euclidian.euclidianDistance
@@ -276,16 +277,26 @@ def main():
                               kernelpdffn=kernelpdffn, perturbfn=perturbfn )
     
     if simulate==False :
+        if len(info_new.final_epsilon) == 0:
+            # Manual epsilon
+            
+            # fill data from disk if required
+            if info_new.restart == True:
+                algorithm.fill_values( io.read_pickled(fname) )
 
-        # fill data from disk if required
-        if info_new.restart == True:
-            algorithm.fill_values( io.read_pickled(fname) )
+            # transpose epsilon so it is epsilon[npop][ndistance]
+            tepsilon = info_new.epsilon.transpose()
 
-        # transpose epsilon so it is epsilon[npop][ndistance]
-        tepsilon = info_new.epsilon.transpose()
+            # run ABC SMC
+            algorithm.run_fixed_schedule(tepsilon, io)
 
-        # run ABC SMC
-        algorithm.run_fixed_schedule(tepsilon, io)
+        else:
+            # Automatic epsilon
+            if info_new.restart == True:
+                print "Restart not implemented for automated epsilon"
+                sys.exit()
+            
+            algorithm.run_automated_schedule(info_new.final_epsilon, info_new.alpha, io)
 
         exit()
 
