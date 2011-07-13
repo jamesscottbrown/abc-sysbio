@@ -140,6 +140,8 @@ class algorithm_info:
         self.beta = 0
         self.dt = 0
         self.epsilon = []
+        self.final_epsilon = []
+        self.alpha = 0.9
         self.times = []
         self.ntimes = 0
         self.data = []
@@ -178,26 +180,36 @@ class algorithm_info:
 
         ### get epsilon
         if simulate == False:
-            # first do a scan to get the number of epsilon series and the number of epsilon in the series
-            neps1 = 0
-            neps2 = 0
-            epsref = xmldoc.getElementsByTagName('epsilon')[0]
-            for e in epsref.childNodes:
-                if e.nodeType == e.ELEMENT_NODE:
-                    neps1 += 1
-                    neps2 = len( str( e.firstChild.data ).split() )
+            # automated epsilon takes priority
+            if( len( xmldoc.getElementsByTagName('autoepsilon') ) > 0 ):
+                # found automated epsilon
+                epsref = xmldoc.getElementsByTagName('autoepsilon')[0]
+                self.final_epsilon = parse_required_vector_value( epsref, "finalepsilon", "Please provide a whitespace separated list of values for <autoepsilon><finalepsilon>" , float )
+                try:
+                    self.alpha = parse_required_single_value( epsref, "alpha", "Please provide a float value for <autoepsilon><alpha>" , float )
+                except:
+                    null=0
+            else:
+                # first do a scan to get the number of epsilon series and the number of epsilon in the series
+                neps1 = 0
+                neps2 = 0
+                epsref = xmldoc.getElementsByTagName('epsilon')[0]
+                for e in epsref.childNodes:
+                    if e.nodeType == e.ELEMENT_NODE:
+                        neps1 += 1
+                        neps2 = len( str( e.firstChild.data ).split() )
 
-            # create matrix
-            self.epsilon = numpy.zeros([neps1,neps2])
-            i1 = 0
-            for e in epsref.childNodes:
-                if e.nodeType == e.ELEMENT_NODE:
-                    tmp = str( e.firstChild.data ).split()
+                # create matrix
+                self.epsilon = numpy.zeros([neps1,neps2])
+                i1 = 0
+                for e in epsref.childNodes:
+                    if e.nodeType == e.ELEMENT_NODE:
+                        tmp = str( e.firstChild.data ).split()
 
-                    for i in range(neps2):
-                        self.epsilon[i1,i] = float( tmp[i] )
+                        for i in range(neps2):
+                            self.epsilon[i1,i] = float( tmp[i] )
 
-                    i1 += 1  
+                        i1 += 1  
 
         ### get data attributes
         dataref = xmldoc.getElementsByTagName('data')[0]
@@ -343,12 +355,17 @@ class algorithm_info:
         print "beta:", self.beta
         print "dt:", self.dt
         if self.simulate == False:
-            print "epsilon:" 
-            for i in range(self.epsilon.shape[0]):
-                print "\t", 
-                for j in range(self.epsilon.shape[1]):
-                    print "", self.epsilon[i,j],
-                print ""
+            if len(self.final_epsilon) == 0:
+                print "manual epsilon:" 
+                for i in range(self.epsilon.shape[0]):
+                    print "\t", 
+                    for j in range(self.epsilon.shape[1]):
+                        print "", self.epsilon[i,j],
+                    print ""
+            else:
+                print "auto epsilon:" 
+                print "\t", self.final_epsilon
+                print "\talpha:", self.alpha
 
             print "kernel:", self.kernel
             print "model kernel:", self.modelkernel
