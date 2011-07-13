@@ -58,10 +58,12 @@ class input_output:
                     print >>traj_file, ""
         traj_file.close()
 
-        model_file = open(self.folder + '/ModelDistribution.txt',"a")
-        for m in results.margins: 
-            print >>model_file, m,
-        model_file.close()
+        if len(results.margins) > 1:
+            model_file = open(self.folder + '/ModelDistribution.txt',"a")
+            for m in results.margins: 
+                print >>model_file, m,
+            print >>model_file, ""
+            model_file.close()
 
         nmodels = len(models)
         for mod in range(nmodels):
