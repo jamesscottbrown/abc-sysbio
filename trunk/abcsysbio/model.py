@@ -69,7 +69,7 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                dat = GillespieAlgorithm.GillespieInt(func=self.module, initValues=self.init, parameters=p[i], outputtimes=t )
+                dat = GillespieAlgorithm.GillespieInt(func=self.module, initValues=p[i][self.kparameters:self.nparameters], parameters=p[i][0:self.kparameters], outputtimes=t )
                 for k in range(len(t)):
                     for l in range(self.nspecies):
                         ret[i,j,k,l] = dat[k,l]
