@@ -38,9 +38,9 @@ def getKernel(kernel_type, kernel, population, weights):
 
             kernel[param][2]=2*s2w
                     
-    print "\t\tnew kernel"
-    for p in range(npar):
-        print "\t\t", kernel[p]
+    #print "\t\tnew kernel"
+    #for p in range(npar):
+    #    print "\t\t", kernel[p]
 
     return kernel
 
