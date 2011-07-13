@@ -58,6 +58,8 @@ fit:
               to the order of species.
 """
 
+## distances are stored as [nparticle][nbeta][d1, d2, d3 .... ]
+## trajectories are stored as [nparticle][nbeta][ species ][ times ]
 
 class abcsmc_results:
     def __init__(self, 
@@ -160,23 +162,98 @@ class abcsmc:
                 results = self.iterate_one_population(epsilon[pop], prior=False)
             end_time = time.time()
 
-            if self.timing == True:
-                print "####abcSimulator:runmode/pop/time:", pop+1, end_time - start_time
-
             io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels)
             io.write_data(pop, results, end_time-start_time, self.models, self.data)
 
             if self.debug == 1:
                 print "### population ", pop+1
                 print "\t sampling steps / acceptance rate :", self.sampled[pop], "/", self.rate[pop]
-                print "\t model marginals:", self.margins_prev
-                print "\t dead models    :", self.dead_models
+                print "\t model marginals                  :", self.margins_prev
+                
+                if(len(self.dead_models) > 0):
+                    print "\t dead models                      :", self.dead_models
+                if self.timing == True:
+                    print "\t timing:                          :", end_time - start_time
 
         if self.timing == True:
-            print "####abcSimulator:runmode/time:", time.time() - all_start_time
+            print "#### final time:", time.time() - all_start_time
 
         return
             
+    def run_automated_schedule(self, final_epsilon, alpha, io):
+        all_start_time = time.time()
+        
+        done = False
+        pop = 0
+        epsilon = [1e10 for i in final_epsilon]
+
+        while done == False:
+            start_time = time.time()
+            if(pop==0 and self.sample_from_prior==True): 
+                results = self.iterate_one_population(epsilon, prior=True)
+            else:
+                results = self.iterate_one_population(epsilon, prior=False)
+            end_time = time.time()
+
+            io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels)
+            io.write_data(pop, results, end_time-start_time, self.models, self.data)
+
+            done, epsilon = self.compute_next_epsilon(results, epsilon, final_epsilon, alpha)
+
+            if self.debug == 1:
+                print "### population ", pop+1
+                print "\t sampling steps / acceptance rate :", self.sampled[pop], "/", self.rate[pop]
+                print "\t model marginals                  :", self.margins_prev
+                print "\t next epsilon                     :", epsilon
+                
+                if(len(self.dead_models) > 0):
+                    print "\t dead models                      :", self.dead_models
+                if self.timing == True:
+                    print "\t timing:                          :", end_time - start_time
+
+            pop += 1
+
+        if self.timing == True:
+            print "#### final time:", time.time() - all_start_time
+
+        return
+
+
+    def compute_next_epsilon(self, results, this_epsilon, target_epsilon, alpha):
+        nepsilon = len(target_epsilon)
+        #print "compute_next_epsilon : this_epsilon, target_epsilon, nepsilon:", this_epsilon, target_epsilon, nepsilon 
+
+        distance_values = []
+        for i in range(self.nparticles):
+            for j in range(self.beta):
+                distance_values.append( results.distances[i][j] )
+
+        # Important to remember that the initial sort on distance is done on the first distance value
+        distance_values = numpy.sort(distance_values, axis=0)
+        ntar = int( alpha * self.nparticles )
+        #print distance_values
+        #print 'compute_next_epsilon 90th percentile:', ntar
+
+        new_epsilon = [ round(distance_values[ntar,ne],4) for ne in range(nepsilon) ]
+        ret_epsilon = [0 for i in range(nepsilon)]
+
+        # Set the next epsilon
+        for ne in range(nepsilon):
+            if this_epsilon[ne] != new_epsilon[ne]:
+                ret_epsilon[ne] = new_epsilon[ne]
+            else :
+                # This is an attempt to reduce epsilon even if the new and previous epsilon are equal
+                ret_epsilon[ne] = 0.95*new_epsilon[ne]
+
+        # See if we are finished
+        finished = True
+        for ne in range(nepsilon):
+            if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne]-target_epsilon[ne]) < 1e-6:
+                ret_epsilon[ne] = target_epsilon[ne]
+            else:
+                finished = False 
+
+        return finished, ret_epsilon 
 
     def run_simulations(self, io):
 
