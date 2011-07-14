@@ -15,7 +15,7 @@ def euclidianDistance(data1, data2, parameters, model):
     distance = -1
     #data1 and data2 are two numpy arrays
     if(numpy.shape(data1)!=numpy.shape(data2)):
-        print "\ndata sets have different dimensions\n"
+        print "\neuclidianDistance: data sets have different dimensions\n"
         sys.exit()
     else:
         z = (data1 - data2)**2
