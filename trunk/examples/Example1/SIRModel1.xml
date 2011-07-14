@@ -5,8 +5,8 @@
       <compartment id="World" size="1"/>
     </listOfCompartments>
     <listOfSpecies>
-      <species id="S" compartment="World" initialConcentration="0"/>
-      <species id="I" compartment="World" initialConcentration="0"/>
+      <species id="S" compartment="World" initialConcentration="20"/>
+      <species id="I" compartment="World" initialConcentration="10"/>
       <species id="R" compartment="World" initialConcentration="0"/>
     </listOfSpecies>
     <listOfParameters>
