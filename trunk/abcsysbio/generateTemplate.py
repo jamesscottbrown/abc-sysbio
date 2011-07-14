@@ -19,7 +19,7 @@ def getSpeciesValue(species):
 
 
 
-def generateTemplate(source,filename="input_file_template.txt", sumname="model_summary.txt"):
+def generateTemplate(source, filename, sumname, dataname=None):
 
     """
 
@@ -28,8 +28,8 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
     
     ***** args *****
     
-    source:    a tuple of strings.
-               Each tuple entry describes a SBML file. 
+    source:    a list of strings.
+               Each entry describes a SBML file. 
 
 
     ***** kwargs *****
@@ -37,36 +37,125 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
     filename:  a string.
                The name of the template to be generated.
 
+    sumnname:  a string.
+               The name of the summary to be generated.
+
+    dataname:  a string.
+               The name of a datafile.
+
     """
+    
+
 
     out_file=open(filename,"w")
     sum_file=open(sumname,"w")
 
-    out_file.write("#Number of models for which details are described in this input file\n\n")
-    out_file.write("<modelnumber> "+repr(len(source))+"\n\n")
-    out_file.write("#Probability of perturbing the sampled model (ignored when modelnumber = 1)\n\n")
-    out_file.write("<model kernel> 0.7 \n\n")
-    out_file.write("#Restart from previous (pickled) population?\n\n")
-    out_file.write("<restart> False\n\n")
-    out_file.write("#Series of epsilons. (Comma-delimited list)\n#If the length of the epsilon series is one and you have only one model\n#you are effectively doing abc Rejection\n\n")                   
-    out_file.write("<epsilon> 1.0,0.5,0.2\n\n")
-    out_file.write("#Population size\n\n")
-    out_file.write("<population size> 1000\n\n")
-    out_file.write("#Beta is the number of times to simulate each sampled parameter set.\n#This is only applicable for models simulated using SDE.\n\n")
-    out_file.write("<beta> 1\n\n")
-    out_file.write("#Internal timestep for solver.\n#Make this small for a stiff model.\n\n")
-    out_file.write("<dt> 0.01\n\n")
-    out_file.write("#The pertubation kernels are computed in respect to the previous parameter \n#distribution if constant parameter is set 'False'. \n#In this case you only need to provide the type of the pertubation kernel. \n#Otherwise you have to define the whole pertubation kernels.\n\n")
-    out_file.write("<constant kernels> False\n\n")
-    out_file.write("#rtol and atol can be specified here.\n#If the model is stiff then setting these to small\n#might help the simulation to run.\n#Only applicable for models simulated using ODE.\n\n")
-    out_file.write("#<rtol>\n#<atol>\n\n")
-    out_file.write("#User-supplied data.\n\n")
-    out_file.write("<data>\n\n")
-    out_file.write("#times: For abc-SMC, times must be a comma-delimited list starting with 0.\n#For simulation only the first and last timepoints are used.\n#To make a synthetic data set give a comma-delimited list of timepoints at which data points are required.\n\n")
-    out_file.write("times:0,1,2,3,4,5,6,7,8,9,10\n\n")
-    out_file.write("#variables: For abc-SMC, comma-delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie).\n#Denote your data as variable1, variable2, ..., variableN.\n#For simulation or synthetic data sets these data are ignored.\n#See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model.\n\n") 
-    out_file.write("variable1:\n\n//\n\n")
+    have_data = False
+    times = []
+    vars = []
+    nvar = 0
+    first = True
+    if dataname != None:
+        have_data = True
+        df = open(dataname,'r')
+        for line in df:
+            strs = str(line).split(' ')
+            vals = [float(i) for i in strs]
+            
+            if first==True:
+                for j in range(1,len(vals)):
+                    vars.append([])
+                first=False
+                nvar = len(vals)-1
 
+            times.append(vals[0])
+
+            for j in range(1,len(vals)):
+                vars[j-1].append(vals[j])
+
+    #print times
+    #print vars
+        
+    out_file.write("<input>\n\n")
+    out_file.write("######################## number of models\n\n")
+    out_file.write("# Number of models for which details are described in this input file\n")
+    out_file.write("<modelnumber> "+repr(len(source))+ " </modelnumber>\n\n")
+
+    out_file.write("######################## restart\n\n")
+    out_file.write("# Restart from previous (pickled) population?\n")
+    out_file.write("<restart> False </restart>\n\n")
+
+    out_file.write("######################## epsilon schedule\n\n")
+    out_file.write("# Automatic epsilon schedule. Provide a vector of final epsilons and the alpha (defaults to 0.9)\n")
+    out_file.write("<autoepsilon>\n") 
+    out_file.write("<finalepsilon> 1.0 </finalepsilon>\n")
+    out_file.write("<alpha> 0.9 </alpha>\n")
+    out_file.write("</autoepsilon>\n\n")
+
+    out_file.write("# OR\n")
+    out_file.write("# Series of epsilons. (Whitespace delimited list)\n\n")
+    out_file.write("# Multiple epsilon schedules can be specified by giving additional vectors enclosed in <e2> </e2>, <e3> </e3> etc\n")
+    out_file.write("# NOTE: the parser always reads them in order and ignores the tag value\n")
+    out_file.write("<!-- <epsilon> -->\n")
+    out_file.write("<!-- <e1> 5.0 3.0 2.0 1.0 </e1> -->\n")
+    out_file.write("<!--</epsilon> -->\n")
+    out_file.write("\n")
+        
+    out_file.write("######################## particles\n\n")
+    out_file.write("<particles> 100 </particles>\n\n")
+
+    out_file.write("######################## beta\n\n")
+    out_file.write("# Beta is the number of times to simulate each sampled parameter set.\n# This is only applicable for models simulated using Gillespie and SDE\n")
+    out_file.write("<beta> 1 </beta>\n\n")
+
+    out_file.write("######################## dt\n\n")
+    out_file.write("# Internal timestep for solver.\n# Make this small for a stiff model.\n")
+    out_file.write("<dt> 0.01 </dt>\n\n")
+
+    out_file.write("######################## perturbation kernels : OPTIONAL (default uniform)\n\n")
+    out_file.write("# The pertubation kernels are computed with respect to the previous parameter distribution\n")
+    out_file.write("# Currently uniform and normal are implemented\n")
+    out_file.write("<kernel> uniform </kernel>\n\n")
+
+    out_file.write("######################## model kernel : OPTIONAL (default 0.7)\n\n")
+    out_file.write("# Probability of perturbing the sampled model (ignored when modelnumber = 1)\n")
+    out_file.write("<modelkernel> 0.7 </modelkernel>\n\n")
+
+    out_file.write("######################## ODE solver control : OPTIONAL \n\n")
+    out_file.write("# rtol and atol can be specified here. If the model is stiff then setting these to small might help the simulation to run\n")
+    out_file.write("#<rtol> </rtol> \n#<atol> </atol>\n\n")
+
+    out_file.write("######################## User-supplied data\n\n")
+    out_file.write("<data>\n")
+    out_file.write("# times: For ABC SMC, times must be a whitespace delimited list\n")
+    out_file.write("# In simulation mode these are the timepoints for which the simulations will be output\n")
+    if have_data == False:
+        out_file.write("<times> 0 1 2 3 4 5 6 7 8 9 10 </times>\n\n")
+    else:
+        out_file.write("<times>");
+        for i in times:
+            out_file.write(" "+repr(i) )
+        out_file.write(" </times>\n\n");
+    
+    out_file.write("# variables: For ABC SMC, whitespace delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie)\n")
+    out_file.write("# Denote your data via tags <v1> </v1> or <var1> </var1> or <v2> </v2> etc. The tags are ignored and the data read in order\n")
+    out_file.write("# For simulation these data are ignored\n")
+    out_file.write("# See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model\n")
+    out_file.write("<variables>\n")
+    if have_data == False:
+        out_file.write(" <var1> </var1>\n")
+    else:
+        for k in range(nvar):
+            out_file.write("<var"+repr(k+1)+"> ");
+            for i in vars[k]:
+                out_file.write(" "+repr(i) )
+            out_file.write(" </var"+repr(k+1)+">\n");
+
+    out_file.write("</variables>\n")
+    out_file.write("</data>\n\n")
+
+    out_file.write("######################## Models\n\n")
+    out_file.write("<models>\n")
 
     import libsbml
     reader=libsbml.SBMLReader()
@@ -74,11 +163,18 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
       
     for i in range(0,len(source)):
         sum_file.write("Model "+repr(i+1)+"\n")
-        out_file.write("<model"+repr(i+1)+">\n")
         sum_file.write("name: model"+repr(i+1)+"\nsource: "+source[i]+"\n\n")
-        out_file.write("name: model"+repr(i+1)+"\nsource: "+source[i]+"\n\n")
-        out_file.write("#type: the method used to simulate your model. ODE, SDE or Gillespie.\n\n")
-        out_file.write("type: ODE\n\n")
+
+        out_file.write("<model"+repr(i+1)+">\n")
+        out_file.write("<name> model"+repr(i+1)+" </name>\n<source> "+source[i]+" </source>\n\n")
+        out_file.write("# type: the method used to simulate your model. ODE, SDE or Gillespie.\n")
+        out_file.write("<type> ODE </type>\n\n")
+
+        out_file.write("# Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.\n")
+        out_file.write("# Otherwise, give a whitespace delimited list of fitting instrictions the same length as the dimensions of your data.\n")
+        out_file.write("# Use speciesN to denote the Nth species in your model. Simple arithmetic operations can be performed on the species from your model.\n")
+        out_file.write("# For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2\n")
+        out_file.write("<fit> None </fit>\n\n")
 
         document=reader.readSBML(source[i])
         model=document.getModel()
@@ -155,13 +251,22 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
 
         paramAsSpecies=0
         sum_file.write("Species with initial values: "+repr(numSpecies)+"\n")
-        out_file.write("#Initial values: Comma-delimited list.\n#Initial values are taken from the SBML model and are in the same order as the species\n#are given in the model.\n\n")
-        out_file.write("initial values: ")
+
+        out_file.write("# Priors on initial conditions and parameters:\n")
+        out_file.write("# one of \n")
+        out_file.write("#       constant, value \n")
+        out_file.write("#       normal, mean, variance \n")
+        out_file.write("#       uniform, lower, upper \n")
+        out_file.write("#       lognormal, mean, variance \n\n")
+
+        out_file.write("<initial>\n")
+
         x=0
         for k in range(0,len(species)):
             if (species[k].getConstant() == False):
                 x=x+1
-                out_file.write(repr(getSpeciesValue(species[k]))+", ")
+                #out_file.write(repr(getSpeciesValue(species[k]))+", ")
+                out_file.write(" <ic"+repr(x)+"> constant "+repr(getSpeciesValue(species[k]))+" </ic"+repr(x)+">\n")
                 sum_file.write("S"+repr(x)+":\t"+species[k].getId()+"\tspecies"+repr(k+1)+"\t("+repr(getSpeciesValue(species[k]))+")\n")
         for k in range(0,len(listOfParameter)):
             if listOfParameter[k].getConstant()==False:
@@ -173,8 +278,8 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
                             out_file.write(repr(listOfParameter[k].getValue())+", ")
                             sum_file.write("S"+repr(x)+":\t"+listOfParameter[k].getId()+"\tparameter"+repr(k+1-comp)+"\t("+repr(listOfParameter[k].getValue())+") (parameter included in a rate rule and therefore treated as species)\n")
 
+        out_file.write("</initial>\n\n")
 
-        out_file.write("\n")
         sum_file.write("\n")
         
         if(numGlobalParameters==0): string=" (all of them are local parameters)\n"
@@ -182,13 +287,10 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
         elif(numLocalParameters==0): string=" (all of them are global parameters)\n"
         else: string=" (the first "+repr(numGlobalParameters)+" are global parameter)\n"
 
-        out_file.write("\n#Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.\n#Otherwise, give a comma-delimited list of fitting instrictions the same length as the dimensions of your data.\n#Use speciesN to denote the Nth species in your model. Simple arithmatic operations can be performed on the species from your model.\n#For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2\n") 
-        out_file.write("\nfit: None\n\n")
-
-        out_file.write("#Parameters:\n#Priors:\n#one of \n#\tconstant, value\n#\tuniform, lower, upper\n#\tlognormal, location, scale\n")
-        out_file.write("#Kernels: By default, gaussian with variance half the range of the prior distribution.\n#To force an alternative kernel use the switch in abcScript.py and give one of \n#\tuniform, lower, upper\n#\tgaussian, mean, variance\n\n")
         sum_file.write("Parameter: "+repr(numParameters)+string)
         sum_file.write("("+repr(paramAsSpecies)+" parameter is treated as species)\n")
+
+        out_file.write("<parameters>\n")
 
         counter=0
         for k in range(0,numParameters-paramAsSpecies):
@@ -201,14 +303,19 @@ def generateTemplate(source,filename="input_file_template.txt", sumname="model_s
             else: Print == True
             if Print ==True:
                 counter=counter+1
-                out_file.write("parameter"+repr(counter)+":\n")
                 sum_file.write("P"+repr(counter)+":\t"+parameterId[k]+"\t"+parameterId2[k]+"\t("+repr(parameter[k])+")\n")
-                out_file.write("\tprior: constant, ")
-                out_file.write(repr(parameter[k])+"\n")
-                out_file.write("\tkernel: uniform, -"+repr(parameter[k])+","+repr(parameter[k])+"\n")
-        out_file.write("//\n\n")
+                out_file.write("<parameter"+repr(counter)+">")
+                out_file.write(" constant ")
+                out_file.write(repr(parameter[k])+" </parameter"+repr(counter)+">\n")
+    
         sum_file.write("\n############################################################\n\n")
-            
+
+        out_file.write("</parameters>\n")
+        out_file.write("</model"+repr(i+1)+">\n\n")
+
+    out_file.write("</models>\n\n")
+    out_file.write("</input>\n\n")
+
     out_file.close()
     sum_file.close()
 
