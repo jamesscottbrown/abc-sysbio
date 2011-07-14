@@ -143,7 +143,8 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
 
     # do the simulations
     nsim = len(pars)
-    sims = model.simulate( pars, data.timepoints, nsim, beta = 1 )
+    sims = model.simulate( pars, data.timepoints, nsim, beta = beta )
+
         
     matplotlib.pyplot.subplot(111)
     clf()
