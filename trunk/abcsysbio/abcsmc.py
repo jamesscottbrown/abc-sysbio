@@ -184,10 +184,13 @@ class abcsmc:
         all_start_time = time.time()
         
         done = False
+        final = False
         pop = 0
         epsilon = [1e10 for i in final_epsilon]
 
         while done == False:
+            if final==True: done = True
+
             start_time = time.time()
             if(pop==0 and self.sample_from_prior==True): 
                 results = self.iterate_one_population(epsilon, prior=True)
@@ -198,7 +201,7 @@ class abcsmc:
             io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels)
             io.write_data(pop, results, end_time-start_time, self.models, self.data)
 
-            done, epsilon = self.compute_next_epsilon(results, epsilon, final_epsilon, alpha)
+            final, epsilon = self.compute_next_epsilon(results, epsilon, final_epsilon, alpha)
 
             if self.debug == 1:
                 print "### population ", pop+1
@@ -232,18 +235,19 @@ class abcsmc:
         distance_values = numpy.sort(distance_values, axis=0)
         ntar = int( alpha * self.nparticles )
         #print distance_values
-        #print 'compute_next_epsilon 90th percentile:', ntar
 
         new_epsilon = [ round(distance_values[ntar,ne],4) for ne in range(nepsilon) ]
         ret_epsilon = [0 for i in range(nepsilon)]
 
         # Set the next epsilon
         for ne in range(nepsilon):
-            if this_epsilon[ne] != new_epsilon[ne]:
+            if new_epsilon[ne] < this_epsilon[ne]:
                 ret_epsilon[ne] = new_epsilon[ne]
             else :
                 # This is an attempt to reduce epsilon even if the new and previous epsilon are equal
                 ret_epsilon[ne] = 0.95*new_epsilon[ne]
+
+        # print "new/ret epsilon:", new_epsilon, ret_epsilon
 
         # See if we are finished
         finished = True
