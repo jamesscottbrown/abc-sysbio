@@ -9,7 +9,7 @@
       </unitDefinition>
     </listOfUnitDefinitions>
     <listOfCompartments>
-      <compartment id="Cell" size="1e-15"/>
+      <compartment id="Cell" size="1"/>
     </listOfCompartments>
     <listOfSpecies>
       <species id="P" compartment="Cell" initialAmount="301" hasOnlySubstanceUnits="true"/>
