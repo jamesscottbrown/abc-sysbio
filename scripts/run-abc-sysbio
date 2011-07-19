@@ -18,6 +18,9 @@ from abcsysbio import checkInputArguments
 from abcsysbio import kernels
 from abcsysbio import euclidian
 
+import abcsysbio_parser
+from abcsysbio_parser import ParseAndWrite
+
 import sys
 sys.path.insert(0, ".")
 
@@ -186,17 +189,19 @@ def main():
 
     # Check the information is correct for simulation or inference
     modelCorrect = False
-    if usesbml == True : 
-        if( use_cuda == False):
-            abcsysbio.importSBML(info_new.source,info_new.type,info_new.name)
+    if usesbml == True :
+        integrationType = []
+        
+        if use_cuda == False:
+            # python 
+            for i in range(len(info_new.type)):
+                integrationType.append(info_new.type[i]+' Python')
         else:
-            import cudasim.SBMLParser
-            itype = info_new.type[:]
+            # CUDA
+            for i in range(len(info_new.type)):
+                integrationType.append(info_new.type[i]+' CUDA')
 
-            for i in range(len(itype)):
-                if itype[i] == "Gillespie" : itype[i] = "MJP"
-
-            cudasim.SBMLParser.importSBMLCUDA(info_new.source, itype, ModelName=info_new.name, method=None, outpath="./")
+        ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
 
         if simulate==False :
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
