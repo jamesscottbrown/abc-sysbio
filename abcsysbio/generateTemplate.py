@@ -93,7 +93,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
     out_file.write("</autoepsilon>\n\n")
 
     out_file.write("# OR\n")
-    out_file.write("# Series of epsilons. (Whitespace delimited list)\n\n")
+    out_file.write("# Series of epsilons. (Whitespace delimited list)\n")
     out_file.write("# Multiple epsilon schedules can be specified by giving additional vectors enclosed in <e2> </e2>, <e3> </e3> etc\n")
     out_file.write("# NOTE: the parser always reads them in order and ignores the tag value\n")
     out_file.write("<!-- <epsilon> -->\n")
@@ -168,7 +168,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
         out_file.write("<model"+repr(i+1)+">\n")
         out_file.write("<name> model"+repr(i+1)+" </name>\n<source> "+source[i]+" </source>\n\n")
         out_file.write("# type: the method used to simulate your model. ODE, SDE or Gillespie.\n")
-        out_file.write("<type> ODE </type>\n\n")
+        out_file.write("<type> SDE </type>\n\n")
 
         out_file.write("# Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.\n")
         out_file.write("# Otherwise, give a whitespace delimited list of fitting instrictions the same length as the dimensions of your data.\n")
@@ -275,7 +275,8 @@ def generateTemplate(source, filename, sumname, dataname=None):
                         if parameterId[k]==listOfRules[j].getVariable():
                             x=x+1
                             paramAsSpecies=paramAsSpecies+1
-                            out_file.write(repr(listOfParameter[k].getValue())+", ")
+                            #out_file.write(repr(listOfParameter[k].getValue())+", ")
+                            out_file.write(" <ic"+repr(x)+"> constant "+repr(listOfParameter[k].getValue())+" </ic"+repr(x)+">\n")
                             sum_file.write("S"+repr(x)+":\t"+listOfParameter[k].getId()+"\tparameter"+repr(k+1-comp)+"\t("+repr(listOfParameter[k].getValue())+") (parameter included in a rate rule and therefore treated as species)\n")
 
         out_file.write("</initial>\n\n")
