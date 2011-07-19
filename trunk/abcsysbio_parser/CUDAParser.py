@@ -1,4 +1,5 @@
 from Parser import Parser
+from libsbml import formulaToString
 import re
 
 class CUDAParser(Parser):
@@ -38,11 +39,17 @@ class CUDAParser(Parser):
         Parser.analyseModelStructure(self)
         for i in range(0, len(self.listOfReactions)):
             for n in range(0, self.numLocalParameters[i]):
-                if ((len(self.writer.parsedModel.parameterId) - self.comp) < 10):
+                self.parameterId.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getId())
+		if ((len(self.writer.parsedModel.parameterId) - self.comp) < 10):
                     self.writer.parsedModel.parameterId.append("parameter0" + repr(len(self.parameterId) - self.comp))
                 else:
                     self.writer.parsedModel.parameterId.append("parameter" + repr(len(self.parameterId) - self.comp))
-        
+        	name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()
+                new_name = 'parameter' + repr(len(self.parameterId) - self.comp)
+                node = self.sbmlModel.getReaction(i).getKineticLaw().getMath()
+                new_node = self.rename(node, name, new_name)
+                self.writer.parsedModel.kineticLaw[i] = formulaToString(new_node)
+
     def renameMathFunctions(self):
         self.mathPython.append('log10')
         self.mathPython.append('acos')
