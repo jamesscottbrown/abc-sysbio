@@ -15,6 +15,10 @@
       <species id="P" compartment="Cell" initialAmount="301" hasOnlySubstanceUnits="true"/>
       <species id="P2" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
     </listOfSpecies>
+    <listOfParameters>
+      <parameter id="c1" value="0.00166"/>
+      <parameter id="c2" value="0.2"/>
+    </listOfParameters>
     <listOfReactions>
       <reaction id="Dimerisation" reversible="false">
         <listOfReactants>
@@ -40,9 +44,6 @@
               <cn type="integer"> 2 </cn>
             </apply>
           </math>
-          <listOfParameters>
-            <parameter id="c1" value="0.00166"/>
-          </listOfParameters>
         </kineticLaw>
       </reaction>
       <reaction id="Dissociation" reversible="false">
@@ -60,9 +61,6 @@
               <ci> P2 </ci>
             </apply>
           </math>
-          <listOfParameters>
-            <parameter id="c2" value="0.2"/>
-          </listOfParameters>
         </kineticLaw>
       </reaction>
     </listOfReactions>
