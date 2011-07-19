@@ -1,16 +1,16 @@
 from ODEPythonWriter import ODEPythonWriter
 from GillespiePythonWriter import GillespiePythonWriter
 from SDEPythonWriter import SDEPythonWriter
-from OdeCUDAWriter import OdeCUDAWriter
-from SdeCUDAWriter import SdeCUDAWriter
+from ODECUDAWriter import OdeCUDAWriter
+from SDECUDAWriter import SdeCUDAWriter
 from GillespieCUDAWriter import GillespieCUDAWriter
 #from CWriter import CWriter
 from CandPythonParser import CandPythonParser
-from SdeAndGillespieCUDAParser import SdeAndGillespieCUDAParser
-from OdeCUDAParser import OdeCUDAParser
+from SDEAndGillespieCUDAParser import SdeAndGillespieCUDAParser
+from ODECUDAParser import OdeCUDAParser
 import re
 
-def parseAndWrite(source, integrationType, modelName = None, inputPath = "", outputPath = "", method = None):
+def ParseAndWrite(source, integrationType, modelName = None, inputPath = "", outputPath = "", method = None):
     
     """
     ***** args *****
