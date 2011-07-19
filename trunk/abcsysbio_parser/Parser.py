@@ -7,8 +7,8 @@ from CWriter import CWriter
 from SDEPythonWriter import SDEPythonWriter
 from ODEPythonWriter import ODEPythonWriter
 from GillespiePythonWriter import GillespiePythonWriter
-from SdeCUDAWriter import SdeCUDAWriter
-from OdeCUDAWriter import OdeCUDAWriter
+from SDECUDAWriter import SdeCUDAWriter
+from ODECUDAWriter import OdeCUDAWriter
 from GillespieCUDAWriter import GillespieCUDAWriter
 
 class Parser:
@@ -145,14 +145,8 @@ class Parser:
                     self.writer.parsedModel.stoichiometricMatrix[m][i] = -self.S1[m] + self.S2[m]
                 
                 for n in range(0, self.numLocalParameters[i]):
-                    self.parameterId.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getId())
                     self.writer.parsedModel.parameter.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getValue())
                     self.writer.parsedModel.listOfParameter.append(self.listOfReactions[i].getKineticLaw().getParameter(n))
-                    name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()
-                    new_name = 'parameter' + repr(len(self.parameterId) - self.comp)
-                    node = self.sbmlModel.getReaction(i).getKineticLaw().getMath()
-                    new_node = self.rename(node, name, new_name)
-                    self.writer.parsedModel.kineticLaw[i] = formulaToString(new_node)
                 
                 for n in range(0, self.comp):
                     name = self.parameterId[n]
@@ -202,7 +196,7 @@ class Parser:
             NAMES[0].append(self.writer.parsedModel.parameterId)
             NAMES[1].append(self.speciesId)
             NAMES[1].append(self.writer.parsedModel.speciesId)
-        
+
             for nam in range(0, 2):
                         
                 for i in range(0, len(NAMES[nam][0])):
