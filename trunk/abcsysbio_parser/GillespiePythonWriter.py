@@ -35,9 +35,9 @@ class GillespiePythonWriter(Writer):
         self.out_file.write("def Hazards((")
     
         for i in range(0,self.parsedModel.numSpecies):
-            if (self.parsedModel.species[i].getConstant() == False):
-                self.out_file.write(self.parsedModel.speciesId[i])
-                self.out_file.write(",")
+            #if (self.parsedModel.species[i].getConstant() == False):
+            self.out_file.write(self.parsedModel.speciesId[i])
+            self.out_file.write(",")
       
         self.out_file.write("),parameter):\n\n")  
         
@@ -45,10 +45,10 @@ class GillespiePythonWriter(Writer):
             self.out_file.write("\t"+self.parsedModel.parameterId[i]+"=parameter["+repr(i)+"]\n")
     
         counter = len(self.parsedModel.parameterId)
-        for i in range(0, self.parsedModel.numSpecies):
-            if (self.parsedModel.species[i].getConstant() == True):
-                self.out_file.write("\t"+self.parsedModel.speciesId[i]+"=parameter["+repr(counter)+"]\n")
-                counter = counter+1
+        #for i in range(0, self.parsedModel.numSpecies):
+            #if (self.parsedModel.species[i].getConstant() == True):
+            #    self.out_file.write("\t"+self.parsedModel.speciesId[i]+"=parameter["+repr(counter)+"]\n")
+            #    counter = counter+1
         
         self.out_file.write("\n")
     
@@ -70,21 +70,21 @@ class GillespiePythonWriter(Writer):
         for i in range(0, self.parsedModel.numReactions):
             self.out_file.write("def Reaction"+repr(i)+"((")
             for k in range(0,self.parsedModel.numSpecies):
-                if (self.parsedModel.species[k].getConstant() == False):
-                    self.out_file.write(self.parsedModel.speciesId[k])
-                    self.out_file.write(",")
+                #if (self.parsedModel.species[k].getConstant() == False):
+                self.out_file.write(self.parsedModel.speciesId[k])
+                self.out_file.write(",")
     
             self.out_file.write(")):\n\n")
     
             for k in range(0,self.parsedModel.numSpecies):
-                if (self.parsedModel.species[k].getConstant() == False):
-                    self.out_file.write("\t"+self.parsedModel.speciesId[k]+"_new="+self.parsedModel.speciesId[k]+"+("+str(self.parsedModel.stoichiometricMatrix[k][i])+")\n")
+                #if (self.parsedModel.species[k].getConstant() == False):
+                self.out_file.write("\t"+self.parsedModel.speciesId[k]+"_new="+self.parsedModel.speciesId[k]+"+("+str(self.parsedModel.stoichiometricMatrix[k][i])+")\n")
     
             self.out_file.write("\n\treturn(")
             for k in range(0,self.parsedModel.numSpecies):
-                if (self.parsedModel.species[k].getConstant() == False):
-                    self.out_file.write(self.parsedModel.speciesId[k]+"_new")
-                    self.out_file.write(",")
+                #if (self.parsedModel.species[k].getConstant() == False):
+                self.out_file.write(self.parsedModel.speciesId[k]+"_new")
+                self.out_file.write(",")
             self.out_file.write(")\n\n")
             
         self.out_file.write("#Dictionary of reactions\ndef defaultfunc():\n\tpass\n\ndef Switch():\n\tswitch = {\n")
@@ -97,9 +97,9 @@ class GillespiePythonWriter(Writer):
     
         self.out_file.write("def rules((")
         for i in range(0,self.parsedModel.numSpecies):
-                if (self.parsedModel.species[i].getConstant() == False):
-                    self.out_file.write(self.parsedModel.speciesId[i])
-                    self.out_file.write(",")
+                #if (self.parsedModel.species[i].getConstant() == False):
+                self.out_file.write(self.parsedModel.speciesId[i])
+                self.out_file.write(",")
         self.out_file.write("),(")
         for i in range(0,len(self.parsedModel.parameterId)):
             self.out_file.write(self.parsedModel.parameterId[i])
@@ -116,9 +116,9 @@ class GillespiePythonWriter(Writer):
     
         self.out_file.write("\n\treturn((")
         for i in range(0, self.parsedModel.numSpecies):
-            if (self.parsedModel.species[i].getConstant() == False):
-                self.out_file.write(self.parsedModel.speciesId[i])
-                self.out_file.write(",")
+            #if (self.parsedModel.species[i].getConstant() == False):
+            self.out_file.write(self.parsedModel.speciesId[i])
+            self.out_file.write(",")
     
         self.out_file.write("),(")
         for i in range(0,len(self.parsedModel.parameterId)):
@@ -128,9 +128,9 @@ class GillespiePythonWriter(Writer):
     
         self.out_file.write("def events((")
         for i in range(0,self.parsedModel.numSpecies):
-                if (self.parsedModel.species[i].getConstant() == False):
-                    self.out_file.write(self.parsedModel.speciesId[i])
-                    self.out_file.write(",")
+                #if (self.parsedModel.species[i].getConstant() == False):
+                self.out_file.write(self.parsedModel.speciesId[i])
+                self.out_file.write(",")
         self.out_file.write("),(")
         for i in range(0,len(self.parsedModel.parameterId)):
             self.out_file.write(self.parsedModel.parameterId[i])
@@ -152,9 +152,9 @@ class GillespiePythonWriter(Writer):
     
         self.out_file.write("\n\treturn((")
         for i in range(0, self.parsedModel.numSpecies):
-            if (self.parsedModel.species[i].getConstant() == False):
-                self.out_file.write(self.parsedModel.speciesId[i])
-                self.out_file.write(",")
+            #if (self.parsedModel.species[i].getConstant() == False):
+            self.out_file.write(self.parsedModel.speciesId[i])
+            self.out_file.write(",")
     
         self.out_file.write("),(")
         for i in range(0,len(self.parsedModel.parameterId)):
