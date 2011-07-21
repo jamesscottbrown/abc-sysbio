@@ -40,7 +40,7 @@
 
 # Internal timestep for solver.
 # Make this small for a stiff model.
-<dt> 0.01 </dt>
+<dt> 0.1 </dt>
 
 ######################## perturbation kernels : OPTIONAL (default uniform)
 
