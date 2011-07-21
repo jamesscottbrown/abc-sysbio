@@ -101,10 +101,10 @@ def checkInputABC(info_new , fname, custom_distance ):
             numParameters=numLocalParameters+numGlobalParameters
 
             species = model.getListOfSpecies()
-            for k in range(0, len(species)):
-                if (species[k].getConstant() == True):
-                    numParameters=numParameters+1
-                    numSpecies=numSpecies-1
+            #for k in range(0, len(species)):
+                #if (species[k].getConstant() == True):
+                #    numParameters=numParameters+1
+                #    numSpecies=numSpecies-1
 
             listOfRules = model.getListOfRules()
             for k in range (0, len(listOfParameter)):
@@ -240,10 +240,10 @@ def checkInputSimulation(info_new , fname):
             numParameters=numLocalParameters+numGlobalParameters
 
             species = model.getListOfSpecies()
-            for k in range(0, len(species)):
-                if (species[k].getConstant() == True):
-                    numParameters=numParameters+1
-                    numSpecies=numSpecies-1
+            #for k in range(0, len(species)):
+            #    if (species[k].getConstant() == True):
+            #        numParameters=numParameters+1
+            #        numSpecies=numSpecies-1
 
             if not info_new.nparameters[mod] == numParameters:
                 return False,"\nThe number of given parameters for model "+name[mod]+" is not correct!\n"
