@@ -144,7 +144,8 @@ class abcsmc:
             self.kernels.append([])
             for j in range(self.models[i].nparameters):
                 # kernel info will get set after first population
-                self.kernels[i].append( [kernel_type, 0, 0 ] ) 
+                if self.kernel_type == 1 : self.kernels[i].append( [kernel_type, -1, 1 ] ) 
+                if self.kernel_type == 2 : self.kernels[i].append( [kernel_type, 0, 1 ] ) 
 
         self.hits = []
         self.sampled = []
