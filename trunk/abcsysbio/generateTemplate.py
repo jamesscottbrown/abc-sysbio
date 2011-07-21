@@ -230,13 +230,13 @@ def generateTemplate(source, filename, sumname, dataname=None):
         numParameters=numLocalParameters+numGlobalParameters
         
         species = model.getListOfSpecies()
-        for k in range(0, len(species)):
-            if (species[k].getConstant() == True):
-                numParameters=numParameters+1
-                parameter.append(getSpeciesValue(species[k]))
-                parameterId.append(species[k].getId())
-                parameterId2.append('species'+repr(k+1))
-                numSpecies=numSpecies-1
+        ##for k in range(0, len(species)):
+            ##if (species[k].getConstant() == True):
+                ##numParameters=numParameters+1
+                ##parameter.append(getSpeciesValue(species[k]))
+                ##parameterId.append(species[k].getId())
+                ##parameterId2.append('species'+repr(k+1))
+                ##numSpecies=numSpecies-1
 
         sum_file.write("number of compartments: "+repr(NumCompartments)+"\n")
         sum_file.write("number of reactions: "+repr(NumReactions)+"\n")
@@ -263,11 +263,11 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
         x=0
         for k in range(0,len(species)):
-            if (species[k].getConstant() == False):
-                x=x+1
-                #out_file.write(repr(getSpeciesValue(species[k]))+", ")
-                out_file.write(" <ic"+repr(x)+"> constant "+repr(getSpeciesValue(species[k]))+" </ic"+repr(x)+">\n")
-                sum_file.write("S"+repr(x)+":\t"+species[k].getId()+"\tspecies"+repr(k+1)+"\t("+repr(getSpeciesValue(species[k]))+")\n")
+            ##if (species[k].getConstant() == False):
+            x=x+1
+            #out_file.write(repr(getSpeciesValue(species[k]))+", ")
+            out_file.write(" <ic"+repr(x)+"> constant "+repr(getSpeciesValue(species[k]))+" </ic"+repr(x)+">\n")
+            sum_file.write("S"+repr(x)+":\t"+species[k].getId()+"\tspecies"+repr(k+1)+"\t("+repr(getSpeciesValue(species[k]))+")\n")
         for k in range(0,len(listOfParameter)):
             if listOfParameter[k].getConstant()==False:
                 for j in range(0, len(listOfRules)):
