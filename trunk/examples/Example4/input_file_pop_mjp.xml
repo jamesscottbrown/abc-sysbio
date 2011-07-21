@@ -23,7 +23,7 @@
 # Multiple epsilon schedules can be specified by giving additional vectors enclosed in <e2> </e2>, <e3> </e3> etc
 # NOTE: the parser always reads them in order and ignores the tag value
 <epsilon>
- <e1> 20.0 15.0 12.0 10.0 </e1>
+ <e1> 20.0 15.0 12.0 </e1>
 </epsilon>
 
 ######################## particles
@@ -120,7 +120,7 @@
 # Otherwise, give a whitespace delimited list of fitting instrictions the same length as the dimensions of your data.
 # Use speciesN to denote the Nth species in your model. Simple arithmetic operations can be performed on the species from your model.
 # For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2
-<fit> None </fit>
+<fit> species1 </fit>
 
 # Priors on initial conditions and parameters:
 # one of 
@@ -131,6 +131,7 @@
 
 <initial>
  <ic1> constant 1.0 </ic1>
+ <ic2> constant 1.0 </ic2>
 </initial>
 
 <parameters>
@@ -138,7 +139,6 @@
 <parameter2> uniform 0.1  10.0 </parameter2>
 <parameter3> uniform 0.01 1.0  </parameter3>
 <parameter4> uniform 0.01 1.0  </parameter4>
-<parameter5> constant 1.0      </parameter5>
 </parameters>
 </model2>
 
