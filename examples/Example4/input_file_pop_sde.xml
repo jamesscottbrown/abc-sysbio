@@ -34,13 +34,13 @@
 
 # Beta is the number of times to simulate each sampled parameter set.
 # This is only applicable for models simulated using Gillespie and SDE
-<beta> 3 </beta>
+<beta> 1 </beta>
 
 ######################## dt
 
 # Internal timestep for solver.
 # Make this small for a stiff model.
-<dt> 0.01 </dt>
+<dt> 0.1 </dt>
 
 ######################## perturbation kernels : OPTIONAL (default uniform)
 
