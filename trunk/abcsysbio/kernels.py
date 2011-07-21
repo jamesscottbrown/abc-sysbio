@@ -15,6 +15,7 @@ def getKernel(kernel_type, kernel, population, weights):
     npar = population.shape[1]
   
     if pop_size == 1:
+        print "WARNING: getKernel : only one particle so adaptation is not possible"
         return kernel
 
     if kernel_type == 1:
