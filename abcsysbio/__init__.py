@@ -5,8 +5,6 @@
 
 from generateTemplate import generateTemplate
 from checkInputArguments import checkInputABC
-from SBMLparse import importSBML
-
 
 __all__ = [ 'GillespieAlgorithm',
             'sdeint',
