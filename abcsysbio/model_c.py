@@ -7,15 +7,15 @@ from ctypes import *
 def compile(name, integration):
 	integ = integration + "Solver"
 	libname = "lib"+name+"Model.so.1.0"
-	command = "cd /project/home/student3/Desktop/beata/abc-sysbio/src/; make MODEL=" + name+"Model" + " SOLVER=" + integ + " LIBNAME=" + libname
+	command = "cd /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src; make MODEL=" + name+"Model" + " SOLVER=" + integ + " LIBNAME=" + libname
 	
 	os.system(command)
-	return CDLL("/project/home/student3/Desktop/beata/abc-sysbio/src/"+libname)
+	return CDLL("/cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src"+libname)
 
 	
 class model:
 	# instantiation
- 	def __init__(self, name, nspecies, nparameters, prior, source, integration, fit, init, dt, beta, initstep, relativeError, absoluteError):
+ 	def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, initstep, relativeError, absoluteError):
 		gil=re.compile('Gillespie', re.I)
         	ode=re.compile('ODE', re.I)
         	euler=re.compile('Euler', re.I)
@@ -33,14 +33,20 @@ class model:
 		elif milstein.search(integration):
 			solverName = 'MilsteinSDE'		
 
+		self.name = name
 		self.nspecies = nspecies
-		self.nparameters = nparameters
- 		self.name = name
+
+		## combine the parameters with the species
+		self.kparameters = nparameters
+		self.nparameters = nparameters + nspecies
+        
 		self.prior = [x[:] for x in prior]
+		for x in x0prior:
+			self.prior.append( x[:] )
+
 		self.source = source
 		self.integration = solverName	
 		self.fit = fit 	
- 		self.init = init
  		self.dt = dt	
 		self.beta = beta 
 		self.initstep = initstep
@@ -181,12 +187,6 @@ class model:
 		output_arr_type = beta*(self.nspecies+1)*ntimepoints*c_double
 		output = output_arr_type()
   		
-		# set initial values; ctypes
-		init_arr_type = self.nspecies * c_double
-		cinit = init_arr_type()
-		for i in range (self.nspecies):      	
-			cinit[i]=self.init[i]
-		
 		#set timepoints; ctypes
 		tim_arr_type = ntimepoints * c_double
 		ctime = tim_arr_type() 
@@ -201,8 +201,14 @@ class model:
 			#set parameters; ctypes 
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
-			for i in range (self.nparameters):
+			for i in range (self.kparameters):
 				cparam[i]=p[ni][i]
+
+			# set initial values; ctypes
+			init_arr_type = self.nspecies * c_double
+			cinit = init_arr_type()
+			for i in range (self.kparameters,self.nparameters):      	
+				cinit[i]=p[ni][i]
 
 			self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime),cntimepoints, CNPARAMETERS, CNSPECIES, byref(output))
 			iterationNumber = 0
