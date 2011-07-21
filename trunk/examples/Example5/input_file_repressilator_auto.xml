@@ -9,7 +9,7 @@
 # Automatic epsilon schedule. Provide a vector of final epsilons and the alpha (defaults to 0.9)
 <autoepsilon>
 <finalepsilon> 20.0 </finalepsilon>
-<alpha> 0.5 </alpha>
+<alpha> 0.1 </alpha>
 </autoepsilon>
 
 # Population size
