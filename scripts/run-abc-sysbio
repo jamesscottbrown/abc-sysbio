@@ -202,14 +202,19 @@ def main():
     if usesbml == True :
         integrationType = []
         
-        if use_cuda == False:
-            # python 
-            for i in range(len(info_new.type)):
-                integrationType.append(info_new.type[i]+' Python')
-        else:
+        if use_cuda == True:
             # CUDA
             for i in range(len(info_new.type)):
                 integrationType.append(info_new.type[i]+' CUDA')
+        elif use_c == True :
+            # C
+            for i in range(len(info_new.type)):
+                    integrationType.append(info_new.type[i]+' C')
+        else:
+            # python 
+            for i in range(len(info_new.type)):
+                integrationType.append(info_new.type[i]+' Python')
+            
 
         ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
 
