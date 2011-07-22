@@ -10,7 +10,7 @@ def compile(name, integration):
 	##print "COMPILE:", name, libname
 
 	# add --quiet
-	command = "make -f /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src/makefile  MODEL=" + name+"Model" + " SOLVER=" + integ + " LIBNAME=" + libname
+	command = "make -f /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src/makefile  MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname
 	
 	os.system(command)
 	return CDLL(libname)
