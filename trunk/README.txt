@@ -1,5 +1,5 @@
 
-This is the distribution of the Python package abc-sysbio.
+ This is the distribution of the Python package abc-sysbio.
 abc-sysbio implements likelihood free parameter inference 
 and model selection in dynamical systems. It is designed 
 to work with both stochastic and deterministic models 
