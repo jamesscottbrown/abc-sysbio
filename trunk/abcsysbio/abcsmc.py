@@ -139,14 +139,21 @@ class abcsmc:
         self.modelKernel = modelKernel
         self.kernel_aux = [0 for i in range(0,nparticles)]
 
-        self.kernels = []
+        self.kernels = list()
+        # self.kernels is a list of length the number of models
+        # self.kernels[i] is a list of length 2 such that :
+        # self.kernels[i][0] contains the index of the non constant parameters for the model i
+        # self.kernels[i][1] contains the information required to build the kernel and given by the input_file
+        # self.kernels[i][2] is filled in during the kernelfn step
         for i in range(self.nmodel):
-            self.kernels.append([])
+            ind=list()
             for j in range(self.models[i].nparameters):
-                # kernel info will get set after first population
-                if self.kernel_type == 1 : self.kernels[i].append( [kernel_type, -1, 1 ] ) 
-                if self.kernel_type == 2 : self.kernels[i].append( [kernel_type, 0, 1 ] ) 
-
+                # get the list of parameters with non constant prior
+                if not(self.models[i].prior[j][0]==0): ind.append(j)
+            # kernel info will get set after first population
+            if self.kernel_type == 1 : self.kernels.append( [ind, 0, 0 ] ) 
+            if self.kernel_type == 2 : self.kernels.append( [ind, 0, 0 ] )
+        print 'kernels:', self.kernels
         self.hits = []
         self.sampled = []
         self.rate = []
@@ -584,7 +591,7 @@ class abcsmc:
                     #print reti[nn], self.parameters_prev[ p ][nn]
                     reti[nn] = self.parameters_prev[ p ][nn]
                 
-                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]] )
+                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type )
 
                 if self.debug == 2:print "\t\t\tsampled p prob:", prior_prob
                 if self.debug == 2:print "\t\t\tnew:", reti
@@ -641,8 +648,8 @@ class abcsmc:
                     # print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
-                        self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j] )
-                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j] )
+                        self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
+                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
 
                 if self.debug == 2: print "\tnumer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, self.margins_prev[this_model]
 
