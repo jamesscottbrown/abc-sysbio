@@ -33,7 +33,7 @@ class Parser:
                 self.writer = SdeCUDAWriter(sbmlFileName, modelName, inputPath, outputPath)
         
         elif(c.search(integrationType)):
-            self.writer = CWriter(sbmlFileName, modelName+'Model', inputPath, outputPath)
+            self.writer = CWriter(sbmlFileName, modelName, inputPath, outputPath)
             
         elif(py.search(integrationType)):
             if(gil.search(integrationType)):
