@@ -6,11 +6,14 @@ from ctypes import *
 # compilation step to create share object for a correct solver and model
 def compile(name, integration):
 	integ = integration + "Solver"
-	libname = "lib"+name+"Model.so.1.0"
-	command = "cd /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src; make MODEL=" + name+"Model" + " SOLVER=" + integ + " LIBNAME=" + libname
+	libname = "lib"+name+".so.1.0"
+	##print "COMPILE:", name, libname
+
+	# add --quiet
+	command = "make -f /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src/makefile  MODEL=" + name+"Model" + " SOLVER=" + integ + " LIBNAME=" + libname
 	
 	os.system(command)
-	return CDLL("/cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src"+libname)
+	return CDLL(libname)
 
 	
 class model:
@@ -22,6 +25,7 @@ class model:
         	heun=re.compile('Heun', re.I)
         	milstein=re.compile('Milstein', re.I)		
 
+		solverName = ""
 		if gil.search(integration):
 			solverName = 'Gillespie'
 		elif ode.search(integration):
@@ -32,6 +36,10 @@ class model:
 			solverName = 'HeunSDE'
 		elif milstein.search(integration):
 			solverName = 'MilsteinSDE'		
+		else:
+			print "C model : unrecognised integrator : ", solverName
+
+		print "C model:", solverName
 
 		self.name = name
 		self.nspecies = nspecies
@@ -45,7 +53,7 @@ class model:
 			self.prior.append( x[:] )
 
 		self.source = source
-		self.integration = solverName	
+		self.integration = solverName
 		self.fit = fit 	
  		self.dt = dt	
 		self.beta = beta 
@@ -77,12 +85,6 @@ class model:
 		output_arr_type = beta*(self.nspecies+1)*ntimepoints*c_double
 		output = output_arr_type()
   		
-		# set initial values; ctypes
-		init_arr_type = self.nspecies * c_double
-		cinit = init_arr_type()
-		for i in range (self.nspecies):      	
-			cinit[i]=self.init[i]
-	
 		#set timepoints; ctypes
 		tim_arr_type = ntimepoints * c_double
 		ctime = tim_arr_type() 
@@ -99,11 +101,19 @@ class model:
 		cabsoluteError = c_double(self.absoluteError)
 		crelativeError = c_double(self.relativeError)
    		for ni in range(n):
-			#set parameters; ctypes
+			#set parameters; ctypes 
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
-			for i in range (self.nparameters):
+			for i in range (self.kparameters):
 				cparam[i]=p[ni][i]
+
+			# set initial values; ctypes
+			init_arr_type = self.nspecies * c_double
+			cinit = init_arr_type()
+			j=0
+			for i in range (self.kparameters,self.nparameters):      	
+				cinit[j]=p[ni][i]
+				j += 1
 
   			dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime), cntimepoints, CNPARAMETERS, CNSPECIES, cinitstep, cabsoluteError, crelativeError, byref(output))
 				
@@ -135,12 +145,6 @@ class model:
 		output_arr_type = beta*(self.nspecies+1)*ntimepoints*c_double
 		output = output_arr_type()
   		
-		# set initial values; ctypes
-		init_arr_type = self.nspecies * c_double
-		cinit = init_arr_type()
-		for i in range (self.nspecies):      	
-			cinit[i]=self.init[i]
-		
 		#set timepoints; ctypes
 		tim_arr_type = ntimepoints * c_double
 		ctime = tim_arr_type() 
@@ -157,8 +161,17 @@ class model:
 			#set parameters; ctypes 
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
-			for i in range (self.nparameters):
+			for i in range (self.kparameters):
 				cparam[i]=p[ni][i]
+
+			# set initial values; ctypes
+			init_arr_type = self.nspecies * c_double
+			cinit = init_arr_type()
+			j=0
+			for i in range (self.kparameters,self.nparameters):      	
+				cinit[j]=p[ni][i]
+				j += 1
+				
 			## double* initialValues, double* parameters, int beta, double* timepoints, int ntimepoints, double dt, NPARAMETERS, NSPECIES
   			dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime),cdt,cntimepoints, CNPARAMETERS, CNSPECIES, byref(output))
 			iterationNumber = 0
@@ -207,8 +220,10 @@ class model:
 			# set initial values; ctypes
 			init_arr_type = self.nspecies * c_double
 			cinit = init_arr_type()
+			j=0
 			for i in range (self.kparameters,self.nparameters):      	
-				cinit[i]=p[ni][i]
+				cinit[j]=p[ni][i]
+				j += 1
 
 			self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime),cntimepoints, CNPARAMETERS, CNSPECIES, byref(output))
 			iterationNumber = 0
