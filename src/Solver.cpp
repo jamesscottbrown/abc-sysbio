@@ -64,7 +64,7 @@ void Solver::run() {
 	for (iterationNumber = 0; iterationNumber < nbOfIterations; ++iterationNumber) {
 		solve();
 	}
-	storeDataInFile();
+	//storeDataInFile();
 }
 
 void Solver::setInitialValues() {
