@@ -88,7 +88,7 @@ class CWriter(Writer):
                 self.hppOutputFile.write("(")
                 self.hppOutputFile.write("\tdouble\t" + self.parsedModel.functionArgument[i][0])
                 
-                for j in range(1, self.listOfFunctions[i].getNumArguments()):
+                for j in range(1, self.parsedModel.listOfFunctions[i].getNumArguments()):
                    self.hppOutputFile.write(",")
                    self.hppOutputFile.write("double" + self.parsedModel.functionArgument[i][j])
                 self.hppOutputFile.write(");\n")
