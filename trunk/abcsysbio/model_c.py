@@ -39,11 +39,12 @@ class model:
 		else:
 			print "C model : unrecognised integrator : ", solverName
 
-		print "C model:", solverName
-
 		self.name = name
 		self.nspecies = nspecies
 
+		##self.seed = numpy.random.randint(low=1, high=4294967296)
+		##print "C model:", solverName, self.seed
+		
 		## combine the parameters with the species
 		self.kparameters = nparameters
 		self.nparameters = nparameters + nspecies
@@ -116,23 +117,13 @@ class model:
 				j += 1
 
   			dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime), cntimepoints, CNPARAMETERS, CNSPECIES, cinitstep, cabsoluteError, crelativeError, byref(output))
-				
-			iterationNumber = 0
-			specieNb = 0
-			timepoint = 0
-			for i in range(beta*(self.nspecies+1)*ntimepoints):
-					if(i<ntimepoints):
-						pass				
-					else:
-						if(i>ntimepoints and (i-ntimepoints)%(ntimepoints*self.nspecies)==0):
-							iterationNumber = iterationNumber + 1
-							specieNb = 0
-						if(i>ntimepoints and i%ntimepoints==0):
-							specieNb = specieNb + 1
-							timepoint = 0
-	
-						ret[ni][iterationNumber][timepoint][specieNb] = output[i]
-						timepoint = timepoint + 1
+
+			count = 0
+			for j in range(beta):
+				for h in range(self.nspecies):
+					for k in range(ntimepoints):
+						ret[ni][j][k][h] = output[count]
+						count += 1
   		return ret
 	
 
@@ -174,22 +165,13 @@ class model:
 				
 			## double* initialValues, double* parameters, int beta, double* timepoints, int ntimepoints, double dt, NPARAMETERS, NSPECIES
   			dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime),cdt,cntimepoints, CNPARAMETERS, CNSPECIES, byref(output))
-			iterationNumber = 0
-			specieNb = 0
-			timepoint = 0
-			for i in range(beta*(self.nspecies+1)*ntimepoints):
-				if(i<ntimepoints):
-					pass				
-				else:
-					if(i>ntimepoints and (i-ntimepoints)%(ntimepoints*self.nspecies)==0):
-						iterationNumber = iterationNumber + 1
-						specieNb = 0
-					if(i>ntimepoints and i%ntimepoints==0):
-						specieNb = specieNb + 1
-						timepoint = 0
 
-					ret[ni][iterationNumber][timepoint][specieNb] = output[i]
-					timepoint = timepoint + 1
+			count = 0
+			for j in range(beta):
+				for h in range(self.nspecies):
+					for k in range(ntimepoints):
+						ret[ni][j][k][h] = output[count]
+						count += 1
   		return ret
        	
   	def simulate_gillespie(self, p, t, n, beta):
@@ -210,6 +192,8 @@ class model:
 		cntimepoints = c_int(ntimepoints)
 		CNPARAMETERS = c_int(self.nparameters)
 		CNSPECIES = c_int(self.nspecies)
+		##print "info:", self.name, ntimepoints, beta, self.nparameters, self.nspecies
+
 		for ni in range(n):	
 			#set parameters; ctypes 
 			par_arr_type = self.nparameters * c_double				
@@ -226,23 +210,13 @@ class model:
 				j += 1
 
 			self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime),cntimepoints, CNPARAMETERS, CNSPECIES, byref(output))
-			iterationNumber = 0
-			specieNb = 0
-			timepoint = 0
-			for i in range(beta*(self.nspecies+1)*ntimepoints):
-				if(i<ntimepoints):
-					pass				
-				else:
-					if(i>ntimepoints and (i-ntimepoints)%(ntimepoints*self.nspecies)==0):
-						iterationNumber = iterationNumber + 1
-						specieNb = 0
-					if(i>ntimepoints and i%ntimepoints==0):
-						specieNb = specieNb + 1
-						timepoint = 0
 
-					ret[ni][iterationNumber][timepoint][specieNb] = output[i]
-					timepoint = timepoint + 1
-
+			count = 0
+			for j in range(beta):
+				for h in range(self.nspecies):
+					for k in range(ntimepoints):
+						ret[ni][j][k][h] = output[count]
+						count += 1
   		return ret
 
 
