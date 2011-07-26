@@ -33,7 +33,7 @@ solver : solver_base
 	g++ $(CXXFLAGS) -c $(DIR)/$(SOLVER).cpp -o $(SOLVER).o $(INCLUDES)
 
 library: model solver_base sde_solver_base solver
-	g++ $(CXXFLAGS) -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) ChildModel.o Solver.o $(SOLVER).o $(LIBS)
+	g++ $(CXXFLAGS) -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) ChildModel.o Solver.o SDESolver.o $(SOLVER).o $(LIBS)
 
 cleanup :
 	rm ChildModel.cpp ChildModel.hpp ChildModel.o Solver.o $(SOLVER).o
