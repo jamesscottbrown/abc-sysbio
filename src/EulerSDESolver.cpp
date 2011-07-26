@@ -29,7 +29,7 @@ extern "C" {
     // Loop over output from the solver
     int count=0;
     for (int i=0; i<cbeta; i++){
-      	for(int k=0; k<NSPECIES+1; k++){
+      	for(int k=1; k<NSPECIES+1; k++){
 		for(int j=0; j<cntimepoints; j++){
 			output[count] = solver.output[i][j][k];
 			count++;

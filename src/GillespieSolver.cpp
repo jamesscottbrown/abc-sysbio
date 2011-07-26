@@ -30,10 +30,10 @@ extern "C" {
    
     int count=0;
     for (int i=0; i<cbeta; i++){
-      for(int k=0; k<NSPECIES_INTERNAL+1; k++){
+      for(int k=1; k<NSPECIES_INTERNAL+1; k++){ // skip the time values
 	for(int j=0; j<cntimepoints; j++){
 	  output[count] = (double)solver.output[i][j][k];
-	  
+	  //cout << i << "," << j << "," << k << "," << count << "\t" << output[count] << endl;
 	  count++;
 	}
       }
