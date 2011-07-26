@@ -144,16 +144,22 @@ class abcsmc:
         # self.kernels[i] is a list of length 2 such that :
         # self.kernels[i][0] contains the index of the non constant parameters for the model i
         # self.kernels[i][1] contains the information required to build the kernel and given by the input_file
+        kernel_option=list()
+        for i in range(self.nmodel):
+            if self.kernel_type==4:
+                kernel_option.append(int(nparticles/4))
+            else:
+                kernel_option.append(0)
         # self.kernels[i][2] is filled in during the kernelfn step
+        
         for i in range(self.nmodel):
             ind=list()
             for j in range(self.models[i].nparameters):
                 # get the list of parameters with non constant prior
                 if not(self.models[i].prior[j][0]==0): ind.append(j)
             # kernel info will get set after first population
-            if self.kernel_type == 1 : self.kernels.append( [ind, 0, 0 ] ) 
-            if self.kernel_type == 2 : self.kernels.append( [ind, 0, 0 ] )
-        print 'kernels:', self.kernels
+            self.kernels.append( [ind, kernel_option[i], 0 ] ) 
+	print 'kernel_type:', self.kernel_type
         self.hits = []
         self.sampled = []
         self.rate = []
@@ -402,8 +408,8 @@ class abcsmc:
                 for it in range(len(this_model_index)):
                     this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
                     this_weights[it] = self.weights_prev[ this_model_index[it] ]
-            
-                self.kernels[mod] = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )[:]
+            	tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )
+                self.kernels[mod] = tmp_kernel[:]
 
         #
         # Kernel auxilliary information
