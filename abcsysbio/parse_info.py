@@ -13,6 +13,9 @@ re_prior_logn=re.compile('lognormal')
 # implemented kernels
 re_kernel_uniform=re.compile('uniform')
 re_kernel_normal=re.compile('normal')
+re_kernel_mvnormal=re.compile('multiVariateNormal')
+re_kernel_mvnormalKN=re.compile('multiVariateNormalKNeigh')
+re_kernel_mvnormalOCM=re.compile('multiVariateNormalOCM')
 
 # True/False
 re_true=re.compile('True')
@@ -321,8 +324,14 @@ class algorithm_info:
                 self.kernel = 1
             elif re_kernel_normal.match( data ):
                 self.kernel = 2
+            elif re_kernel_mvnormal.match( data ):
+                self.kernel = 3
+            elif re_kernel_mvnormalKN.match( data ):
+                self.kernel = 4
+            elif re_kernel_mvnormalOCM.match( data ):
+                self.kernel = 5
             else:
-                print "\n#################\n<kernel> must be one of uniform, normal  so I am going to ignore your argument"
+                print "\n#################\n<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or multivariateNormalOCM  so I am going to ignore your argument"
         except:
             null = 0
 
