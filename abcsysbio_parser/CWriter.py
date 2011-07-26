@@ -89,8 +89,8 @@ class CWriter(Writer):
                 self.hppOutputFile.write("\tdouble\t" + self.parsedModel.functionArgument[i][0])
                 
                 for j in range(1, self.parsedModel.listOfFunctions[i].getNumArguments()):
-                   self.hppOutputFile.write(",")
-                   self.hppOutputFile.write("double" + self.parsedModel.functionArgument[i][j])
+                   self.hppOutputFile.write(", ")
+                   self.hppOutputFile.write("double " + self.parsedModel.functionArgument[i][j])
                 self.hppOutputFile.write(");\n")
             
             self.hppOutputFile.write('\n};\n')
@@ -148,8 +148,8 @@ class CWriter(Writer):
         
             for i in range(0, self.parsedModel.numReactions):
                 for k in range(0, self.parsedModel.numSpecies):
-                    if (self.parsedModel.species[k].getConstant() == False):
-                        self.cppOutputFile.write("\n\t\t (*pstoichiometricMatrix)(" + repr(k) + "+1," + repr(i) + "+1)= " + str(self.parsedModel.stoichiometricMatrix[k][i]) + ";")    
+                    ##if (self.parsedModel.species[k].getConstant() == False):
+                    self.cppOutputFile.write("\n\t\t (*pstoichiometricMatrix)(" + repr(k) + "+1," + repr(i) + "+1)= " + str(self.parsedModel.stoichiometricMatrix[k][i]) + ";")    
             self.cppOutputFile.write("\n\t}")
         
     def writeGetHazardFunction(self,p1,p2):
