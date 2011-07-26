@@ -209,7 +209,9 @@ def main():
         elif use_c == True :
             # C
             for i in range(len(info_new.type)):
-                    integrationType.append(info_new.type[i]+' C')
+                if info_new.type[i] == "SDE":
+                    info_new.type[i] = "EulerSDE"
+                integrationType.append(info_new.type[i]+' C')
         else:
             # python 
             for i in range(len(info_new.type)):
