@@ -128,8 +128,13 @@ void GillespieSolver::solve() {
 			//1- We change the concentrations and parameters depending on the time and rules and events
 			model->applyRulesAndEvents(concentrations, parameters, time);
 
+			//cout << "conc:\t" << concentrations[0] << endl; 
+
 			//2- We compute the hazards for the current concentrations and parameters
 			hazards = model->getHazards(concentrations, parameters);
+			
+			// Check they are positive
+			for(int k=0;k<model->NREACTIONS; ++k) hazards(k+1) = hazards(k+1) < 0 ? 0 : hazards(k+1);
 
 			//3- We choose one reaction for this step
 			int chosenHazard = chooseHazard(hazards);
