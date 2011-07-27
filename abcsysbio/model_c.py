@@ -7,11 +7,23 @@ from ctypes import *
 def compile(name, integration):
 	integ = integration + "Solver"
 	libname = "lib"+name+".so.1.0"
-	##print "COMPILE:", name, libname
+
+	ABC_GSL_LIB="/cluster/soft/Linux_2.6_64/lib"
+	ABC_GSL_INC="/cluster/soft/Linux_2.6_64/include"
+	ABC_NM_LIB="/cluster/home/cbarnes/soft/code/newmat11/"
+	ABC_NM_INC="/cluster/home/cbarnes/soft/code/newmat11/"
+	ABC_SRC_DIR=os.path.join(os.path.split(os.path.realpath(__file__))[0],'../src')
 
 	# add --quiet
-	command = "make -f /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src/makefile  MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname
-	
+	command = "make -f /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src/makefile"
+	command = command + " --quiet MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
+	command = command + "ABC_GSL_LIB=" + ABC_GSL_LIB + " "
+	command = command + "ABC_GSL_INC=" + ABC_GSL_INC + " "
+	command = command + "ABC_NM_LIB=" + ABC_NM_LIB + " "
+	command = command + "ABC_NM_INC=" + ABC_NM_INC + " "
+	command = command + "ABC_SRC_DIR=" + ABC_SRC_DIR + " "
+
+	print "COMPILE:", command
 	os.system(command)
 	return CDLL(libname)
 
