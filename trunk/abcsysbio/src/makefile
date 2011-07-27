@@ -1,11 +1,13 @@
 ##export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cluster/soft/Linux_2.6_64/lib:/cluster/home/cbarnes/soft/code/newmat11/:.
 
-LIBS1= -L$(ABC_GSL_LIB) -lgsl -lgslcblas -lrt
-LIBS2= -L$(ABC_NM_LIB) -lnewmat
+LIBS1= -L$(ABC_GSL_LIB) -lgsl -lgslcblas -lrt 
+LIBS2= -L$(ABC_NM_LIB) -lnewmat 
 LIBS= $(LIBS1) $(LIBS2)
+LOCS= -Wl,-R$(ABC_GSL_LIB),-R$(ABC_NM_LIB),-R.
+
 INCLUDES= -I. -I$(ABC_SRC_DIR) -I$(ABC_GSL_INC) -I$(ABC_NM_INC)
 
-CXXFLAGS= -fPIC -w
+CXXFLAGS= -fPIC -w -O2
 
 #all :  model solver_base sde_solver_base library cleanup
 all : library
@@ -31,7 +33,7 @@ solver : solver_base
 	g++ $(CXXFLAGS) -c $(ABC_SRC_DIR)/$(SOLVER).cpp -o $(SOLVER).o $(INCLUDES)
 
 library: model solver_base sde_solver_base solver
-	g++ $(CXXFLAGS) -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) ChildModel.o Solver.o SDESolver.o $(SOLVER).o $(LIBS)
+	g++ $(CXXFLAGS) -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) ChildModel.o Solver.o SDESolver.o $(SOLVER).o $(LIBS) $(LOCS)
 
 cleanup :
 	rm ChildModel.cpp ChildModel.hpp ChildModel.o Solver.o $(SOLVER).o $(LIBNAME)
