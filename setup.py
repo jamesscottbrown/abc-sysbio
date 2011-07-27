@@ -1,23 +1,24 @@
-
+import os, sys
 from distutils.core import setup
-from distutils.command.install_data import install_data
+from distutils.command.install import install as _install
 
-class post_install(install_data):
+# extend the install class
+class install(_install):
     def run(self):
-        # Call parent 
-        install_data.run(self)
-        # Execute commands
-        print "Running"
-
-
+        _install.run(self)
+        v = sys.version_info
+        src_dir = self.install_lib + "abcsysbio/src"
+        print "src_dir", src_dir 
+        comm = "cd " + src_dir +"; chmod +x install_nm.sh; ./install_nm.sh"
+        os.system(comm)
 
 setup(name='abc-sysbio',
       version='2.01',
       description='Approximate Bayesian Computation for systems biology',
 
-      author='Chris Barnes, Juliane Liepe, Erika Cule',
+      author='Chris Barnes',
 
-      author_email='christopher.barnes@imperial.ac.uk,juliane.liepe08@imperial.ac.uk',
+      author_email='christopher.barnes@imperial.ac.uk',
 
       url='http://abc-sysbio.sourceforge.net/',
 
@@ -26,9 +27,9 @@ setup(name='abc-sysbio',
       scripts=['scripts/run-abc-sysbio', 
                'scripts/abc-sysbio-sbml-sum'],
 
-      package_data={ 'abcsysbio': ['MersenneTwister.dat','MersenneTwister.cu','cuLsoda_all.cu'] },
+      package_data={ 'abcsysbio': ['src/*'] },
 
-      cmdclass={"install_data": post_install},
+      cmdclass={"install": install},
       
       requires=['libSBML', 
                 'matplotlib',
