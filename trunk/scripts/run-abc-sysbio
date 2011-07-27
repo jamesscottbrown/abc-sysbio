@@ -33,27 +33,22 @@ def printOptions():
 
     print "\n Input options:"
     print "-i\t--infile\t declaration of the input file. This input file has to be provided to run the program!"
-    print "-pm\t--pythonmodel\t do not import model from sbml intead use .py file"
+    print "-lc\t-localcode\t do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file"
 
     print "\n Algorithmic options:"
     print "-sd\t--setseed\t seed the random number generator in numpy with an integer eg -sd=2, --setseed=2"
-    print "-rm\t--runmode\t integer specifying standard (0), fast (1), cuda (2) eg -rm=2, --runmode=2. default 0."
-    print "-cb\t--cudablocks\t number of thread blocks to run eg -cb=4, --cudablocks=4"
-    print "-ct\t--cudathreads\t number of threads per thread block to run eg -ct=512, --cudathreads=512"
-    print "-cc\t--cudacode\t cuda application code eg -cc=app.txt, --cudacode=app.txt"
-    print "-mt\t--mtdata\t path to Mersenne Twister data file eg -mt=MersenneTwister.dat"
     print "-tm\t--timing\t print timing information"
-
+    print "--c++\tuse C++ implementation"
+    print "-cu\t--cuda\tuse CUDA implementation"
+    
     print "\n Output options:"  
     print "-of\t--outfolder\t write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)"
     print "-f\t--fulloutput\t print epsilon, sampling steps and acceptence rates after each population"
     print "-s\t--save\t\t no backup after each population"
 
     print "\n Simulate options:"
-    print "-y\t--synthetic\t print a synthetic data set at the timepoints given in the input file, using initial conditions and constant parameters"
     print "-S\t--simulate\t simulate the model over the range of timepoints, using initial conditions and constant parameters"
-    print "-sf\t--simfile\t output the simulated or synthetic data to a file, eg -sf=out.txt, --simfile=out.txt"
-
+    
     print "\n Plotting options:"
     print "-d\t--diagnostic\t no printing of diagnostic plots"
     print "-t\t--timeseries\t no plotting of simulation results after each population"
@@ -74,13 +69,8 @@ def main():
     full=False
     usesbml=True
     seed = None
-    runmode = 0
     timing = False
-    nblock = None
-    nthread = None
     fname = "_results_"
-    app_file = "app.txt"
-    simfile = "sim.txt"
     custom_kernel = False
     custom_distance = False
     use_cuda = False
@@ -102,10 +92,8 @@ def main():
             elif option == 'fulloutput': full=True
 	    elif option == 'localcode' : usesbml = False 
             elif option[0:8] == 'setseed=' : seed = int( option[8:] )
-            elif option[0:8] == 'runmode=' : runmode = int( option[8:] )
             elif option[0:10] == 'outfolder=' : fname = option[10:]
             elif option[0:9] == 'cudacode=' : app_file = option[9:]
-            elif option[0:8] == 'simfile=' : simfile = option[8:]
 	    elif option == 'timing' : timing = True 
 	    elif option == 'custk' : custom_kernel = True
 	    elif option == 'custd' : custom_distance = True
@@ -132,15 +120,9 @@ def main():
             elif option == 'S': simulate=True
             elif option == 'f': full=True
             elif option == 'cu': use_cuda = True
-            elif option == 'y':
-                simulate=True
-                synthetic=True
 	    elif option == 'lc' : usesbml = False
             elif option[0:3] == 'sd=' : seed = int( option[3:] )
-            elif option[0:3] == 'rm=' : runmode = int( option[3:] )
             elif option[0:3] == 'of=' : fname = option[3:]
-            elif option[0:3] == 'cc=' : app_file = option[3:]
-            elif option[0:3] == 'sf=' : simfile = option[3:]
             elif option == 'tm' : timing = True
             elif option == 'i': 
                 input_file=sys.argv[i+1]
