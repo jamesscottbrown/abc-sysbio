@@ -8,14 +8,16 @@ def compile(name, integration):
 	integ = integration + "Solver"
 	libname = "lib"+name+".so.1.0"
 
-	ABC_GSL_LIB="/cluster/soft/Linux_2.6_64/lib"
-	ABC_GSL_INC="/cluster/soft/Linux_2.6_64/include"
+	ABC_GSL_LIB=os.getenv("GSL_LIB")
+	ABC_GSL_INC=os.getenv("GSL_INC")
+
+	if ABC_GSL_LIB == None: ABC_GSL_LIB="/usr/local/lib"
+	if ABC_GSL_INC == None: ABC_GSL_INC="/usr/local/include"
+
 	ABC_NM_LIB=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
 	ABC_NM_INC=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
 	ABC_SRC_DIR=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/')
 
-
-	# add --quiet
 	command = "make -f " + ABC_SRC_DIR + "makefile"
 	command = command + " --quiet MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
 	command = command + "ABC_GSL_LIB=" + ABC_GSL_LIB + " "
