@@ -33,13 +33,13 @@ def printOptions():
 
     print "\n Input options:"
     print "-i\t--infile\t declaration of the input file. This input file has to be provided to run the program!"
-    print "-lc\t-localcode\t do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file"
+    print "-lc\t--localcode\t do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file"
 
     print "\n Algorithmic options:"
     print "-sd\t--setseed\t seed the random number generator in numpy with an integer eg -sd=2, --setseed=2"
     print "-tm\t--timing\t print timing information"
-    print "--c++\tuse C++ implementation"
-    print "-cu\t--cuda\tuse CUDA implementation"
+    print "--c++\t\t\t use C++ implementation"
+    print "-cu\t--cuda\t\t use CUDA implementation"
     
     print "\n Output options:"  
     print "-of\t--outfolder\t write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)"
@@ -47,7 +47,7 @@ def printOptions():
     print "-s\t--save\t\t no backup after each population"
 
     print "\n Simulate options:"
-    print "-S\t--simulate\t simulate the model over the range of timepoints, using initial conditions and constant parameters"
+    print "-S\t--simulate\t simulate the model over the range of timepoints, using paramters sampled from the priors"
     
     print "\n Plotting options:"
     print "-d\t--diagnostic\t no printing of diagnostic plots"
