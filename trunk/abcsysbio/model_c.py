@@ -10,12 +10,13 @@ def compile(name, integration):
 
 	ABC_GSL_LIB="/cluster/soft/Linux_2.6_64/lib"
 	ABC_GSL_INC="/cluster/soft/Linux_2.6_64/include"
-	ABC_NM_LIB="/cluster/home/cbarnes/soft/code/newmat11/"
-	ABC_NM_INC="/cluster/home/cbarnes/soft/code/newmat11/"
-	ABC_SRC_DIR=os.path.join(os.path.split(os.path.realpath(__file__))[0],'../src')
+	ABC_NM_LIB=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
+	ABC_NM_INC=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
+	ABC_SRC_DIR=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/')
+
 
 	# add --quiet
-	command = "make -f /cluster/home/cbarnes/dev/abc-sysbio-area/abc-sysbio/trunk/src/makefile"
+	command = "make -f " + ABC_SRC_DIR + "makefile"
 	command = command + " --quiet MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
 	command = command + "ABC_GSL_LIB=" + ABC_GSL_LIB + " "
 	command = command + "ABC_GSL_INC=" + ABC_GSL_INC + " "
