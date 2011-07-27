@@ -30,7 +30,7 @@ def getKernel(kernel_type, kernel, population, weights):
     if kernel_type == 1:
         tmp=list()
         # component-wise uniform kernels
-        for param in range(npar):
+	for param in kernel[0]:
             minimum=min(population[:,param])
             maximum=max(population[:,param])
             scale=(maximum-minimum)
@@ -39,7 +39,7 @@ def getKernel(kernel_type, kernel, population, weights):
     elif kernel_type == 2:
         # component-wise normal kernels
         tmp=list()
-        for param in range(npar):
+	for param in kernel[0]:
             s2w = statistics.wtvar(population[:,param], weights, method = "R")
             tmp.append(2*s2w)
             kernel[2]=tmp
@@ -103,12 +103,16 @@ def perturbParticle(params, priors, kernel, kernel_type):
     np = len( priors )
     prior_prob = 1
     if kernel_type==1:
+	ind=0
         for n in kernel[0]:
-            params[n] = params[n] + rnd.uniform(low=kernel[2][n][0],high=kernel[2][n][1])
+            params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
+	    ind+=1
 
     if kernel_type==2:
+	ind=0
         for n in kernel[0]:
-            params[n] = params[n] + rnd.normal(params[n],kernel[2][n])
+            params[n] = rnd.normal(params[n],numpy.sqrt(kernel[2][ind]))
+	    ind+=1
 
     if kernel_type==3:
 	mean=list()
@@ -153,7 +157,7 @@ def perturbParticle(params, priors, kernel, kernel_type):
 def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type):
     if kernel_type==1:
         prob=1
-        for n in kernel[0]:
+        for n in range(len(kernel[0])):
             scale = (kernel[2][n][1]-kernel[2][n][0])/2.0
             scale1 = max( (params0[n] - scale), priors[n][1])
             scale2 = min( (params0[n] + scale), priors[n][2])
@@ -163,9 +167,9 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 
     elif kernel_type==2:
         prob=1
-        for n in kernel[0]: 
+        for n in range(len(kernel[0])): 
             mean = params0[n]
-            scale = kernel[2][n]
+            scale = numpy.sqrt(kernel[2][n])
             kern = statistics.getPdfGauss(mean,scale,params[n])
             kern = kern/auxilliary[n]
             prob=prob*kern
@@ -204,7 +208,7 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
         nparam = len(this_prior)
         if kernel_type == 2:
             ret.append( [1.0 for n in range(nparam)] )
-            for n in range(nparam):
+            for n in range(len(this_kernel[0])):
                 if not(this_prior[n][0]==0):
                     mean = parameters[k][n]
                     if len(this_kernel[2])==1:
