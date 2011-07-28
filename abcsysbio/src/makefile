@@ -10,7 +10,7 @@ INCLUDES= -I. -I$(ABC_SRC_DIR) -I$(ABC_GSL_INC) -I$(ABC_NM_INC)
 CXXFLAGS= -fPIC -w -O2
 
 #all :  model solver_base sde_solver_base library cleanup
-all : library
+all : prep library cleanup
 
 debug:
 	echo "MAKEFILE DEBUG"
@@ -36,5 +36,7 @@ library: model solver_base sde_solver_base solver
 	g++ $(CXXFLAGS) -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) ChildModel.o Solver.o SDESolver.o $(SOLVER).o $(LIBS) $(LOCS)
 
 cleanup :
-	rm ChildModel.cpp ChildModel.hpp ChildModel.o Solver.o $(SOLVER).o $(LIBNAME)
+	rm ChildModel.cpp ChildModel.hpp ChildModel.o Solver.o SDESolver.o $(SOLVER).o
 
+prep :
+	rm $(LIBNAME)
