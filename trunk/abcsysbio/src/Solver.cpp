@@ -15,7 +15,7 @@ Solver::Solver(double* ainitialValues, double* aparameters, ChildModel* mmodel,
 
 	nbOfIterations = inbOfIterations;
 	timepoints = vtimepoints;
-	out.open(sfilename.c_str(), ios::out);
+	//out.open(sfilename.c_str(), ios::out);
 	output = new double**[nbOfIterations];
 
 	for (int i = 0; i < nbOfIterations; i++) {
