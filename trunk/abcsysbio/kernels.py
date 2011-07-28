@@ -223,9 +223,10 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
     ret = []
 
     for k in range(nparticles):
+        print 'model:', models[k]
         this_prior = model_objs[models[k]].prior
         this_kernel = kernel[models[k]]
-        nparam = len(this_prior)
+        nparam = model_objs[models[k]].nparameters
         if kernel_type == 2:
             ret.append( [1.0 for n in range(nparam)] )
 	    # n refers to the index of the parameter (integer between 0 and np-1)
@@ -233,12 +234,15 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
 	    ind=0
 	    if not(len(this_kernel[2])==1):
 	        for n in this_kernel[0]:
-		    if this_prior[n][0]==1:
+                    # if prior is uniform
+		    if this_prior[n][0]==2:
 		    	mean = parameters[k][n]
                         scale = numpy.sqrt(this_kernel[2][ind])
                         ret[k][n] = norm.cdf(this_prior[n][2],mean,scale) - norm.cdf(this_prior[n][1],mean,scale)
-		    if this_prior[n][0]==2:
+                    # if prior is normal, no truncation required
+		    if this_prior[n][0]==1:
 			ret[k][n] = 1
+                    # if prior is lognormal, trucation for the negative values
 		    if this_prior[n][0]==3:
 		    	mean = parameters[k][n]
                         scale = numpy.sqrt(this_kernel[2][ind])
@@ -249,10 +253,10 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
             low=list()
             mean=list()
             for n in this_kernel[0]:
-		if this_prior[n][0]==1:
+		if this_prior[n][0]==2:
                     low.append(this_prior[n][1])
                     up.append(this_prior[n][2])
-		if this_prior[n][0]==2:
+		if this_prior[n][0]==1:
 		    low.append(-float('inf'))
 		    up.append(float('inf'))
 		if this_prior[n][0]==3:
@@ -266,10 +270,10 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
             low=list()
             mean=list()
             for n in this_kernel[0]:
-		if this_prior[n][0]==1:
+		if this_prior[n][0]==2:
                     low.append(this_prior[n][1])
                     up.append(this_prior[n][2])
-		if this_prior[n][0]==2:
+		if this_prior[n][0]==1:
 		    low.append(-float('inf'))
 		    up.append(float('inf'))
 		if this_prior[n][0]==3:
@@ -284,7 +288,6 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
             ret.append(statistics.mvnormcdf(low,up,mean, scale))                
         else:
             ret = [0 for i in  range(nparticles)]
-    
     return ret
 
 
