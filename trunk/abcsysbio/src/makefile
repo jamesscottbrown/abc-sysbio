@@ -13,7 +13,7 @@ endif
 LIBS1= -L$(ABC_GSL_LIB) -lgsl -lgslcblas $(TARG)
 LIBS2= -L$(ABC_NM_LIB) -lnewmat 
 LIBS= $(LIBS1) $(LIBS2)
-LOCS= -Wl,-rpath,$(ABC_GSL_LIB), -Wl,-rpath,$(ABC_NM_LIB), -Wl,-rpath,.
+LOCS= -Wl,-rpath,$(ABC_GSL_LIB) -Wl,-rpath,$(ABC_NM_LIB) -Wl,-rpath,.
 
 INCLUDES= -I. -I$(ABC_SRC_DIR) -I$(ABC_GSL_INC) -I$(ABC_NM_INC)
 
