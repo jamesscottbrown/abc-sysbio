@@ -11,22 +11,24 @@ def compile(name, integration):
 	ABC_GSL_LIB=os.getenv("GSL_LIB")
 	ABC_GSL_INC=os.getenv("GSL_INC")
 
-	if ABC_GSL_LIB == None: ABC_GSL_LIB="/usr/local/lib"
-	if ABC_GSL_INC == None: ABC_GSL_INC="/usr/local/include"
+	if ABC_GSL_LIB == None:
+		ABC_GSL_LIB="/usr/local/lib"
+	if ABC_GSL_INC == None:
+		ABC_GSL_INC="/usr/local/include"
 
 	ABC_NM_LIB=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
 	ABC_NM_INC=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
 	ABC_SRC_DIR=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/')
 
 	command = "make -f " + ABC_SRC_DIR + "makefile"
-	command = command + " --quiet MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
+	command = command + " MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
 	command = command + "ABC_GSL_LIB=" + ABC_GSL_LIB + " "
 	command = command + "ABC_GSL_INC=" + ABC_GSL_INC + " "
 	command = command + "ABC_NM_LIB=" + ABC_NM_LIB + " "
 	command = command + "ABC_NM_INC=" + ABC_NM_INC + " "
 	command = command + "ABC_SRC_DIR=" + ABC_SRC_DIR + " "
 
-	print "COMPILE:", command
+	##print "COMPILE:", command
 	os.system(command)
 	return CDLL(libname)
 
