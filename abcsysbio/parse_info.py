@@ -295,6 +295,20 @@ class algorithm_info:
         ##################################################
         ## Optional arguments
 
+        ### get atol
+        try:
+            data = xmldoc.getElementsByTagName('atol')[0].firstChild.data
+            self.atol = float(data)
+        except:
+            null = 0
+        
+        ### get rtol
+        try:
+            data = xmldoc.getElementsByTagName('rtol')[0].firstChild.data
+            self.rtol = float(data)
+        except:
+            null = 0    
+
         ### get restart
         try:
             tmp = str( xmldoc.getElementsByTagName('restart')[0].firstChild.data ).strip()
