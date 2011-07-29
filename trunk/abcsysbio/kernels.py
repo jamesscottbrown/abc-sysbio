@@ -223,7 +223,7 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
     ret = []
 
     for k in range(nparticles):
-        print 'model:', models[k]
+        ##print 'model:', models[k]
         this_prior = model_objs[models[k]].prior
         this_kernel = kernel[models[k]]
         nparam = model_objs[models[k]].nparameters
