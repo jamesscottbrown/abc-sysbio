@@ -159,7 +159,8 @@ class abcsmc:
                 if not(self.models[i].prior[j][0]==0): ind.append(j)
             # kernel info will get set after first population
             self.kernels.append( [ind, kernel_option[i], 0 ] ) 
-	print 'kernel_type:', self.kernel_type
+	#print 'kernel_type:', self.kernel_type
+
         self.hits = []
         self.sampled = []
         self.rate = []
