@@ -1,3 +1,5 @@
+#!/bin/bash
+
 g++ -c -fPIC newmat1.cpp -o newmat1.o
 g++ -c -fPIC newmat2.cpp -o newmat2.o
 g++ -c -fPIC newmat3.cpp -o newmat3.o
@@ -21,4 +23,12 @@ g++ -c -fPIC svd.cpp -o svd.o
 g++ -c -fPIC nm_misc.cpp -o nm_misc.o
 g++ -c -fPIC newmatrm.cpp -o newmatrm.o
 g++ -c -fPIC newmat9.cpp -o newmat9.o
-g++ -shared *.o -o libnewmat.so
+
+platform=`uname`
+
+if [[ "$platform" == "Darwin" ]]
+then
+    g++ -dynamiclib *.o -o libnewmat.so
+else
+    g++ -shared *.o -o libnewmat.so
+fi
