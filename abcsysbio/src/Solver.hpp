@@ -19,6 +19,11 @@
 #include "newmatio.h"
 #include "newmatap.h"
 
+#ifdef __MACH__
+#include <mach/mach.h>
+#include <mach/clock.h>
+#endif
+
 class Solver {
 public:
 	/**

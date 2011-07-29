@@ -11,6 +11,11 @@
 #include "Solver.hpp"
 #include <cmath>
 
+#ifdef __MACH__
+#include <mach/mach.h>
+#include <mach/clock.h>
+#endif
+
 class SDESolver: public Solver {
 public:
 	/**
