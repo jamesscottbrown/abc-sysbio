@@ -28,7 +28,9 @@ platform=`uname`
 
 if [[ "$platform" == "Darwin" ]]
 then
-    g++ -dynamiclib *.o -o libnewmat.so
+    loc=`pwd`
+    g++ -dynamiclib *.o -o libnewmat.so;
+    install_name_tool -id ${loc}/libnewmat.so ${loc}/libnewmat.so
 else
     g++ -shared *.o -o libnewmat.so
 fi
