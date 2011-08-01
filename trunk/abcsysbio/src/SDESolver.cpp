@@ -71,7 +71,7 @@ void SDESolver::setRandomGenerator() {
 	timespec ts;
 
 	#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
-	cout << "######## MAC #######" << endl;
+	//cout << "######## MAC #######" << endl;
 	clock_serv_t cclock;
 	mach_timespec_t mts;
 	host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
