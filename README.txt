@@ -29,7 +29,7 @@ first install the following packages
 	matplotlib
 	libSBML (SBML interface)
 	scipy (ODE models)
-	pycuda (Nvidia GPU)
+	cuda-sim (Nvidia GPU)
 
 While the first two are essential, the latter three need only
 be installed if full use of abc-sysbio is required.
@@ -213,51 +213,3 @@ matplotlib, numpy, scipy, libsbml and abc-sysbio on Windows Vista
 using WinPython.
 
 
-#################################
-# 5) pycuda on Linux	 
-#################################
-
-see http://wiki.tiker.net/PyCuda/Installation/Linux
-
-You are likely to require:
-
-1) Boost
-http://www.boost.org/
-see http://wiki.tiker.net/BoostInstallationHowto
-
-	./bootstrap.sh --prefix=<dir> --libdir=<dir>/lib
-	./bjam variant=release link=shared install
-
-2) distribute-0.6.8 
-   
-	curl -O http://python-distribute.org/distribute_setup.py
-	python distribute_setup.py
-
-See also http://wiki.tiker.net/DistributeVsSetuptools
-
-3) Pytools 
-http://pypi.python.org/pypi/pytools
-	
-	python setup.py install
-
-#################################
-# 6) Package contents	 
-#################################
-
-abcsysbio/ is the python module containing all the source 
-code for the approximate Bayesian computation algorithms
-
-doc/ contains the package documentation Manual.pdf 
-
-examples/ contains the SBML models and input files reproduce 
-Examples 1-5 in the package documentation.
-
-scripts/ contains two scripts run-abc-sysbio and abc-sysbio-sbml-sum, 
-that enable easy use of the package for the most common applications.
-
-MersenneTwister.dat is an initialization file for the parallel 
-MersenneTwister obtained from http://www.jcornwall.me.uk
-
-For more details, refer to the package documentation.
-
-##############
