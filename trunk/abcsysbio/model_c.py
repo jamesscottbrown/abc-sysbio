@@ -20,7 +20,7 @@ def compile(name, integration):
 	ABC_NM_INC=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')
 	ABC_SRC_DIR=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/')
 
-	command = "make --quiet -f " + ABC_SRC_DIR + "makefile"
+	command = "make -f " + ABC_SRC_DIR + "makefile --quiet "
 	command = command + " MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
 	command = command + "ABC_GSL_LIB=" + ABC_GSL_LIB + " "
 	command = command + "ABC_GSL_INC=" + ABC_GSL_INC + " "
