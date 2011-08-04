@@ -4,7 +4,7 @@
 # kernel_type = 2 : component-wise normal kernels
 # kernel_type = 3 : multi-variate normal kernels
 # kernel_type = 4 : multi-variate normal kernels using the nearest neighbours of the particles
-# kernel_type = 4 : multi-variate normal kernels using an "optimal covaraince matrix" 
+# kernel_type = 4 : multi-variate normal kernels using an "optimal covariance matrix" 
 
 import numpy
 from numpy import random as rnd
@@ -23,37 +23,47 @@ from abcsysbio import statistics
 def getKernel(kernel_type, kernel, population, weights):
     pop_size = population.shape[0]
     npar = population.shape[1]
-    if pop_size == 1:
-        print "WARNING: getKernel : only one particle so adaptation is not possible"
-        return kernel
 
     if kernel_type == 1:
+    # component-wise uniform kernels
         tmp=list()
-        # component-wise uniform kernels
-	for param in kernel[0]:
-            minimum=min(population[:,param])
-            maximum=max(population[:,param])
-            scale=(maximum-minimum)
-            tmp.append([-scale/2.0,scale/2.0])
+	if pop_size == 1:
+            print "WARNING: getKernel : only one particle so adaptation is not possible"
+            for param in kernel[0]:
+                tmp.append([-1, 1])	
+        else: 
+            for param in kernel[0]:
+                minimum=min(population[:,param])
+                maximum=max(population[:,param])
+                scale=(maximum-minimum)
+                tmp.append([-scale/2.0,scale/2.0])
         kernel[2]=tmp
 	# kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the inf and sup bound of the uniform kernel.
     
     elif kernel_type == 2:
         # component-wise normal kernels
         tmp=list()
-	for param in kernel[0]:
-            s2w = statistics.wtvar(population[:,param], weights, method = "R")
-            tmp.append(2*s2w)
+        if pop_size == 1:
+            print "WARNING: getKernel : only one particle so adaptation is not possible"
+            tmp=[1 for param in kernel[0]]
+        else:
+            for param in kernel[0]:
+                s2w = statistics.wtvar(population[:,param], weights, method = "R")
+                tmp.append(2*s2w)
         kernel[2]=tmp
 	# kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the variance.
 
 
     elif kernel_type == 3:
         # multi-variate normal kernel whose covariance is based on all the previous population
-        pop=list()
-        for param in kernel[0]:
-            pop.append(population[:,param])
-        cov = statistics.compute_cov(pop,weights)
+	if pop_size == 1:
+            print "WARNING: getKernel : only one particle so adaptation is not possible"
+            cov=numpy.eye(len(kernel[0]))
+        else:
+            pop=list()
+            for param in kernel[0]:
+                pop.append(population[:,param])
+            cov = statistics.compute_cov(pop,weights)
         kernel[2]=2*cov
 	# kernel[2] is the covaraince matrix of the multivariate normal kernel of size len(kernel[0])*len(kernel[0])
 
@@ -62,41 +72,55 @@ def getKernel(kernel_type, kernel, population, weights):
         k=int(kernel[1])
         D={}
         pop=list()
-        # to compute the neighbours, restrain the population to the non constant parameters
-        for param in kernel[0]:
-            pop.append(population[:,param])
-        for n in range(pop_size):
-            # compute the index of the neighbours
-            kset = statistics.kNearestNeighEuc(n,pop,k)
-            # save the coordinate of the particule (with all componants)
-            pop_cur=list()            
+        if pop_size == 1:
+            print "WARNING: getKernel : only one particle so adaptation is not possible"
+            pop_cur=list()
             for param in range(npar):
-                pop_cur.append(population[n,param])
-            # construct the list of the neighbours given kset (restrained to the non constant components) and the corresponding weights
-            subpop=list()
-            subwei=list()
-            for param in range(0, len(pop)):
-                subpop.append([])
+                pop_cur.append(population[0,param])
+                D[str(pop_cur)]=2*numpy.eye(len(kernel[0]))
+        else:
+            # to compute the neighbours, restrain the population to the non constant parameters
+            for param in kernel[0]:
+                pop.append(population[:,param])
+            for n in range(pop_size):
+                # compute the index of the neighbours
+                kset = statistics.kNearestNeighEuc(n,pop,k)
+                # save the coordinate of the particule (with all componants)
+                pop_cur=list()            
+                for param in range(npar):
+                    pop_cur.append(population[n,param])
+                # construct the list of the neighbours given kset (restrained to the non constant components) and the corresponding weights
+                subpop=list()
+                subwei=list()
+                for param in range(0, len(pop)):
+                    subpop.append([])
+                    for j in range(len(kset)):
+                        subpop[param].append(pop[param][kset[j]])
                 for j in range(len(kset)):
-                    subpop[param].append(pop[param][kset[j]])
-            for j in range(len(kset)):
-                subwei.append(weights[kset[j]])
-            # compute the covariance and write it into the dictionnary
-            D[str(pop_cur)]=2*statistics.compute_cov(subpop,subwei)
+                    subwei.append(weights[kset[j]])
+                # compute the covariance and write it into the dictionnary
+                D[str(pop_cur)]=2*statistics.compute_cov(subpop,subwei)
         kernel[2]=D
 	# kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
 
     if kernel_type==5:
         # multi-variate normal kernel whose covariance is the OCM
         pop=list()
-        for param in kernel[0]:
-            pop.append(population[:,param])
         D={}
-        for n in range(pop_size):
+        if pop_size == 1:
+            print "WARNING: getKernel : only one particle so adaptation is not possible"
             pop_cur=list()
             for param in range(npar):
-                pop_cur.append(population[n, param])
-            D[str(pop_cur)]=statistics.compute_optcovmat(pop, weights,pop_cur)
+                pop_cur.append(population[0,param])
+                D[str(pop_cur)]=2*numpy.eye(len(kernel[0]))
+        else:
+            for param in kernel[0]:
+                pop.append(population[:,param])
+            for n in range(pop_size):
+                pop_cur=list()
+                for param in range(npar):
+                    pop_cur.append(population[n, param])
+                D[str(pop_cur)]=statistics.compute_optcovmat(pop, weights,pop_cur)
         kernel[2]=D
 	# kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
 
