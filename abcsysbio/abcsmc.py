@@ -462,8 +462,8 @@ class abcsmc:
         if self.debug == 2:print '\t\t\t***simulate_and_compare_to_data'
 
         ret = [0 for it in range(self.nbatch)]
-        traj = []
-        distances = []
+        traj = [[] for it in range(self.nbatch) ]
+        distances = [[] for it in range(self.nbatch)]
     
         n_to_simulate = [0 for it in range(self.nmodel)]
         mods = numpy.array( sampled_models )
@@ -510,8 +510,8 @@ class abcsmc:
                             
                         if self.debug == 2:print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, mapping[i], ret[mapping[i]]
 
-                    traj.append( this_traj )
-                    distances.append( this_dist )
+                    traj[ mapping[i] ] = copy.deepcopy( this_traj )
+                    distances[ mapping[i] ] = copy.deepcopy( this_dist )
                 
         return ret[:], distances, traj    
 
