@@ -104,6 +104,7 @@ class CWriter(Writer):
         
             #self.cppOutputFile.write('#include "' + self.parsedModel.name + '.hpp"\n')
             self.cppOutputFile.write('#include "ChildModel.hpp"\n')
+            self.cppOutputFile.write('#include <cmath>\n')
             self.writeModelConstructor()
             self.writeUserDefinedFunctions()
             self.writeStoichiometricMatrix()
@@ -112,16 +113,13 @@ class CWriter(Writer):
         
     def  writeModelConstructor(self):
     
-            self.cppOutputFile.write("\tChildModel::ChildModel(int i){")
-            self.cppOutputFile.write("\n\t\tNSPECIES = " + str(self.parsedModel.numSpecies) + ";")                                    
-            self.cppOutputFile.write("\n\t\tNREACTIONS = " + str(self.parsedModel.numReactions) + ";")                                  
-            self.cppOutputFile.write("""
-    pstoichiometricMatrix = new Matrix(NSPECIES,NREACTIONS);
-    (*pstoichiometricMatrix) = 0.0;        
-  
-    getStoichiometricMatrix();
-    }
-    """)
+            self.cppOutputFile.write("\nChildModel::ChildModel(int i){")
+            self.cppOutputFile.write("\n\tNSPECIES = " + str(self.parsedModel.numSpecies) + ";")                                    
+            self.cppOutputFile.write("\n\tNREACTIONS = " + str(self.parsedModel.numReactions) + ";")                                  
+            self.cppOutputFile.write("\n\tpstoichiometricMatrix = new Matrix(NSPECIES,NREACTIONS);")
+            self.cppOutputFile.write("\n\t(*pstoichiometricMatrix) = 0.0;");        
+            self.cppOutputFile.write("\n\tgetStoichiometricMatrix();");
+            self.cppOutputFile.write("\n}");
     
     def  writeUserDefinedFunctions(self):
     
