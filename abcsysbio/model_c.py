@@ -6,7 +6,7 @@ from ctypes import *
 # compilation step to create share object for a correct solver and model
 def compile(name, integration):
 	integ = integration + "Solver"
-	libname = "lib"+name+".so.1.0"
+	libname = "./lib"+name+".so.1.0"
 
 	ABC_GSL_LIB=os.getenv("GSL_LIB")
 	ABC_GSL_INC=os.getenv("GSL_INC")
