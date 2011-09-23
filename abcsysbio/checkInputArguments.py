@@ -1,7 +1,7 @@
 import pickle
 import re
 
-def checkInputABC(info_new , fname, custom_distance ):
+def checkInputABC(info_new , fname, custom_distance, design ):
                   
     """
     Check that the information in the input file is consistent with each other and with the model,
@@ -47,8 +47,9 @@ def checkInputABC(info_new , fname, custom_distance ):
     if not len(ModelName)==len(fit):
         return False,"\nPlease provide a fit instruction (or None) for each model. If the fit instruction is None all data will be fitted to the model data.\n"
     
-    if not len(data)==len(timepoints):
-	return False,"\nPlease provide data that correspond to the length of your timepoints!\n"
+    if design == False:
+        if not len(data)==len(timepoints):
+            return False,"\nPlease provide data that correspond to the length of your timepoints!\n"
 
     if not len(ModelName)==len(priors):
 	return False,"\nPlease provide prior distributions for each model!\n"
