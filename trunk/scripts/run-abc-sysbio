@@ -45,9 +45,13 @@ def printOptions():
     print "-of\t--outfolder\t write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)"
     print "-f\t--fulloutput\t print epsilon, sampling steps and acceptence rates after each population"
     print "-s\t--save\t\t no backup after each population"
-
+    print "-db\t--debug\t set the debug mode"
+    
     print "\n Simulate options:"
     print "-S\t--simulate\t simulate the model over the range of timepoints, using paramters sampled from the priors"
+
+    print "\n Design options:"
+    print "-D\t--design\t run ABC-SysBio in design mode"
     
     print "\n Plotting options:"
     print "-d\t--diagnostic\t no printing of diagnostic plots"
@@ -66,6 +70,7 @@ def main():
     plot=True
     plotTimeSeries=True
     simulate=False
+    design=False
     full=False
     usesbml=True
     seed = None
@@ -75,6 +80,7 @@ def main():
     custom_distance = False
     use_cuda = False
     use_c = False
+    full_debug = False
 
     for i in range(1,len(sys.argv)):
 
@@ -89,6 +95,8 @@ def main():
             elif option == 'timeseries': plotTimeSeries=False
             elif option == 'plotdata': plot=False
             elif option == 'simulate': simulate=True
+            elif option == 'design': design=True
+            elif option == 'debug': full_debug=True
             elif option == 'fulloutput': full=True
 	    elif option == 'localcode' : usesbml = False 
             elif option[0:8] == 'setseed=' : seed = int( option[8:] )
@@ -118,6 +126,8 @@ def main():
             elif option == 't': plotTimeSeries=False
             elif option == 'p': plot=False
             elif option == 'S': simulate=True
+            elif option == 'D': design=True
+            elif option == 'db': full_debug=True
             elif option == 'f': full=True
             elif option == 'cu': use_cuda = True
 	    elif option == 'lc' : usesbml = False
@@ -144,9 +154,16 @@ def main():
     if use_cuda == True and use_c == True:
         print "specified both c++ and CUDA "
         sys.exit()
+    if design == True and simulate==True:
+        print "specified both design and simulate "
+        sys.exit()
 
     # parse the input file
-    info_new = parse_info.algorithm_info(input_file, simulate) 
+    mode = 0
+    if simulate == True: mode = 1
+    if design == True: mode = 2
+    info_new = parse_info.algorithm_info(input_file, mode) 
+
     info_new.print_info()
 
     # Check that we have libSBML if it is requested
@@ -203,13 +220,13 @@ def main():
         ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
 
         if simulate==False :
-            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
+            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
         else:
             modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
     else:
         info_new.source = None
         if simulate==False :
-            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance )
+            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
         else:
             modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
 
@@ -227,18 +244,19 @@ def main():
             new_model = model_cu.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
                                           prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                           source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times)
+                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i])
         elif( use_c == True ):
             new_model = model_c.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
                                        prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                        source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                       dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol, absoluteError=info_new.atol)
+                                       dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol, absoluteError=info_new.atol,
+                                       logp=info_new.logp[i])
         
         else:
             new_model = model_py.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
                                      prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                      source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                     dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol)
+                                     dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol, logp=info_new.logp[i])
         
 
         models.append( new_model )
@@ -252,7 +270,7 @@ def main():
     #
     io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
     io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
-    if plot == True and simulate == False:
+    if plot == True and simulate == False and design==False:
         io.plot_data(data_new)
 
     ########################### BATCHES
@@ -265,7 +283,7 @@ def main():
     #
     debug = 0
     if full == True: debug = 1
-    #debug = 2
+    if full_debug == True: debug = 2
 
     # set the required distance and kernel functions
     distancefn = euclidian.euclidianDistance
