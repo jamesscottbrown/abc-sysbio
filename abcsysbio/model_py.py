@@ -7,7 +7,7 @@ from abcsysbio import GillespieAlgorithm
 class model:
     
     # instantiation
-    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, atol, rtol):
+    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, atol, rtol, logp):
 
         self.name = name
         self.nspecies = nspecies
@@ -29,6 +29,7 @@ class model:
         self.dt = dt
         self.atol = atol
         self.rtol = rtol
+        self.logp = logp
 
         if self.integration=='ODE':
             self.simulate = self.simulate_ode
@@ -43,7 +44,10 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                dat = abcodesolve.abcodeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], timepoints=t, parameters=p[i][0:self.kparameters], dt=self.dt, atol=self.atol, rtol=self.rtol )
+                if logp == False: par = p[i][0:self.kparameters]
+                else: par = numpy.power( 10, p[i][0:self.kparameters] )
+                
+                dat = abcodesolve.abcodeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], timepoints=t, parameters=par, dt=self.dt, atol=self.atol, rtol=self.rtol )
                 for k in range(len(t)):
                     for l in range(self.nspecies):
                         ret[i,j,k,l] = dat[k,l]
@@ -56,7 +60,10 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                dat = sdeint.sdeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], parameter=p[i][0:self.kparameters], timepoints=t, dt=self.dt )
+                if logp == False: par = p[i][0:self.kparameters]
+                else: par = numpy.power( 10, p[i][0:self.kparameters] )
+                
+                dat = sdeint.sdeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], parameter=par, timepoints=t, dt=self.dt )
                 for k in range(len(t)):
                     for l in range(self.nspecies):
                         ret[i,j,k,l] = dat[k,l]
@@ -69,7 +76,10 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                dat = GillespieAlgorithm.GillespieInt(func=self.module, initValues=p[i][self.kparameters:self.nparameters], parameters=p[i][0:self.kparameters], outputtimes=t )
+                if logp == False: par = p[i][0:self.kparameters]
+                else: par = numpy.power( 10, p[i][0:self.kparameters] )
+                
+                dat = GillespieAlgorithm.GillespieInt(func=self.module, initValues=p[i][self.kparameters:self.nparameters], parameters=par, outputtimes=t )
                 for k in range(len(t)):
                     for l in range(self.nspecies):
                         ret[i,j,k,l] = dat[k,l]
