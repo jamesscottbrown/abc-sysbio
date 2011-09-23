@@ -133,9 +133,10 @@ class algorithm_info:
     
     """ 
     
-    def __init__(self, filename, simulate):
+    def __init__(self, filename, mode):
         xmldoc = minidom.parse(filename)
-        self.simulate = simulate
+        self.mode = mode
+        ### mode is 0  inference, 1 simulate, 2 design
 
         self.modelnumber = 0
         self.restart = False
@@ -159,6 +160,7 @@ class algorithm_info:
         self.prior = []
         self.x0prior = []
         self.fit = []
+        self.logp = []
 
         self.modelkernel = 0.7
         self.kernel = 1
@@ -182,7 +184,7 @@ class algorithm_info:
         self.dt = parse_required_single_value( xmldoc, "dt", "Please provide an float value for <dt>", float )
 
         ### get epsilon
-        if simulate == False:
+        if self.mode != 1:
             # automated epsilon takes priority
             if( len( xmldoc.getElementsByTagName('autoepsilon') ) > 0 ):
                 # found automated epsilon
@@ -221,7 +223,7 @@ class algorithm_info:
         self.ntimes = len(self.times)
 
         # variables
-        if simulate == False:
+        if self.mode == 0:
             # first do a scan to get the number of timeseries
             nvar = 0
             varref = dataref.getElementsByTagName('variables')[0]
@@ -255,6 +257,15 @@ class algorithm_info:
                 self.type.append( str(m.getElementsByTagName('type')[0].firstChild.data).strip() )
                 
                 self.fit.append( parse_fitting_information( m )  )
+
+                try:
+                    tmp = str( m.getElementsByTagName('logp')[0].firstChild.data ).strip()
+                    if re_true.match( tmp ):
+                        self.logp.append( True )
+                    else:
+                        self.logp.append( False )
+                except:
+                    self.logp.append( False )
 
                 #initref = m.getElementsByTagName('initialvalues')[0]
                 #tmp = str( initref.firstChild.data ).split()
@@ -377,7 +388,7 @@ class algorithm_info:
         print "particles:", self.particles
         print "beta:", self.beta
         print "dt:", self.dt
-        if self.simulate == False:
+        if self.mode != 1:
             if len(self.final_epsilon) == 0:
                 print "manual epsilon:" 
                 for i in range(self.epsilon.shape[0]):
@@ -396,7 +407,7 @@ class algorithm_info:
         
         print "DATA:"
         print "\ttimes:", self.times
-        if self.simulate == False:
+        if self.mode == 0:
             print "\tvars:" 
             for i in range(len(self.data[0,:])):
                 print "\t", 
@@ -414,6 +425,7 @@ class algorithm_info:
             print "\t", "fit:", self.fit[i]
             print "\t", "init:", self.x0prior[i]
             print "\t", "prior:", self.prior[i]
+            print "\t", "logp:", self.logp[i]
             print "\n"
 
 ###x = algorithm_info('input.xml')
