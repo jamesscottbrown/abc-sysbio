@@ -8,12 +8,12 @@
 
 # Automatic epsilon schedule. Provide a vector of final epsilons and the alpha (defaults to 0.9)
 <autoepsilon>
-<finalepsilon> 20.0 </finalepsilon>
+<finalepsilon> 35.0 </finalepsilon>
 <alpha> 0.1 </alpha>
 </autoepsilon>
 
 # Population size
-<particles> 800 </particles>
+<particles> 100 </particles>
 
 # Beta is the number of times to simulate each sampled parameter set.
 # This is only applicable for models simulated using Gillespie and SDE
@@ -43,7 +43,7 @@
 <models>
 <model1>
 <name> repressilator </name>
-<source> repressilator </source>
+<source> repressilator.xml </source>
 
 # type: the method used to simulate your model. ODE, SDE or Gillespie.
 <type> ODE </type>
@@ -72,10 +72,12 @@
 
 
 <parameters>
-<parameter1> uniform -2 10 </parameter1>
-<parameter2> uniform  0 10 </parameter2>
-<parameter3> uniform -5 20 </parameter3>
-<parameter4> uniform 500 2500 </parameter4>
+<parameter1> constant 1 </parameter1>
+<parameter2> uniform -2 10 </parameter2>
+<parameter3> uniform  0 10 </parameter3>
+<parameter4> uniform -5 20 </parameter4>
+<parameter5> uniform 500 2500 </parameter5>
+<parameter6> constant 1 </parameter6>
 </parameters>
 </model1>
 </models>
