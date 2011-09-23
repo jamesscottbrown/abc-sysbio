@@ -3,7 +3,7 @@ import numpy
 class cuda_model:
     
     # instantiation
-    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, timepoints):
+    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, timepoints, logp):
         self.nspecies = nspecies
         self.name = name
 
@@ -22,6 +22,7 @@ class cuda_model:
         self.dt = dt
         self.beta = beta
         self.timepoints = timepoints
+        self.logp = logp
        
         if self.integration=='ODE':
             import cudasim.Lsoda as Lsoda
@@ -41,7 +42,8 @@ class cuda_model:
 
         for i in range(n):
             species.append( p[i][self.kparameters:self.nparameters] )
-            pp.append( p[i][0:self.kparameters] )
+            if self.logp == False: pp.append( p[i][0:self.kparameters] )
+            else: pp.append( numpy.power(10,p[i][0:self.kparameters]) )
 
         result = self.modelInstance.run(pp, species)
         return result

@@ -35,7 +35,7 @@ def compile(name, integration):
 	
 class model:
 	# instantiation
- 	def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, initstep, relativeError, absoluteError):
+ 	def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, initstep, relativeError, absoluteError, logp):
 		gil=re.compile('Gillespie', re.I)
         	ode=re.compile('ODE', re.I)
         	euler=re.compile('Euler', re.I)
@@ -78,7 +78,7 @@ class model:
 		self.initstep = initstep
 		self.relativeError = relativeError
 		self.absoluteError = absoluteError
-
+		self.logp = logp
 
 		self.lib = compile(self.name, self.integration)
 
@@ -123,7 +123,8 @@ class model:
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
 			for i in range (self.kparameters):
-				cparam[i]=p[ni][i]
+				if self.logp==False: cparam[i]=p[ni][i]
+				else: cparam[i]=numpy.power(10,p[ni][i])
 
 			# set initial values; ctypes
 			init_arr_type = self.nspecies * c_double
@@ -170,7 +171,8 @@ class model:
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
 			for i in range (self.kparameters):
-				cparam[i]=p[ni][i]
+				if self.logp==False: cparam[i]=p[ni][i]
+				else: cparam[i]=numpy.power(10,p[ni][i])
 
 			# set initial values; ctypes
 			init_arr_type = self.nspecies * c_double
@@ -216,7 +218,8 @@ class model:
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
 			for i in range (self.kparameters):
-				cparam[i]=p[ni][i]
+				if self.logp==False: cparam[i]=p[ni][i]
+				else: cparam[i]=numpy.power(10,p[ni][i])
 
 			# set initial values; ctypes
 			init_arr_type = self.nspecies * c_double
