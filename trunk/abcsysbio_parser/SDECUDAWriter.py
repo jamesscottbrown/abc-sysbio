@@ -163,7 +163,7 @@ class SdeCUDAWriter(Writer):
     
     
         #Write the derivatives
-        for i in range(0,self.parsedModel.numSpecies):
+        for i in range(self.parsedModel.numSpecies-1,-1, -1):
             
             if (self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[i].getBoundaryCondition() == False):
                 self.out_file.write("    float d_y"+repr(i)+"= DT * (")
@@ -196,7 +196,7 @@ class SdeCUDAWriter(Writer):
                         #    self.out_file.write("*(")
                             
                         string = self.parsedModel.kineticLaw[k]
-                        for q in range(0,len(self.parsedModel.speciesId)):
+                        for q in range(len(self.parsedModel.speciesId)-1,-1,-1):  
                             pq = re.compile(self.parsedModel.speciesId[q])
                             string=pq.sub('y['+repr(q)+']' ,string)
                         for q in range(0,len(self.parsedModel.parameterId)):
