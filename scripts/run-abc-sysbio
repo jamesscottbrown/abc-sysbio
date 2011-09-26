@@ -268,11 +268,14 @@ def main():
 
     ########################### IO
     #
-    io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
-    io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
-    if plot == True and simulate == False and design==False:
+    if simulate == True or design == True:
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries, havedata=False )
+        io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
+    else:
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
+        io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
         io.plot_data(data_new)
-
+        
     ########################### BATCHES
     #
     nbatch = 10
