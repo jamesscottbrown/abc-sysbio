@@ -9,10 +9,11 @@ from getResults import plotData
 
 class input_output:
     
-    def __init__(self, folder, restart, diagnostic, plotDataSeries):
+    def __init__(self, folder, restart, diagnostic, plotDataSeries, havedata=True):
         self.folder = folder
         self.diagnostic = diagnostic
         self.plotDataSeries = plotDataSeries
+        self.havedata = havedata
 
         # Hold all data here for plotting purposes.
         # May want to remove this as could get large
@@ -22,7 +23,7 @@ class input_output:
             self.folder = self.folder + '_restart'
 
     def plot_data(self, data):
-        plotData( data, self.folder+'/_data' )
+        if self.havedata == True: plotData( data, self.folder+'/_data' )
 
 
     ################write rates, distances, trajectories    
@@ -168,7 +169,7 @@ class input_output:
 
                     if len(pars) > 0:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
-                        plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=True)
+                        plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
 
 
     ################ writes trajectories and parameters from simulations    
