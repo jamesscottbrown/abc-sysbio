@@ -9,7 +9,7 @@
 <alpha> 0.9 </alpha>
 </autoepsilon>
 
-<particles> 100 </particles>
+<particles> 1000 </particles>
 
 <beta> 1 </beta>
 
