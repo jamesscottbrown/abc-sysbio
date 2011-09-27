@@ -200,7 +200,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
 	ind=0
         for n in kernel[0]:
-	    kern = statistics.getPdfUniform(params[n]+kernel[2][ind][0],params[n]+kernel[2][ind][1], params[n])
+	    kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
             prob=prob*kern
 	    ind += 1
         return prob
