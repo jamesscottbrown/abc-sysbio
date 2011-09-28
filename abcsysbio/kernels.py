@@ -131,64 +131,102 @@ def getKernel(kernel_type, kernel, population, weights):
 
 # Here params refers to one particle
 # The function changes params in place and returns the probability (which may be zero)
-def perturbParticle(params, priors, kernel, kernel_type):
+def perturbParticle(params, priors, kernel, kernel_type, special_cases):
     np = len( priors )
     prior_prob = 1
-    if kernel_type==1:
-	ind=0
-	# n refers to the index of the parameter (integer between 0 and np-1)
-	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
-        for n in kernel[0]:
-            params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
-	    ind+=1
 
-    if kernel_type==2:
-	ind=0
-	# n refers to the index of the parameter (integer between 0 and np-1)
-	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
-        for n in kernel[0]:
-            params[n] = rnd.normal(params[n],numpy.sqrt(kernel[2][ind]))
-	    ind+=1
-
-    if kernel_type==3:
-	mean=list()
-	for n in kernel[0]:
-            mean.append(params[n])
-        tmp = statistics.mvnd_gen(mean, kernel[2])
+    if special_cases == 1:
+        # this is the case where kernel is uniform and all priors are uniform    
         ind=0
-        for n in kernel[0]: 
-            params[n] = tmp[ind]
-            ind=ind+1
-            
-    if (kernel_type==4 or kernel_type==5):
-	mean=list()
-	for n in kernel[0]:
-            mean.append(params[n])
-        D=kernel[2]
-        tmp = statistics.mvnd_gen(mean,D[str(params)] )
-        ind=0
-        for n in kernel[0]: 
-            params[n] = tmp[ind]
-            ind=ind+1
-        
-    # compute the likelihood
-    prior_prob=1
-    for n in range(np):
-        x = 1.0
-        if priors[n][0]==1: 
-            x=statistics.getPdfGauss(priors[n][1], numpy.sqrt(priors[n][2]), params[n])
-	    # if we do not care about the value of prior_prob, then here: x=1.0
+        for n in kernel[0]:
+            lflag = (params[n] + kernel[2][ind][0]) < priors[n][1]
+            uflag = (params[n] + kernel[2][ind][1]) > priors[n][2]
 
-        if priors[n][0]==2: 
-            x=statistics.getPdfUniform(priors[n][1],priors[n][2],params[n])
+            lower = kernel[2][ind][0]
+            upper = kernel[2][ind][1]
+            if lflag == True:
+                lower = -(params[n] - priors[n][1])
+            if uflag == True:
+                upper = priors[n][2] - params[n]
 
-        if priors[n][0]==3: 
-            x=statistics.getPdfLognormal(priors[n][1],priors[n][2],params[n])
-	    # if we do not care about the value of prior_prob, then here: x=1.0 if params[n]>=0 and 0 otherwise
-    
-        prior_prob = prior_prob*x
+            delta = 0
+            positive = False
+            if lflag == False and uflag == False:
+                # proceed as normal
+                delta = rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
+            else:
+                # decide if the particle is to be perturbed positively or negatively
+                positive = rnd.uniform(0,1) > abs(lower)/(abs(lower)+upper)
 
-    return prior_prob
+                if positive == True:
+                    # theta = theta + U(0, min(prior,kernel) )
+                    delta = rnd.uniform(low=0, high=upper)
+                else:
+                    # theta = theta + U( max(prior,kernel), 0 )
+                    delta = rnd.uniform(low=lower, high=0)
+
+            params[n] = params[n] + delta
+            ind+=1
+
+        # this is not the actaul value of the pdf but we only require it to be non zero
+        return 1.0
+
+    else:
+        if kernel_type==1:
+            ind=0
+            # n refers to the index of the parameter (integer between 0 and np-1)
+            # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
+            for n in kernel[0]:
+                params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
+                ind+=1
+
+        if kernel_type==2:
+            ind=0
+            # n refers to the index of the parameter (integer between 0 and np-1)
+            # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
+            for n in kernel[0]:
+                params[n] = rnd.normal(params[n],numpy.sqrt(kernel[2][ind]))
+                ind+=1
+
+        if kernel_type==3:
+            mean=list()
+            for n in kernel[0]:
+                mean.append(params[n])
+            tmp = statistics.mvnd_gen(mean, kernel[2])
+            ind=0
+            for n in kernel[0]: 
+                params[n] = tmp[ind]
+                ind=ind+1
+
+        if (kernel_type==4 or kernel_type==5):
+            mean=list()
+            for n in kernel[0]:
+                mean.append(params[n])
+            D=kernel[2]
+            tmp = statistics.mvnd_gen(mean,D[str(params)] )
+            ind=0
+            for n in kernel[0]: 
+                params[n] = tmp[ind]
+                ind=ind+1
+
+        # compute the likelihood
+        prior_prob=1
+        for n in range(np):
+            x = 1.0
+            #if priors[n][0]==1: 
+            #    x=statistics.getPdfGauss(priors[n][1], numpy.sqrt(priors[n][2]), params[n])
+                # if we do not care about the value of prior_prob, then here: x=1.0
+
+            if priors[n][0]==2: 
+                x=statistics.getPdfUniform(priors[n][1],priors[n][2],params[n])
+
+            #if priors[n][0]==3: 
+            #    x=statistics.getPdfLognormal(priors[n][1],priors[n][2],params[n])
+                # if we do not care about the value of prior_prob, then here: x=1.0 if params[n]>=0 and 0 otherwise
+
+            prior_prob = prior_prob*x
+
+        return prior_prob
 
 
 # Here params and params0 refer to one particle each.
