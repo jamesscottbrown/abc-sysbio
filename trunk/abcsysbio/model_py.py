@@ -44,7 +44,7 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                if logp == False: par = p[i][0:self.kparameters]
+                if self.logp == False: par = p[i][0:self.kparameters]
                 else: par = numpy.power( 10, p[i][0:self.kparameters] )
                 
                 dat = abcodesolve.abcodeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], timepoints=t, parameters=par, dt=self.dt, atol=self.atol, rtol=self.rtol )
@@ -60,7 +60,7 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                if logp == False: par = p[i][0:self.kparameters]
+                if self.logp == False: par = p[i][0:self.kparameters]
                 else: par = numpy.power( 10, p[i][0:self.kparameters] )
                 
                 dat = sdeint.sdeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters], parameter=par, timepoints=t, dt=self.dt )
@@ -76,7 +76,7 @@ class model:
 
         for i in range(n):
             for j in range(beta):
-                if logp == False: par = p[i][0:self.kparameters]
+                if self.logp == False: par = p[i][0:self.kparameters]
                 else: par = numpy.power( 10, p[i][0:self.kparameters] )
                 
                 dat = GillespieAlgorithm.GillespieInt(func=self.module, initValues=p[i][self.kparameters:self.nparameters], parameters=par, outputtimes=t )
