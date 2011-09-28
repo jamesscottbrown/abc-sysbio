@@ -161,6 +161,18 @@ class abcsmc:
             self.kernels.append( [ind, kernel_option[i], 0 ] ) 
 	#print 'kernel_type:', self.kernel_type
 
+        self.special_cases = [0 for m in range(self.nmodel)]
+        if self.kernel_type == 1:
+            
+            for m in range(self.nmodel):
+                all_uniform = True
+                for j in range(self.models[m].nparameters):
+                    if not (self.models[m].prior[j][0]==0 or self.models[m].prior[j][0]==2):
+                        all_uniform = False
+                if all_uniform == True:
+                    self.special_cases[m] = 1
+                    print "### Found special kernel case 1 for model ", m, "###"
+        
         self.hits = []
         self.sampled = []
         self.rate = []
@@ -452,8 +464,8 @@ class abcsmc:
         self.kernels = []
         for i in range(self.nmodel):
             self.kernels.append([])
-            for j in range(self.models[i].nparameters):
-                self.kernels[i].append( particle_data[4][i][j][:] )
+            for j in range( len(particle_data[4][i])):
+                self.kernels[i].append( particle_data[4][i][j] )
         
         self.sample_from_prior = False
 
@@ -598,7 +610,7 @@ class abcsmc:
                     #print reti[nn], self.parameters_prev[ p ][nn]
                     reti[nn] = self.parameters_prev[ p ][nn]
                 
-                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type )
+                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type, self.special_cases[sampled_models[i]] )
 
                 if self.debug == 2:print "\t\t\tsampled p prob:", prior_prob
                 if self.debug == 2:print "\t\t\tnew:", reti
