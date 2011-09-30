@@ -5,7 +5,7 @@
 <restart> False </restart>
 
 <autoepsilon>
-<finalepsilon> 0.01 </finalepsilon>
+<finalepsilon> 0.1 1.0 </finalepsilon>
 <alpha> 0.9 </alpha>
 </autoepsilon>
 
