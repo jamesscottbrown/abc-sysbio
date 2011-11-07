@@ -36,14 +36,15 @@ class cuda_model:
 
     def simulate(self, p, t, n, beta):
         # note that in this function t and beta are not used as they are specified at compile time
-        
-        species = []
-        pp = []
+
+        species = numpy.zeros([n,self.nspecies])
+        pp = numpy.zeros([n,self.kparameters])
 
         for i in range(n):
-            species.append( p[i][self.kparameters:self.nparameters] )
-            if self.logp == False: pp.append( p[i][0:self.kparameters] )
-            else: pp.append( numpy.power(10,p[i][0:self.kparameters]) )
+            species[i,:] = p[i][self.kparameters:self.nparameters]
+            
+            if self.logp == False: pp[i,:] = p[i][0:self.kparameters]
+            else: pp[i,:] = numpy.power(10,p[i][0:self.kparameters])
 
         result = self.modelInstance.run(pp, species)
         return result
