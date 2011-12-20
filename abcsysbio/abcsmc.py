@@ -144,23 +144,25 @@ class abcsmc:
         # self.kernels[i] is a list of length 2 such that :
         # self.kernels[i][0] contains the index of the non constant parameters for the model i
         # self.kernels[i][1] contains the information required to build the kernel and given by the input_file
+        # self.kernels[i][2] is filled in during the kernelfn step and contains values/matrix etc depending ont he kernel
         kernel_option=list()
         for i in range(self.nmodel):
             if self.kernel_type==4:
+                # Option for K nearest neigbours - user should be able to specify
                 kernel_option.append(int(nparticles/4))
             else:
                 kernel_option.append(0)
-        # self.kernels[i][2] is filled in during the kernelfn step
-        
+
+        # get the list of parameters with non constant prior
         for i in range(self.nmodel):
             ind=list()
             for j in range(self.models[i].nparameters):
-                # get the list of parameters with non constant prior
-                if not(self.models[i].prior[j][0]==0): ind.append(j)
+                if not(self.models[i].prior[j][0]==0):
+                    ind.append(j)
             # kernel info will get set after first population
             self.kernels.append( [ind, kernel_option[i], 0 ] ) 
-	#print 'kernel_type:', self.kernel_type
 
+        # get
         self.special_cases = [0 for m in range(self.nmodel)]
         if self.kernel_type == 1:
             
@@ -416,13 +418,23 @@ class abcsmc:
             this_model_index = numpy.arange(self.nparticles)[ numpy.array(self.model_prev) == mod ]
             this_population = numpy.zeros([ len(this_model_index), self.models[mod].nparameters ])
             this_weights = numpy.zeros( len(this_model_index) ) 
-           
-            if len(this_model_index) > 0:
+
+            # if we have just sampled from the prior we shall initialise the kernels using all available particles
+            if prior == True:
                 for it in range(len(this_model_index)):
                     this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
                     this_weights[it] = self.weights_prev[ this_model_index[it] ]
-            	tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )
+                tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )
                 self.kernels[mod] = tmp_kernel[:]
+
+            else:
+                # only update the kernels if there are > 100 particles
+                if len(this_model_index) > 100:
+                    for it in range(len(this_model_index)):
+                        this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
+                        this_weights[it] = self.weights_prev[ this_model_index[it] ]
+                    tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )
+                    self.kernels[mod] = tmp_kernel[:]
 
         #
         # Kernel auxilliary information
@@ -736,9 +748,7 @@ def getPdfModelKernel(m, m0, modelK, nmodel, dead_models):
             return (1-modelK)/(nmodel-ndead)
 
 def evaluateDistance(distance,epsilon):
-    #print 'd:', distance
-    #print 'e:', epsilon
-
+    
     accepted = False
     for i in range(len(epsilon)):
         #print "d:", distance[i], epsilon[i][t]
@@ -748,4 +758,7 @@ def evaluateDistance(distance,epsilon):
             accepted = False
             break
 
+    #if accepted == True:
+    #    print '\teval:', distance, epsilon
+        
     return accepted
