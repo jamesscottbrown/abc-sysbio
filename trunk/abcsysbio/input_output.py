@@ -35,8 +35,7 @@ class input_output:
         beta = len(results.trajectories[0])
         
         rate_file = open(self.folder+'/rates.txt',"a")
-        rate_file.write(repr(population+1)+"\t"+repr(results.sampled)+"\t"+repr(results.rate))
-        rate_file.write("\t" + str(round(timing,2)) + " secs\n")
+        print >>rate_file, population+1, results.epsilon, results.sampled, results.rate, round(timing,2)
         rate_file.close()
 
         # distances are stored as [nparticle][nbeta][d1, d2, d3 .... ]
@@ -152,8 +151,8 @@ class input_output:
 
                                 non_const = non_const + 1
 
-                    getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(npop),PlotName=PlotName,model=mod+1)
-                    getAllHistograms(population_mod, weights_mod, population=npop, PlotName=PlotName2, model=mod+1)
+                    getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(1,population+2),PlotName=PlotName,model=mod+1)
+                    getAllHistograms(population_mod, weights_mod, population=population+1, PlotName=PlotName2, model=mod+1)
 
             if self.plotDataSeries == True:
                 for mod in range(nmodels):
