@@ -5,6 +5,9 @@ import matplotlib
 from matplotlib.ticker import FormatStrFormatter
 from pylab import *
 
+from matplotlib.backends.backend_pdf import PdfPages
+
+
 # need to get howToFitData
 #import abcsysbio.abcSMC_model
 import abcsmc
@@ -199,78 +202,132 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
     """
 
     matplotlib.pylab.clf()
-    dim=len(matrix[int(model)-1][0])
+    npar = len(matrix[int(model)-1][0])
 
-    max1=4.0 #must be float or double, but no integer
-    if max1>len(matrix[int(model)-1][0]): 
-        max1=len(matrix[int(model)-1][0])
-        max2=1
+    # Maximum plots per page is 16
+    # If we are over this then require multiple plots
+    multi = False
+    if npar > 16:
+        multi = True
+ 
+    if multi == False:
+        #print "******************* DOING SINGLE"
+        # In the below max1 refers to the number of rows
+        # and max2 refers to the number of columns ie max2 x max1
 
-    dim=math.ceil(len(matrix[int(model)-1][0])/max1)
+        # Lets check to see whether we have more than four parameters
+        # If so we just make the plots 1 x npar
 
-    if dim == 1:
-        max1=2
-        max2=2
-    elif (max1 > dim):
-        max2=dim
-    else: max2=max1
+        max1 = 4.0 
+        if max1 > npar: 
+            max1 = npar
+            max2 = 1
 
-    numOfPlots=math.ceil(dim/max2)
+        dim=math.ceil(npar/max1)
 
-    for p in range(0,int(numOfPlots)):
-        start=p*max1**2
-        end=p*max1*max2+max1*max2
-        for i in range(int(start),int(end)):
-            if i>=len(matrix[int(model)-1][0]): break
-            matplotlib.pyplot.subplot(max1,max2,i-start+1)
-            subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)    
-            x=matrix[int(model)-1][int(population)-1][i]
-            w=weights[int(model)-1][int(population)-1][i]
-            bins=20.0
-            if not(len(x)==0):
-                cla()
-                #hist=Histogram.WeightedHistogram(x,w,int(bins))
-                #length=hist.__len__()
-                #histogramX=[]
-                #histogramY=[]
-                #for k in range(0, length):
-                #    histogramX.append(hist.__getitem__(k)[0])
-                #    histogramY.append(hist.__getitem__(k)[1])
+        if dim == 1:
+            max1=2
+            max2=2
+        elif (max1 > dim):
+            max2=dim
+        else: max2=max1
 
-                histogramX=[]
-                histogramY=[]
-                histogramX, histogramY = bin_data(x, w, int(bins))
-                
-                maxX=max(histogramX)
-                minX=min(histogramX)
-                xrange=maxX-minX
-                
-                matplotlib.pyplot.bar(histogramX,histogramY,color='#1E90FF',width=xrange/bins,align='center')
-                xlabel('parameter '+repr(i+1),size='xx-small')
+        numOfPlots=math.ceil(dim/max2)
+
+        for p in range(0,int(numOfPlots)):
+            start=p*max1**2
+            end=p*max1*max2+max1*max2
+            for i in range(int(start),int(end)):
+                if i>=len(matrix[int(model)-1][0]): break
+                matplotlib.pyplot.subplot(max1,max2,i-start+1)
+                subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)    
+                x=matrix[int(model)-1][int(population)-1][i]
+                w=weights[int(model)-1][int(population)-1][i]
+                bins=20.0
+                if not(len(x)==0):
+                    cla()
+
+                    histogramX=[]
+                    histogramY=[]
+                    histogramX, histogramY = bin_data(x, w, int(bins))
+
+                    maxX=max(histogramX)
+                    minX=min(histogramX)
+                    xrange=maxX-minX
+
+                    matplotlib.pyplot.bar(histogramX,histogramY,color='#1E90FF',width=xrange/bins,align='center')
+                    xlabel('parameter '+repr(i+1),size='xx-small')
+
+                    xmin,xmax=xlim()
+                    ymin,ymax=ylim()
+
+                    ax = gca()
+                    ay = gca()
+
+                    if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+                    else: xFormatter = FormatStrFormatter('%0.2f')
+                    ax.xaxis.set_major_formatter(xFormatter)    
+
+
+                    yFormatter = FormatStrFormatter('%i')    
+                    axis([xmin, xmax, ymin, ymax])
+                    yticks((ymin, (ymin+ymax)/2.0, ymax),size = 'xx-small')
+                    xticks((xmin, (xmin+xmax)/2.0, xmax),size='xx-small')
+
+            savefig(PlotName)
+            matplotlib.pylab.clf()
+            matplotlib.pyplot.subplot(111)
+
+    else:
+        #print "******************* DOING MULTI"
+        s_num = 1
+        p_num = 1
+        for i in range(npar):
+            matplotlib.pyplot.subplot(4,4,s_num)
+            subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)   
+            x = matrix[int(model)-1][int(population)-1][i]
+            w = weights[int(model)-1][int(population)-1][i]
+
+            cla()
+            histogramX=[]
+            histogramY=[]
+            bins = 20
+            histogramX, histogramY = bin_data(x, w, int(bins))
+
+            maxX=max(histogramX)
+            minX=min(histogramX)
+            xrange=maxX-minX
+
+            matplotlib.pyplot.bar(histogramX,histogramY,color='#1E90FF',width=xrange/bins,align='center')
+            xlabel('parameter '+repr(i+1),size='xx-small')
+
+            xmin,xmax=xlim()
+            ymin,ymax=ylim()
+
+            ax = gca()
+            ay = gca()
+
+            if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+            else: xFormatter = FormatStrFormatter('%0.2f')
+            ax.xaxis.set_major_formatter(xFormatter)    
+
+
+            yFormatter = FormatStrFormatter('%i')    
+            axis([xmin, xmax, ymin, ymax])
+            yticks((ymin, (ymin+ymax)/2.0, ymax),size = 'xx-small')
+            xticks((xmin, (xmin+xmax)/2.0, xmax),size='xx-small')
             
-                xmin,xmax=xlim()
-                ymin,ymax=ylim()
-                
-                ax = gca()
-                ay = gca()
+            s_num += 1
+            if s_num == 17:
+                savefig(PlotName + '_' + repr(p_num))
+                s_num = 1
+                p_num += 1
+                clf()
 
-                if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
-                else: xFormatter = FormatStrFormatter('%0.2f')
-                ax.xaxis.set_major_formatter(xFormatter)    
-
-
-                yFormatter = FormatStrFormatter('%i')    
-                axis([xmin, xmax, ymin, ymax])
-                yticks((ymin, (ymin+ymax)/2.0, ymax),size = 'xx-small')
-                xticks((xmin, (xmin+xmax)/2.0, xmax),size='xx-small')
-
-
-
-
-        savefig(PlotName)
+        savefig(PlotName + '_' + repr(p_num))
         matplotlib.pylab.clf()
         matplotlib.pyplot.subplot(111)
-
+            
 
 
 def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots', model=1):
