@@ -231,18 +231,26 @@ class algorithm_info:
                 if v.nodeType == v.ELEMENT_NODE:
                     nvar += 1
 
-            # create matrix
-            self.data = numpy.zeros([self.ntimes,nvar])
+            # create matrix and mask
+            data_unmasked = numpy.zeros([self.ntimes,nvar])
+            data_mask = numpy.zeros([self.ntimes,nvar], dtype=numpy.int32)
             nvar = 0
             for v in varref.childNodes:
                 if v.nodeType == v.ELEMENT_NODE:
                     tmp = str( v.firstChild.data ).split()
 
                     for i in range(self.ntimes):
-                        self.data[i,nvar] = float( tmp[i] )
+                        # Search for NA
+                        if re.match("\s*NA\s*", tmp[i]) != None:
+                            data_mask[i,nvar] = 1
+                            tmp[i] = 0
+
+                        data_unmasked[i,nvar] = float( tmp[i] )
 
                     nvar += 1        
-                
+
+            # create masked data
+            self.data = numpy.ma.array(data_unmasked, mask = data_mask)
                 
         ### get model attributes
         modelref = xmldoc.getElementsByTagName('models')[0]
