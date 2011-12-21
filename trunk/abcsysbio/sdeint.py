@@ -38,12 +38,13 @@ def sdeint(func,InitValues,parameter, timepoints,dt=0.01):
     dim=len(InitValues)
     solutions=zeros([length,dim])
     solutions_out=zeros([len(timepoints),dim])
-    InitValues, parameter = func.rules(InitValues, parameter, times[0])
+    #InitValues, parameter = func.rules(InitValues, parameter, times[0])
+    InitValues, parameter = func.rules(InitValues, parameter,0) # change this to t=0
     solutions[0]=InitValues
-    solutions_out[0]=InitValues
+    #solutions_out[0]=InitValues
     
-    n=1
-    for i in range(1,length):  
+    n=0
+    for i in range(1,length):
         new,W=func.modelfunction(solutions[i-1],dt,parameter,time=times[i])
         
         for k in range(0,dim):

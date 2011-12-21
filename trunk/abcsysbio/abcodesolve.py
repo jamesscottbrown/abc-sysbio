@@ -46,14 +46,16 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
     #array for the data that the user wants
     solutions_out=numpy.zeros([len(timepoints), len(InitValues)])
     current_concentrations = tuple(InitValues)
-    current_concentrations,parameters=func.rules(current_concentrations, parameters, timepoints[0])
+    #current_concentrations,parameters=func.rules(current_concentrations, parameters, timepoints[0])
+    current_concentrations,parameters=func.rules(current_concentrations, parameters,0)
     solutions_out[0]=current_concentrations
 
-    counter = 1
+    counter = 0 # 1
 
     flag = True
 
-    intTime1 = timepoints[0]
+    #intTime1 = timepoints[0]
+    intTime1 = 0
   
     while flag:
 
