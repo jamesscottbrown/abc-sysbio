@@ -13,7 +13,7 @@ class install(_install):
         os.system(comm)
 
 setup(name='abc-sysbio',
-      version='2.04',
+      version='2.05',
       description='Approximate Bayesian Computation for systems biology',
 
       author='Chris Barnes',
