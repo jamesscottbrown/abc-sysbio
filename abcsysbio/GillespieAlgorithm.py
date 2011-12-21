@@ -56,7 +56,7 @@ def GillespieInt(func, initValues, parameters, outputtimes):
         """
         
         #Set initial time
-        time = outputtimes[0]
+        time = 0 #outputtimes[0] # change this to t=0
         #set initial concentrations
         concentrations = numpy.zeros([len(outputtimes),len(initValues)])
         current_concentrations = tuple(initValues)
@@ -65,7 +65,7 @@ def GillespieInt(func, initValues, parameters, outputtimes):
         
         concentrations[0] = current_concentrations
         #Initialise outputtimes
-        counter = 1
+        counter = 0 # 1 # change this to 0
         #Get the dictionary for choosing a function        
         switch = func.Switch()
 
