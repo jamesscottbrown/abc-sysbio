@@ -17,7 +17,7 @@ from abcsmc import howToFitData
 def bin_data(d, w, nbins):
 
     d_max = numpy.max(d)
-    d_min = numpy.min(d) - 1e-6 # ensures that the lowest entry is included in the first bin
+    d_min = numpy.min(d) - 1e-6
     bin_width = (d_max - d_min)/nbins
 
     bin_l = numpy.array( [ d_min + i*bin_width for i in range(nbins) ] )
@@ -106,14 +106,21 @@ def printModelDistribution(matrix,eps,filename='model_distribution.txt'):
         out_file.write("\n")
     out_file.close()
 
+
 def plotData(data, filename):
-    matplotlib.pyplot.subplot(111)
-    clf()
-    matplotlib.pyplot.plot(data.timepoints,data.values,'o')
-    xlabel('time')
-    ylabel('Unit')
-    matplotlib.pyplot.savefig(filename)
-    matplotlib.pylab.clf()
+    """ VE #########
+    Plots timepoints from each submodel against the associated data from the list of data objects (data[i] = specific submodel data).
+    """
+    for i in range(0, len(data)):
+        matplotlib.pyplot.subplot(111) 
+        clf()
+        matplotlib.pyplot.plot(data[i].timepoints,data[i].values,'o') 
+        xlabel('Time')
+        ylabel('Unit')
+        matplotlib.pyplot.savefig(filename[i])
+        matplotlib.pylab.clf()
+        
+        
 
 def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
 
@@ -144,30 +151,33 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
 
     """
 
-    # do the simulations
+    # simulates and plots trajectories - trajectories for a given submodel are overlaid.
+    # plots for different submodels are plotted and saved in different files.
     nsim = len(pars)
-    sims = model.simulate( pars, data.timepoints, nsim, beta = beta )
+    t = [data[i].timepoints for i in range(0,len(data))]
+    name = filename
 
-        
+    sims = model.simulate( pars, t, nsim, beta = beta )
+
     matplotlib.pyplot.subplot(111)
     clf()
-    for i in range(nsim):
-        for j in range(beta):
-            points = sims[i,j,:,:]
-            points_sim = abcsmc.howToFitData(model.fit,points)
-            # print data.timepoints
-            # print points_sim
-        
-            matplotlib.pyplot.plot(data.timepoints,points_sim)
+    for sim in range(0,len(sims)):
+        for i in range(0,len(sims[sim])):
+            for j in range(0,len(sims[sim][i])):
+                points = sims[sim][i,j,:,:]
+                points_sim = abcsmc.howToFitData(model.fit[sim],points)
+                matplotlib.pyplot.plot(t[sim],points_sim)
 
-    if plotdata==True: 
-        matplotlib.pyplot.plot(data.timepoints,data.values,'o')
-        xlabel('time')
-        ylabel('Unit')
+        if plotdata==True: 
+            matplotlib.pyplot.plot(t[sim],data[sim].values,'o')
+            xlabel('time')
+            ylabel('Unit')
+        filename = name+"_"+model.name+"_"+repr(sim+1)
+        matplotlib.pyplot.savefig(filename)
    
     
-    matplotlib.pyplot.savefig(filename)
-    matplotlib.pylab.clf()
+        # new slate for next submodel plot
+        matplotlib.pylab.clf()
 
 def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', model=1):
 
@@ -205,17 +215,16 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
     npar = len(matrix[int(model)-1][0])
 
     # Maximum plots per page is 16
-    # If we are over this then require multiple plots
+    # If more required, multiple plots are produced!
     multi = False
     if npar > 16:
         multi = True
  
     if multi == False:
-        #print "******************* DOING SINGLE"
         # In the below max1 refers to the number of rows
         # and max2 refers to the number of columns ie max2 x max1
 
-        # Lets check to see whether we have more than four parameters
+        # Check to see whether we have more than four parameters
         # If so we just make the plots 1 x npar
 
         max1 = 4.0 
@@ -279,7 +288,6 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
             matplotlib.pyplot.subplot(111)
 
     else:
-        #print "******************* DOING MULTI"
         s_num = 1
         p_num = 1
         for i in range(npar):
@@ -330,7 +338,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
             
 
 
-def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots', model=1):
+def getAllScatterPlots(matrix,weights, pindex, populations=(1,),PlotName='AllScatterPlots', model=1):
 
     """
     Plot scatter plots and histograms of data given in matrix.
@@ -363,10 +371,10 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
     """
 
     matplotlib.pylab.clf()
-    dim=len(matrix[int(model)-1][0])
 
-  
     myColors=['#000000','#003399','#3333FF','#6666FF','#990000','#CC0033','#FF6600','#FFCC00','#FFFF33','#33CC00','#339900','#336600']
+
+    dim=len(matrix[int(model)-1][0])
 
     if len(populations)>len(myColors):
         q=int(math.ceil(len(populations)/len(myColors)))
@@ -374,10 +382,13 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
         for slopes in range(0,q):
             myColors.extend(myColors)
 
+
     max1=4.0
+
     if dim<=max1:
         permutation=numpy.zeros([dim**2,2])
         k=0
+
         for i in range(1,dim+1):
             for j in range(1,dim+1):
                 permutation[k][0]=i
@@ -390,10 +401,9 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
             matplotlib.pyplot.subplot(dim,dim,i+1)
             subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)
             w=weights[int(model)-1][int(populations[len(populations)-1])-1][int(permutation[i][0])-1]
-          
+
+
             for j in range(0,len(populations)):
-
-
                 x=matrix[int(model)-1][int(populations[j])-1][int(permutation[i][0])-1]
                 y=matrix[int(model)-1][int(populations[j])-1][int(permutation[i][1])-1]
                 g=(j+1)*((len(populations)*1.5)**(-1))
@@ -402,14 +412,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                         cla()
                         if not(len(x)==0):
                             i2=i2+1
-                            #hist=Histogram.WeightedHistogram(x,w,int(binB))
-                            #length=hist.__len__()
-                            #histogramX=[]
-                            #histogramY=[]
 
-                            #for k in range(0, length):
-                            #    histogramX.append(hist.__getitem__(k)[0])
-                            #    histogramY.append(hist.__getitem__(k)[1])
 
                             histogramX=[]
                             histogramY=[]
@@ -446,9 +449,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                 xticks((xmin, (xmin+xmax)/2.0, xmax),size='xx-small')
                 yticks((ymin, (ymin+ymax)/2.0, ymax),size = 'xx-small')
        
-               
-
-               
+ 
         savefig(PlotName)
         matplotlib.pylab.clf()
         matplotlib.pyplot.subplot(111)
@@ -486,13 +487,6 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                             cla()
                             if not(len(x)==0):
                                 i2=i2+1
-                                #hist=Histogram.WeightedHistogram(x,w,int(binB))
-                                #length=hist.__len__()
-                                #histogramX=[]
-                                #histogramY=[]
-                                #for k in range(0, length):
-                                #    histogramX.append(hist.__getitem__(k)[0])
-                                #    histogramY.append(hist.__getitem__(k)[1])
 
                                 histogramX=[]
                                 histogramY=[]
@@ -504,8 +498,6 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                                 matplotlib.pyplot.bar(histogramX,histogramY,color=myColors[j],width=xrange/binB,align='center')
                                 xlabel('parameter '+repr(i2),size='xx-small')
 
-                    #        matplotlib.pyplot.hist(matrix[int(model)-1][j][int(permutation[i][0])-1],bins=20,facecolor='white')
-                    #        xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
                     
                     else:
                         if not(len(x)==0):
@@ -536,6 +528,213 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
             savefig(PlotName+"_"+repr(p))
             matplotlib.pylab.clf()
             matplotlib.pyplot.subplot(111)
+
+def getSubmodScatterPlots(matrix,weights, pindex, folder, modelName, submodName, populations=(1,),PlotName='AllScatterPlots', model=1):
+
+    """
+    Plot scatter plots and histograms of data given in matrix.
+    Used to plot posterior parameter distributions.
+    ***** args *****
+
+    matrix:
+
+            Matrix of data.
+
+    *** kwargs *****
+    
+    populations:
+
+            Ordered tuple of integers.
+            Determines which data will be plotted.
+            Used to index the matrix.
+            
+    PlotName:
+
+            String
+            Name for the saved plot
+
+    model:
+
+            Integer
+            Determines which data will be plotted.
+            Used to index the matrix.
+
+    """
+
+    # clear frame and set haxedecimal colour loop
+    matplotlib.pylab.clf()
+
+    # create dim matrix the same length as the number of non-constant parameters
+    subCount = 0
+    for submod in range(0,len(pindex[int(model)-1])):
+        subCount = subCount + 1
+        dim=len(matrix[int(model)-1][submod][0])
+        
+
+        # set colour routine with hexadecimals and adjust for cases where there are more populations than colours.
+        myColors=['#000000','#003399','#3333FF','#6666FF','#990000','#CC0033','#FF6600','#FFCC00','#FFFF33','#33CC00','#339900','#336600']
+
+        if len(populations)>len(myColors):
+            q=int(math.ceil(len(populations)/len(myColors)))
+        
+            for slopes in range(0,q):
+                myColors.extend(myColors)
+
+        # assume the max number of params is 4
+        # create permutations matrix for using to plot all parameters against each other
+        max1=4.0
+        if dim<=max1:
+            permutation=numpy.zeros([dim**2,2])
+            k=0
+            for i in range(1,dim+1):
+                for j in range(1,dim+1):
+                    permutation[k][0]=i
+                    permutation[k][1]=j
+                    k=k+1
+
+            binB=20.0
+            i2=0
+
+            # for each plotting permutation, add the next plot to the subplot and adjust how it looks
+            for i in range(0,len(permutation)):
+                matplotlib.pyplot.subplot(dim,dim,i+1)
+                subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)
+                w=weights[int(model)-1][submod][int(populations[len(populations)-1])-1][int(permutation[i][0])-1]
+
+                # for each population, set x and y
+                for j in range(0,len(populations)):
+                    x=matrix[int(model)-1][submod][int(populations[j])-1][int(permutation[i][0])-1]
+                    y=matrix[int(model)-1][submod][int(populations[j])-1][int(permutation[i][1])-1]
+                    g=(j+1)*((len(populations)*1.5)**(-1))
+
+                    # if a box lies on the cantral diagonal (i.e. parameter x= parameter y), plot the histogram for the parameter
+                    if permutation[i][0]==permutation[i][1]:
+                        if j==len(populations)-1:
+                            cla()
+                            if not(len(x)==0):
+                                i2=i2+1
+
+
+                                histogramX=[]
+                                histogramY=[]
+                                histogramX, histogramY = bin_data(x, w, int(binB))
+                                
+                                maxX=max(histogramX)
+                                minX=min(histogramX)
+                                xrange=maxX-minX
+                                matplotlib.pyplot.bar(histogramX,histogramY,width=xrange/binB,color=myColors[j],align='center')
+                                xlabel('parameter '+repr(i2),size='xx-small')
+
+                    # otherwise plot the scatter plot
+                    else:
+                        if not(len(x)==0):
+                            scatter(x,y,s=10,marker='o',c=myColors[j],edgecolor=myColors[j])
+                            ylabel('parameter '+repr(int(permutation[i][1])),size='xx-small')
+                            xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
+                
+                    xmin,xmax=xlim()
+                    ymin,ymax=ylim()
+
+                    ax = gca()
+                    ay = gca()
+                    if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+                    else: xFormatter = FormatStrFormatter('%0.2f')
+                    ax.xaxis.set_major_formatter(xFormatter)
+                
+                    if ((ymax-ymin)<0.1 or (ymax-ymin)>=1000): yFormatter = FormatStrFormatter('%0.1e')
+                    else: yFormatter = FormatStrFormatter('%0.2f')
+                    ay.yaxis.set_major_formatter(yFormatter)
+
+                    if permutation[i][0]==permutation[i][1]: yFormatter = FormatStrFormatter('%i')
+                
+                    axis([xmin, xmax, ymin, ymax])
+                    xticks((xmin, (xmin+xmax)/2.0, xmax),size='xx-small')
+                    yticks((ymin, (ymin+ymax)/2.0, ymax),size = 'xx-small')
+       
+               
+            # save the plot
+            PlotName = folder+'/results_' + modelName +'/Population_'+repr(max(populations)) +'/'+ submodName[submod] +'/ScatterPlots_Population' + repr(max(populations))
+            savefig(PlotName)
+            matplotlib.pylab.clf()
+            matplotlib.pyplot.subplot(111)
+
+        # if the number of parameters is greater than 4, plot each parameter pair combination once only
+        else:
+            i2=0
+            permutation=zeros([dim*(dim+1)/2,2])
+            k=0
+            for i in range(1,dim+1):
+                for j in range(i,dim+1):
+                    permutation[k][0]=i
+                    permutation[k][1]=j
+                    k=k+1
+        
+            binB=20.0
+
+            dim=math.ceil(len(permutation)/max1)
+            numOfPlots=math.ceil(dim/max1)
+            for p in range(0,int(numOfPlots)):
+
+                start=p*max1**2
+                end=p*max1**2+max1**2
+                for i in range(int(start),int(end)):
+                    if i>=len(permutation): break
+                    matplotlib.pyplot.subplot(max1,max1,i-start+1)
+                    subplots_adjust(left=None, bottom=None, right=None, top=None,wspace=0.6, hspace=0.5)
+                    w=weights[int(model)-1][submod][int(populations[len(populations)-1])-1][int(permutation[i][0])-1]
+                    for j in range(0,len(populations)):
+                        x=matrix[int(model)-1][submod][int(populations[j])-1][int(permutation[i][0])-1]
+                        y=matrix[int(model)-1][submod][int(populations[j])-1][int(permutation[i][1])-1]
+                        g=(j+1)*((len(populations)*1.5)**(-1))
+
+                        # if param x = param y, plot param histogram
+                        if permutation[i][0]==permutation[i][1]:
+                            if j==len(populations)-1:
+                                cla()
+                                if not(len(x)==0):
+                                    i2=i2+1
+
+                                    histogramX=[]
+                                    histogramY=[]
+                                    histogramX, histogramY = bin_data(x, w, int(binB))
+                            
+                                    maxX=max(histogramX)
+                                    minX=min(histogramX)
+                                    xrange=maxX-minX
+                                    matplotlib.pyplot.bar(histogramX,histogramY,color=myColors[j],width=xrange/binB,align='center')
+                                    xlabel('parameter '+repr(i2),size='xx-small')
+ 
+                        # otherwise, plot the scatter plot                    
+                        else:
+                            if not(len(x)==0):
+                                scatter(x,y,s=10,marker='o',c=myColors[j],edgecolor=myColors[j])
+                                ylabel('parameter '+repr(int(permutation[i][1])),size='xx-small')
+                                xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
+                
+                        xmin,xmax=xlim()
+                        ymin,ymax=ylim()
+                   
+                        ax = gca()
+                        ay = gca()
+                        if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+                        else: xFormatter = FormatStrFormatter('%0.2f')
+                        ax.xaxis.set_major_formatter(xFormatter)
+
+                        if ((ymax-ymin)<0.1 or (ymax-ymin)>=1000): yFormatter = FormatStrFormatter('%0.1e')
+                        else: yFormatter = FormatStrFormatter('%0.2f')
+                        ay.yaxis.set_major_formatter(yFormatter)
+
+                        if permutation[i][0]==permutation[i][1]: yFormatter = FormatStrFormatter('%i')
+                                 
+                        axis([xmin, xmax, ymin, ymax])
+                        xticks((xmin, (xmin+xmax)/2.0, xmax),size='xx-small')
+                        yticks((ymin, (ymin+ymax)/2.0, ymax),size = 'xx-small')
+                
+                # save the plot
+                PlotName = folder+'/results_' + modelName +'/Population_'+repr(max(populations))  +'/'+ submodName[submod] +'/ScatterPlots_Population' + repr(max(populations))
+                savefig(PlotName+"_"+repr(p))
+                matplotlib.pylab.clf()
+                matplotlib.pyplot.subplot(111)
 
 
 
@@ -621,7 +820,7 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
     """
     
     matplotlib.pylab.clf()
-    max1=4.0 #must be float or double, but no integer
+    max1=4.0 #must be float or double, but not integer
     if max1>len(matrix): 
         max1=len(matrix)
         max2=1

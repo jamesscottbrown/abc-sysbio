@@ -1,0 +1,43 @@
+
+ALGORITHM INFO
+modelnumber: 1
+submodelnumber: 1
+restart: False
+particles: 100
+beta: 1
+dt: 1.0
+manual epsilon:
+	 160.0  150.0  140.0  130.0  120.0  100.0  80.0  50.0  40.0  37.0  35.0 
+kernel: [1, 0]
+model kernel: 0.7
+model prior: [1.0]
+
+DATA:
+
+dataset 1 :
+	times: [0.0, 0.59999999999999998, 4.2000000000000002, 6.2000000000000002, 8.5999999999999996, 13.4, 16.0, 21.399999999999999, 27.600000000000001, 34.399999999999999, 39.799999999999997, 40.600000000000001, 45.200000000000003]
+	vars:
+	
+ 0.0  2.04  32.29  4.13  2.15  5.09  1.07  3.67  39.01  73.83  8.54  17.62  11.96 
+	
+ 0.0  28.99  32.29  10.61  55.27  9.49  68.56  10.62  -1.95  3.53  63.87  39.68  -0.6 
+	
+ 0.0  20.96  7.49  44.25  7.12  60.52  8.1  63.76  22.9  6.27  10.59  6.5  70.56 
+
+MODELS: 1
+	name: model1
+	npar: 6
+	prior: [[0, 1.0, 0, 0], [2, -2.0, 10.0, 0], [2, 0.0, 10.0, 0], [2, -5.0, 20.0, 0], [2, 500.0, 2500.0, 0], [0, 1.0, 0, 0]]
+	type: ODE
+	logp: False
+	SUBMODELS: 1
+		name: model1_1
+		source: repressilator.xml
+		local prior: []
+		nspecies: 6
+		fit: ['samplePoints[:,0]', 'samplePoints[:,2]', 'samplePoints[:,4]']
+		init: [[0, 0.0, 0, 0], [0, 2.0, 0, 0], [0, 0.0, 0, 0], [0, 1.0, 0, 0], [0, 0.0, 0, 0], [0, 3.0, 0, 0]]
+		distancefn: default 
+
+cuda-sim: Using device 0
+beginning population with [ 160.]

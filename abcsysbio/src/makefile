@@ -12,7 +12,7 @@ GCC := -L/usr/lib -lgcc
 endif
 
 LIBS1= -L$(ABC_GSL_LIB) -lgsl -lgslcblas $(TARG)
-LIBS2= -L$(ABC_NM_LIB) -lnewmat 
+LIBS2= -L$(ABC_NM_LIB) -lnewmat
 LIBS= $(GCC) $(LIBS1) $(LIBS2)
 LOCS= -Wl,-rpath,$(ABC_GSL_LIB) -Wl,-rpath,$(ABC_NM_LIB) -Wl,-rpath,. 
 

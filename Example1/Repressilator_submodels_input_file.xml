@@ -1,0 +1,217 @@
+<input>
+
+######################## number of models
+
+# Number of models for which details are described in this input file
+<modelnumber> 1 </modelnumber>
+
+<submodelnumber> 2 </submodelnumber>
+
+######################## restart
+
+# Restart from previous (pickled) population?
+<restart> False </restart>
+
+######################## epsilon schedule
+
+# Automatic epsilon schedule. Provide a vector of final epsilons and the alpha (defaults to 0.9)
+<autoepsilon>
+<finalepsilon> 1.0 </finalepsilon>
+<alpha> 0.9 </alpha>
+</autoepsilon>
+
+# OR
+# Series of epsilons. (Whitespace delimited list)
+# Multiple epsilon schedules can be specified by giving additional vectors enclosed in <e2> </e2>, <e3> </e3> etc
+# NOTE: the parser always reads them in order and ignores the tag value
+<!-- <epsilon> -->
+<!-- <e1> 5.0 3.0 2.0 1.0 </e1> -->
+<!-- </epsilon> -->
+
+######################## particles
+
+<particles> 100 </particles>
+
+######################## beta
+
+# Beta is the number of times to simulate each sampled parameter set.
+# This is only applicable for models simulated using Gillespie and SDE
+<beta> 1 </beta>
+
+######################## dt
+
+# Internal timestep for solver.
+# Make this small for a stiff model.
+<dt> 0.01 </dt>
+
+######################## perturbation kernels : OPTIONAL (default uniform)
+
+# The pertubation kernels are computed with respect to the previous parameter distribution
+# Currently adaptive and non-adaptive uniform and normal perturbation kernels can be implemented
+# To use adaptive kernels, use just <kernel> uniform </kernel> or <kernel> normal </kernel>
+# To use non-adaptive kernels, use <kernel> uniform lowerbound upperbound </kernel> or <kernel> normal mean variance </kernel>
+<kernel> uniform </kernel>
+
+######################## model kernel : OPTIONAL (default 0.7)
+
+# Probability of perturbing the sampled model (ignored when modelnumber = 1)
+<modelkernel> 0.7 </modelkernel>
+
+######################## ODE solver control : OPTIONAL 
+
+# rtol and atol can be specified here. If the model is stiff then setting these to small might help the simulation to run
+#<rtol> </rtol> 
+#<atol> </atol>
+
+######################## User-supplied data
+
+<data>
+
+# times: For ABC SMC, times must be a whitespace delimited list
+# In simulation mode these are the timepoints for which the simulations will be output
+
+# variables: For ABC SMC, whitespace delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie)
+# Denote your data via tags <v1> </v1> or <var1> </var1> or <v2> </v2> etc. The tags are ignored and the data read in order
+# For simulation these data are ignored
+# See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model
+
+<data1>
+ <times> 0.0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30  </times>
+
+ <variables>
+ <var1> 0.0 13.3134935614 13.6322572134 14.5471708499 14.7284533873 14.6761421503 14.6430597547 14.6392356735 14.6415323456 14.6425512991 14.6426094688 14.6425085883 14.6424681206 14.6424703265 14.642477035 14.6424765171  </var1>
+ <var2> 1.0 13.6188244025 13.51412953 14.4896538776 14.7273158228 14.6818910493 14.6447575361 14.6391217576 14.6413298189 14.6425092352 14.6426183154 14.6425177619 14.6424693762 14.6424690707 14.6424764588 14.6424764889  </var2>
+ <var3> 0.0 14.0827021194 15.441390415 15.0012076326 14.6664139584 14.6136447665 14.6321759531 14.6425849041 14.6435496049 14.6427614644 14.6424416673 14.6424244781 14.6424681986 14.6424826537 14.6424786432 14.6424792627   </var3>
+ <var4> 0.0 13.8370046469 15.4179179529 15.0553912544 14.6850255436 14.6135594646 14.6302864719 14.642076842 14.6436017004 14.6428263248 14.6424542065 14.642420114 14.6424639554 14.6424825469 14.6424795112 14.642479347   </var4>
+ <var5> 0.0 19.6522502867 15.0993923551 14.4024600555 14.5349154883 14.6378865234 14.6522242368 14.6456175902 14.6423545566 14.6421234453 14.6423921453 14.6425036223 14.6425019705 14.6424832562 14.6424801843 14.642479788  </var5>
+ <var6> 0.0 20.7194360057 15.3201904065 14.4128744538 14.5181404808 14.6322940741 14.6524226389 14.6462391191 14.6425052862 14.6421010384 14.6423698384 14.6424991754 14.6425048751 14.6424848347 14.6424799074 14.6424797619  </var6>
+ </variables>
+</data1>
+
+<data2>
+ <times> 0.0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30  </times>
+
+ <variables>
+ <var1> 0.0 4.06951782518 2.75864006644 37.7943124467 190.830714274 154.680412432 38.0693091034 6.9525277713 2.66108431862 21.9364927644 141.546495224 122.500678511 30.0842002024 5.73314485854 2.99576614406 32.1993015027  </var1>
+ <var2> 1.0 4.80946419109 2.50629594962 29.7082030784 176.928487186 168.247240973 45.5427215842 8.31511531259 2.67992374624 17.1423123884 128.765088821 133.226319765 35.9565062879 6.79418810282 2.84280975908 25.4601094202 </var2>
+ <var3> 0.0 18.7279576505 122.011818813 34.9010158226 5.70178281626 1.65959504141 1.27736816869 6.35553274224 74.413337889 40.0153886238 6.57814245611 1.79298311061 1.40928434081 9.15477299235 81.8660302601 29.6671411092  </var3>
+ <var4> 0.0 7.13865874298 51.5114596871 66.3423355286 33.032576067 13.8875376268 5.9398887467 4.04086333198 25.0869321146 53.2035238414 29.587839318 12.8310849526 5.6097098609 4.58946276143 30.979441235 48.5471748486      </var4>
+ <var5> 0.0 75.2221971666 13.3239475155 2.84629090495 1.7491885829 3.78724467543 16.2369488896 51.3015314718 18.222337406 3.71450951522 2.01282643389 4.31801402456 18.2871010654 48.6419941161 14.1003320155 3.14552839128   </var5>
+ <var6> 0.0 87.1714772085 16.2622890794 3.25516609235 1.73958263723 3.38692007232 14.0882861135 48.6795924736 21.8396431934 4.30661401871 2.01827289247 3.85861714801 15.9136450843 47.6836525841 16.9541505634 3.58156349856 </var6>
+ </variables>
+</data2>
+
+
+</data>
+
+
+######################## Models with associated submodels
+
+<models>
+######################## Model (submodels listed in section below)
+
+<model1>
+<name> model1 </name>
+# type: the method used to simulate your model. ODE, SDE or Gillespie.
+<type> SDE </type>
+
+# Priors on initial conditions and parameters:
+# one of 
+#       constant, value 
+#       normal, mean, variance 
+#       uniform, lower, upper 
+#       lognormal, mean, variance 
+#       trunc_normal, mean, variance, lowerbound, upperbound (either lowerbound or upperbound can be 'i')
+
+<parameters>
+<parameter1> constant 1.0 </parameter1>
+<parameter2> constant 0.0 </parameter2>
+<parameter3> constant 0.0 </parameter3>
+<parameter4> constant 0.0 </parameter4>
+<parameter5> constant 0.0 </parameter5>
+<parameter6> constant 1.0 </parameter6>
+</parameters>
+
+######################## Set of associated submodels
+
+<submodels>
+<submodel1_1>
+<name> model1_1 </name>
+<source> repressilator_1.xml </source>
+
+# Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.
+# Otherwise, give a whitespace delimited list of fitting instrictions the same length as the dimensions of your data.
+# Use speciesN to denote the Nth species in your model. Simple arithmetic operations can be performed on the species from your model.
+# For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2
+<fit> None </fit>
+
+# Optional argument. Distance function can be euclidean, log, or custom (to be defined in customABC.py). The default is euclidean, unless 'custd' is given in the command line, in which case custom is the default.
+<!-- <distancefunction>    </distancefunction> -->
+
+# If any of the parameters must be considered as local parameters (i.e. sampled using different distributions for different submodels), specify these below.
+# Ensure that all local parameters are subsequently deleted from the overall model parameter list (above).
+# Local parameters can be specified by giving additional vectors enclosed in <param2> </param2>, <param3> </param3> etc
+# NOTE: the parser always reads them in order and ignores the tag value
+<!-- <localparameters> -->
+<!-- <param1> comstant 1.0 </param1> -->
+<!-- <param2> uniform 1.0 10.0 </param2> -->
+<!-- </localparameters> -->
+
+# Optional argument. Distance function can be euclidean, log, or custom (to be defined in customABC.py).
+# The default is euclidean, unless 'custd' is given in the command line, in which case custom is the default.
+<!-- <distancefunction>    </distancefunction> -->
+
+<initial>
+ <ic1> constant 1.0 </ic1>
+ <ic2> constant 1.0 </ic2>
+ <ic3> constant 1.0 </ic3>
+ <ic4> constant 1.0 </ic4>
+ <ic5> constant 1.0 </ic5>
+ <ic6> constant 1.0 </ic6>
+</initial>
+</submodel1_1>
+
+<submodel1_2>
+<name> model1_2 </name>
+<source> repressilator_2.xml </source>
+
+# Fitting information. If fit is None, all species in the model are fitted to the data in the order they are listed in the model.
+# Otherwise, give a whitespace delimited list of fitting instrictions the same length as the dimensions of your data.
+# Use speciesN to denote the Nth species in your model. Simple arithmetic operations can be performed on the species from your model.
+# For example, to fit the sum of the first two species in your model to your first variable, write fit: species1+species2
+<fit> None </fit>
+
+# Optional argument. Distance function can be euclidean, log, or custom (to be defined in customABC.py). The default is euclidean, unless 'custd' is given in the command line, in which case custom is the default.
+<!-- <distancefunction>    </distancefunction> -->
+
+# If any of the parameters must be considered as local parameters (i.e. sampled using different distributions for different submodels), specify these below.
+# Ensure that all local parameters are subsequently deleted from the overall model parameter list (above).
+# Local parameters can be specified by giving additional vectors enclosed in <param2> </param2>, <param3> </param3> etc
+# NOTE: the parser always reads them in order and ignores the tag value
+<!-- <localparameters> -->
+<!-- <param1> comstant 1.0 </param1> -->
+<!-- <param2> uniform 1.0 10.0 </param2> -->
+<!-- </localparameters> -->
+
+# Optional argument. Distance function can be euclidean, log, or custom (to be defined in customABC.py).
+# The default is euclidean, unless 'custd' is given in the command line, in which case custom is the default.
+<!-- <distancefunction>    </distancefunction> -->
+
+<initial>
+ <ic1> constant 1.0 </ic1>
+ <ic2> constant 1.0 </ic2>
+ <ic3> constant 1.0 </ic3>
+ <ic4> constant 1.0 </ic4>
+ <ic5> constant 1.0 </ic5>
+ <ic6> constant 1.0 </ic6>
+</initial>
+</submodel1_2>
+
+</submodels>
+
+</model1>
+
+</models>
+
+</input>
+

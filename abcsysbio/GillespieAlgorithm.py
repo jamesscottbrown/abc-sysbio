@@ -6,27 +6,27 @@ import numpy
 #species (passed to the first row of the concentrations[][] matrix during the first iteration)
 
 def select_hazard(total_hazard,list_of_hazards):
-        """chose a hazard from the list by by hazard weights.
+    """chose a hazard from the list by by hazard weights.
 
-        ***** args *****
+    ***** args *****
 
-        total hazard:
+    total hazard:
         
-                Sum of hazards
+        Sum of hazards
                 
-        list of hazards:
+    list of hazards:
         
-                List of hazards, one for each reaction
+        List of hazards, one for each reaction
 
-        """
+    """
 
-	hazard_chooser = numpy.random.random_sample()	
-	for i in range(0,len(list_of_hazards)):
-		x=list_of_hazards[i]/total_hazard #normal hazards
-		if hazard_chooser<x:
-			break
-		hazard_chooser=hazard_chooser-x	
-	return i
+    hazard_chooser = numpy.random.random_sample()   
+    for i in range(0,len(list_of_hazards)):
+        x=list_of_hazards[i]/total_hazard #normal hazards
+        if hazard_chooser<x:
+            break
+        hazard_chooser=hazard_chooser-x
+    return i
 
 
 
@@ -95,13 +95,25 @@ def GillespieInt(func, initValues, parameters, outputtimes):
                 if total_hazard <= 0.0:
                         pass
                 else:
-			hazard_chosen=select_hazard(total_hazard,list_of_hazards)
+                        hazard_chosen=select_hazard(total_hazard,list_of_hazards)
 
                         try:
-                                current_concentrations = tuple(switch[hazard_chosen](tuple(current_concentrations))) # Switch based on value of hazard_chosen
+                                current_concentrations_temp = tuple(switch[hazard_chosen](tuple(current_concentrations)))
+                                while any(x<0.0 for x in current_concentrations_temp):
+                                        current_concentrations_temp = tuple(switch[hazard_chosen](tuple(current_concentrations)))
+                                        # this resets any concentrations that go below zero
+                                        # it is recommended that this scheme is revised
+                                        if any(x<0.0 for x in current_concentrations_temp):
+                                                for x in range(len(current_concentrations_temp)):
+                                                        if current_concentrations_temp[x]<0.0:
+                                                                templist = list(current_concentrations_temp)
+                                                                templist[x] = 0
+                                                                current_concentrations_temp = tuple(templist)
+                                current_concentrations = current_concentrations_temp    
                         except KeyError:
                                 switch["default"]()
                                                                   
+
         return concentrations
 
 
@@ -110,6 +122,7 @@ def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, xmax)
 
 	time = t1
 	switch = func.Switch()
+	print switch
 
 	while 1:
 		current_concentrations, parameters=func.events(current_concentrations, parameters, time)
