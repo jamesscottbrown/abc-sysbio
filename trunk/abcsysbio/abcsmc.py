@@ -428,8 +428,8 @@ class abcsmc:
                 self.kernels[mod] = tmp_kernel[:]
 
             else:
-                # only update the kernels if there are > 100 particles
-                if len(this_model_index) > 100:
+                # only update the kernels if there are > 5 particles
+                if len(this_model_index) > 5:
                     for it in range(len(this_model_index)):
                         this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
                         this_weights[it] = self.weights_prev[ this_model_index[it] ]
