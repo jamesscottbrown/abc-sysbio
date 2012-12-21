@@ -1,0 +1,336 @@
+
+ALGORITHM INFO
+modelnumber: 1
+submodelnumber: 1
+restart: False
+particles: 100
+beta: 1
+dt: 1.0
+manual epsilon:
+	 160.0  150.0  140.0  130.0  120.0  100.0  80.0  50.0  40.0  37.0  35.0 
+kernel: [1, 0]
+model kernel: 0.7
+model prior: [1.0]
+
+DATA:
+
+dataset 1 :
+	times: [0.0, 0.59999999999999998, 4.2000000000000002, 6.2000000000000002, 8.5999999999999996, 13.4, 16.0, 21.399999999999999, 27.600000000000001, 34.399999999999999, 39.799999999999997, 40.600000000000001, 45.200000000000003]
+	vars:
+	
+ 0.0  2.04  32.29  4.13  2.15  5.09  1.07  3.67  39.01  73.83  8.54  17.62  11.96 
+	
+ 0.0  28.99  32.29  10.61  55.27  9.49  68.56  10.62  -1.95  3.53  63.87  39.68  -0.6 
+	
+ 0.0  20.96  7.49  44.25  7.12  60.52  8.1  63.76  22.9  6.27  10.59  6.5  70.56 
+
+MODELS: 1
+	name: model1
+	npar: 6
+	prior: [[0, 1.0, 0, 0], [2, -2.0, 10.0, 0], [2, 0.0, 10.0, 0], [2, -5.0, 20.0, 0], [2, 500.0, 2500.0, 0], [0, 1.0, 0, 0]]
+	type: ODE
+	logp: False
+	SUBMODELS: 1
+		name: model1_1
+		source: repressilator.xml
+		local prior: []
+		nspecies: 6
+		fit: ['samplePoints[:,0]', 'samplePoints[:,2]', 'samplePoints[:,4]']
+		init: [[0, 0.0, 0, 0], [0, 2.0, 0, 0], [0, 0.0, 0, 0], [0, 1.0, 0, 0], [0, 0.0, 0, 0], [0, 3.0, 0, 0]]
+		distancefn: default 
+
+cuda-sim: Using device 0
+beginning population with [ 160.]
+cuda-sim: GPU blocks / threads / running time: 64 391 14.6203 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.2277 s
+beginning population with [ 150.]
+cuda-sim: GPU blocks / threads / running time: 64 391 15.4333 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.2296 s
+beginning population with [ 140.]
+cuda-sim: GPU blocks / threads / running time: 64 391 15.1337 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.5037 s
+beginning population with [ 130.]
+cuda-sim: GPU blocks / threads / running time: 64 391 15.4335 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.4562 s
+beginning population with [ 120.]
+cuda-sim: GPU blocks / threads / running time: 64 391 18.6675 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.6632 s
+beginning population with [ 100.]
+cuda-sim: GPU blocks / threads / running time: 64 391 18.5435 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.6936 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.6792 s
+beginning population with [ 80.]
+cuda-sim: GPU blocks / threads / running time: 64 391 18.9221 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.7128 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.066 s
+cuda-sim: GPU blocks / threads / running time: 64 1 0.5244 s
+beginning population with [ 50.]
+cuda-sim: GPU blocks / threads / running time: 64 391 18.6804 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.7473 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.7539 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.884 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.7195 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.8143 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.0265 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.9316 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.0289 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.0456 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.0427 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.9058 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.4091 s
+cuda-sim: GPU blocks / threads / running time: 64 391 19.3573 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.7358 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.9228 s
+cuda-sim: GPU blocks / threads / running time: 64 391 14.9301 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.8708 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.3751 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.3992 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.0491 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.1186 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.3045 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.5134 s
+cuda-sim: GPU blocks / threads / running time: 64 1 2.5007 s
+beginning population with [ 40.]
+cuda-sim: GPU blocks / threads / running time: 64 391 10.7872 s
+cuda-sim: GPU blocks / threads / running time: 64 391 13.9749 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.7984 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6432 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4471 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4439 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.667 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6575 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5674 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6538 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.723 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6697 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4838 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4852 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6332 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5128 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5304 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4505 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5248 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4903 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4888 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6447 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4995 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.1873 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.555 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6548 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7539 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4936 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7504 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5057 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5192 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5235 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5567 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6056 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5443 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4658 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4892 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5729 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6454 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.095 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3077 s
+cuda-sim: GPU blocks / threads / running time: 64 391 18.0391 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6593 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5246 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6676 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6523 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2986 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2902 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.493 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5572 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.8249 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7912 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7851 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6493 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3068 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5863 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4303 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2695 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3679 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.278 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3499 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2945 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2783 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3598 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.1985 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2795 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5986 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6294 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3726 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5618 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3101 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5503 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6682 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5748 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3145 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4242 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.338 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6091 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3872 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6252 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6241 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7182 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5992 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.9681 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2582 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5861 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6897 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4762 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7384 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4633 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2259 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.2582 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.3656 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5911 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5399 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5342 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5467 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5051 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6269 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5939 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5978 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.5139 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6678 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.7245 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6303 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.6375 s
+cuda-sim: GPU blocks / threads / running time: 64 391 14.4907 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.9437 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.9395 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0193 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0149 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.1404 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.8574 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.9531 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.076 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.8915 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.7365 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0717 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0644 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.9804 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0454 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4916 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.85 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.9644 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0411 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.9954 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0128 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.4009 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0464 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.0282 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.1453 s
+cuda-sim: GPU blocks / threads / running time: 64 391 17.071 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.8969 s
+cuda-sim: GPU blocks / threads / running time: 64 1 2.647 s
+beginning population with [ 37.]
+cuda-sim: GPU blocks / threads / running time: 64 391 9.3193 s
+cuda-sim: GPU blocks / threads / running time: 64 391 11.8371 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.0734 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1937 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.167 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.7129 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1099 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1229 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2141 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.857 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0281 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0144 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9489 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9938 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8782 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0839 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0697 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0155 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0086 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.051 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.7386 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0407 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2092 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.138 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0982 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9839 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0475 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9053 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.7977 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0852 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1276 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0201 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1162 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2645 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1249 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9361 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8334 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8104 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9854 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1789 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2024 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9789 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1294 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9297 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8793 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8991 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2415 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0239 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.6832 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.7979 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1519 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1992 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0268 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.7977 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.237 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1244 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.23 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0479 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.477 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8037 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.8216 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0554 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1704 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0142 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1224 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1554 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0458 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0441 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9568 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1191 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1521 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2299 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1169 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1203 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9272 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1981 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1097 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2121 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1732 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1032 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1583 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1021 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1545 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1887 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1515 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1015 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0631 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1071 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2037 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0964 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.0691 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1973 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9969 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.3423 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.186 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.4868 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2441 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1764 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1531 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1511 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.167 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.2054 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9444 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.1869 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.5737 s
+cuda-sim: GPU blocks / threads / running time: 64 391 16.6337 s
+cuda-sim: GPU blocks / threads / running time: 64 391 15.9198 s

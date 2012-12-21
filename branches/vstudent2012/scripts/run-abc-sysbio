@@ -63,7 +63,7 @@ def printOptions():
 
     
 def main():
-    
+
     diagnostic=True
     pickling=True
     file_exist=False
@@ -98,19 +98,19 @@ def main():
             elif option == 'design': design=True
             elif option == 'debug': full_debug=True
             elif option == 'fulloutput': full=True
-	    elif option == 'localcode' : usesbml = False 
+            elif option == 'localcode' : usesbml = False 
             elif option[0:8] == 'setseed=' : seed = int( option[8:] )
             elif option[0:10] == 'outfolder=' : fname = option[10:]
             elif option[0:9] == 'cudacode=' : app_file = option[9:]
-	    elif option == 'timing' : timing = True 
-	    elif option == 'custk' : custom_kernel = True
-	    elif option == 'custd' : custom_distance = True
+            elif option == 'timing' : timing = True 
+            elif option == 'custk' : custom_kernel = True
+            elif option == 'custd' : custom_distance = True
             elif option == 'cuda' : use_cuda = True
             elif option == 'c++' : use_c = True
-	    elif option == 'infile': 
+            elif option == 'infile': 
                 input_file=sys.argv[i+1]
                 file_exist=True
-	    elif not(sys.argv[i-1][2:] == 'infile'): 
+            elif not(sys.argv[i-1][2:] == 'infile'): 
                 print "\nunknown option "+sys.argv[i]
                 printOptions()
                 sys.exit()
@@ -130,7 +130,7 @@ def main():
             elif option == 'db': full_debug=True
             elif option == 'f': full=True
             elif option == 'cu': use_cuda = True
-	    elif option == 'lc' : usesbml = False
+            elif option == 'lc' : usesbml = False
             elif option[0:3] == 'sd=' : seed = int( option[3:] )
             elif option[0:3] == 'of=' : fname = option[3:]
             elif option == 'tm' : timing = True
@@ -150,9 +150,14 @@ def main():
         print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
         sys.exit()
 
+
+    if design == True:
+        print "Design mode not supported in this version."
+        sys.exit()
+    
     # python, C++ or CUDA 
     if use_cuda == True and use_c == True:
-        print "specified both c++ and CUDA "
+        print "specified both C++ and CUDA "
         sys.exit()
     if design == True and simulate==True:
         print "specified both design and simulate "
@@ -163,7 +168,6 @@ def main():
     if simulate == True: mode = 1
     if design == True: mode = 2
     info_new = parse_info.algorithm_info(input_file, mode) 
-
     info_new.print_info()
 
     # Check that we have libSBML if it is requested
@@ -192,12 +196,11 @@ def main():
     
     # set the random seeds
     if seed != None:
-	print "#### Seeding random number generator : ", seed
+        print "#### Seeding random number generator : ", seed
         numpy.random.seed(seed)
 
 
     # Check the information is correct for simulation or inference
-    modelCorrect = False
     if usesbml == True :
         integrationType = []
         
@@ -217,7 +220,7 @@ def main():
                 integrationType.append(info_new.type[i]+' Python')
             
 
-        ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
+        ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.submodelname,inputPath="",outputPath="",method=None)
 
         if simulate==False :
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
@@ -237,43 +240,40 @@ def main():
 
     ########################### MODEL CREATION
     #
-    # create a list of model objects from the information we have
     models = []
-    for i in range(info_new.modelnumber):
+    for i in range(0,info_new.modelnumber):
+
         if( use_cuda == True ):
-            new_model = model_cu.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
-                                          prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                          source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i])
+            new_model = model_cu.cuda_model( name=info_new.name[i], submodelname=info_new.submodelname[i], nspecies=info_new.nspecies[i], 
+                                      prior=info_new.prior[i], pindex=info_new.pindex[i],
+                                      source=info_new.submodelname[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                      dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i])
         elif( use_c == True ):
-            new_model = model_c.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
-                                       prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                       source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                       dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol, absoluteError=info_new.atol,
-                                       logp=info_new.logp[i])
-        
+            new_model = model_c.model( name=info_new.name[i], submodelname=info_new.submodelname[i], nspecies=info_new.nspecies[i],
+                                   prior=info_new.prior[i], pindex=info_new.pindex[i],
+                                   source=info_new.submodelname[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                   dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol, absoluteError=info_new.atol,
+                                   logp=info_new.logp[i])
         else:
-            new_model = model_py.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
-                                     prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                     source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                     dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol, logp=info_new.logp[i])
-        
+            new_model = model_py.model( name=info_new.name[i], submodelname=info_new.submodelname[i], nspecies=info_new.nspecies[i],
+                                 prior=info_new.prior[i], pindex=info_new.pindex[i],
+                                 source=info_new.submodelname[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                 dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol, logp=info_new.logp[i])
 
         models.append( new_model )
 
     ########################### DATA CREATION
     #
-    # create a data object
-    data_new = data.data( info_new.times, info_new.data )
+    data_new = [data.data( info_new.times[i], info_new.data[i]) for i in range(0, len(info_new.times))]
 
     ########################### IO
     #
     if simulate == True or design == True:
-        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries, havedata=False )
-        io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries, info_new.pindex, havedata=False )
+        io.create_output_folders(info_new.name, info_new.submodelname, info_new.particles, pickling, simulate)
     else:
-        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
-        io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries, info_new.pindex )
+        io.create_output_folders(info_new.name, info_new.submodelname, info_new.particles, pickling, simulate)
         io.plot_data(data_new)
         
     ########################### BATCHES
@@ -288,26 +288,29 @@ def main():
     if full == True: debug = 1
     if full_debug == True: debug = 2
 
-    # set the required distance and kernel functions
-    distancefn = euclidian.euclidianDistance
-    kernelfn = kernels.getKernel
-    kernelpdffn = kernels.getPdfParameterKernel
-    perturbfn = kernels.perturbParticle
 
-    if custom_distance == True or custom_kernel == True:
+    # set the required distance and kernel functions
+    distancefn = [[euclidian.euclidianDistance for j in range(info_new.nsubmodels)] for i in range(info_new.nmodels)]
+    if custom_distance == True or 'custom' in [x for functions in info_new.dist for x in functions]:
         import customABC
         if custom_distance == True:
-            distancefn = customABC.distance
-        if custom_kernel == True:
-            kernelfn = customABC.getKernel
-            kernelpdffn = customABC.getPdfParameterKernel
-            perturbfn = customABC.perturbParticle
+            distancefn = [[customABC.distance for j in range(info_new.nsubmodels)] for i in range(info_new.nmodels)]
+    
+    for i in range(info_new.nmodels):
+        for j in range(info_new.nsubmodels):
+            if info_new.dist[i][j] == 'log':
+                distancefn[i][j]=euclidian.euclidianLogDistance
+            elif info_new.dist[i][j] == 'custom':
+                distancefn[i][j]=customABC.distance
+            elif info_new.dist[i][j] == 'euclidean' or info_new.dist[i][j] == 'euclidian': 
+                distancefn[i][j]=euclidian.euclidianDistance
+
+
 
     # instantiate the abcsmc algorithm class
     algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
-                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernel_type=info_new.kernel, kernelfn=kernelfn,
-                              kernelpdffn=kernelpdffn, perturbfn=perturbfn )
-    
+                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernel_type=info_new.kernel) 
+
     if simulate==False :
         if len(info_new.final_epsilon) == 0:
             # Manual epsilon
@@ -329,7 +332,7 @@ def main():
                 sys.exit()
             
             algorithm.run_automated_schedule(info_new.final_epsilon, info_new.alpha, io)
-
+            
         exit()
 
     else :
@@ -338,6 +341,5 @@ def main():
         algorithm.run_simulations(io)
 
         exit()
-	
 
 main()

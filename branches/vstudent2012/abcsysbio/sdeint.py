@@ -49,13 +49,13 @@ def sdeint(func,InitValues,parameter, timepoints,dt=0.01):
         
         for k in range(0,dim):
             solutions[i][k]=solutions[i-1][k]+new[k]*dt+W[k]
+            if(solutions[i][k]<0.0):
+                solutions[i][k]=0.0
+                #print "\nSDE simulation failed. Try smaller timestep.\n"
+                return solutions_out
             
         solutions[i],parameter=func.rules(solutions[i],parameter,times[i])
             
-        if(solutions[i][k]<0.0):
-            solutions[i][k]=0.0
-            #print "\nSDE simulation failed. Try smaller timestep.\n"
-            return solutions_out
         
         if(n>=len(timepoints)):
             return zeros([len(timepoints),dim])

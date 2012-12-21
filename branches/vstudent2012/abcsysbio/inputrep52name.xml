@@ -1,0 +1,268 @@
+<input>
+
+######################## number of models
+
+# Number of models for which details are described in this input file
+<modelnumber> 2 </modelnumber>
+
+######################## number of submodels
+
+# Number of submodels for which details are described in this input file for each model
+<submodelnumber> 1 </submodelnumber>
+
+######################## restart
+
+# Restart from previous (pickled) population?
+<restart> False </restart>
+
+######################## epsilon schedule
+
+# Automatic epsilon schedule. Provide a vector of final epsilons and the alpha (defaults to 0.9)
+<autoepsilon>
+<finalepsilon> 100 </finalepsilon>
+<alpha> 0.9 </alpha>
+</autoepsilon>
+
+# OR
+# Series of epsilons. (Whitespace delimited list)
+# Multiple epsilon schedules can be specified by giving additional vectors enclosed in <e2> </e2>, <e3> </e3> etc
+# NOTE: the parser always reads them in order and ignores the tag value
+<!-- <epsilon> -->
+<!-- <e1> 5.0 3.0 2.0 1.0 </e1> -->
+<!--</epsilon> -->
+
+######################## particles
+
+<particles> 15 </particles>
+
+######################## beta
+
+# Beta is the number of times to simulate each sampled parameter set.
+# This is only applicable for models simulated using Gillespie and SDE
+<beta> 1 </beta>
+
+######################## dt
+
+# Internal timestep for solver.
+# Make this small for a stiff model.
+<dt> 0.01 </dt>
+
+######################## perturbation kernels : OPTIONAL (default uniform)
+
+# The pertubation kernels are computed with respect to the previous parameter distribution
+# Currently uniform and normal are implemented
+<kernel> uniform </kernel>
+
+######################## model kernel : OPTIONAL (default 0.7)
+
+# Probability of perturbing the sampled model (ignored when modelnumber = 1)
+<modelkernel> 0.7 </modelkernel>
+
+######################## ODE solver control : OPTIONAL 
+
+# rtol and atol can be specified here. If the model is stiff then setting these to small might help the simulation to run
+#<rtol> </rtol> 
+#<atol> </atol>
+
+######################## User-supplied data
+
+<data>
+<dataset1>
+# times: For ABC SMC, times must be a whitespace delimited list
+# In simulation mode these are the timepoints for which the simulations will be output
+<times> 0.0 0.6 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 </times>
+
+# variables: For ABC SMC, whitespace delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie)
+# Denote your data via tags <v1> </v1> or <var1> </var1> or <v2> </v2> etc. The tags are ignored and the data read in order
+# For simulation these data are ignored
+# See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model
+<variables>
+<var1>  20.0 0.12313 0.12102 0.09898 0.37887 1.00661 1.20135 1.46433 1.37789 1.57073 1.4647 1.24719 1.56065 </var1>
+<var2>  10.0 13.16813 7.17251 2.36466 0.92019 0.61958 0.17449 0.28039 0.0985 0.03343 0.28544 0.10138 0.21671 </var2>
+<var3>  0.0 9.42344 11.18957 10.0365 6.87117 4.44955 3.01271 1.76431 1.28868 0.81813 0.52111 0.22746 0.19627 </var3>
+<var4>  20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 </var4>
+<var5>  10.0 10.0 10.0 10.0 10.0 10.0 10.0 10.0 10.0 10.0 10.0 10.0 10.0 </var5>
+<var6>  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </var6>
+</variables>
+
+</dataset1>
+
+</data>
+
+######################## Models
+
+<models>
+<model1>
+<name> model1 </name>
+
+<globalparameters>
+<parameter1>
+<paramid> a </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> b </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> c </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> d </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+</globalparameters>
+
+<parametername> a b c d e f </parametername>
+
+<submodels>
+<submodel1_1>
+<name> model1_1 </name>
+<source> repressilator_set1.xml </source>
+
+
+<fit> None </fit>
+
+# Priors on initial conditions:
+# one of 
+#       constant, value 
+#       normal, mean, variance 
+#       uniform, lower, upper 
+#       lognormal, mean, variance 
+
+<initial>
+ <ic1> constant 1.0 </ic1>
+ <ic2> constant 1.0 </ic2>
+ <ic3> constant 1.0 </ic3>
+ <ic4> constant 1.0 </ic4>
+ <ic5> constant 1.0 </ic5>
+ <ic6> constant 1.0 </ic6>
+</initial>
+
+<localparameters>
+<parameter1>
+<paramid> e </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> f </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+</localparameters>
+
+<parameterindex> 1 2 0 4 5 </parameterindex>
+
+</submodel1_1>
+
+</submodels>
+
+# type: the method used to simulate your model. ODE, SDE or Gillespie.
+<type> SDE </type>
+
+# Priors on parameters:
+# one of 
+#       constant, value 
+#       normal, mean, variance 
+#       uniform, lower, upper 
+#       lognormal, mean, variance 
+
+<parameters>
+<parameter1> uniform 0 1.0 </parameter1>
+<parameter2> constant 0.0 </parameter2>
+<parameter3> constant 0.0 </parameter3>
+<parameter4> constant 0.0 </parameter4>
+<parameter5> constant 0.0 </parameter5>
+<parameter6> uniform 0  1.0 </parameter6>
+</parameters>
+</model1>
+
+<model1>
+<name> model1 </name>
+
+<globalparameters>
+<parameter1>
+<paramid> a </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> b </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> c </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> d </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+</globalparameters>
+
+<parametername> a b c d e f </parametername>
+
+<submodels>
+<submodel1_1>
+<name> model1_1 </name>
+<source> repressilator_set1.xml </source>
+
+
+<fit> None </fit>
+
+# Priors on initial conditions:
+# one of 
+#       constant, value 
+#       normal, mean, variance 
+#       uniform, lower, upper 
+#       lognormal, mean, variance 
+
+<initial>
+ <ic1> constant 1.0 </ic1>
+ <ic2> constant 1.0 </ic2>
+ <ic3> constant 1.0 </ic3>
+ <ic4> constant 1.0 </ic4>
+ <ic5> constant 1.0 </ic5>
+ <ic6> constant 1.0 </ic6>
+</initial>
+
+<localparameters>
+<parameter1>
+<paramid> g </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+<parameter1>
+<paramid> h </paramid>
+<value> uniform 0 1.0 </value>
+</parameter1>
+</localparameters>
+
+<parameterindex> 6 7 0 4 5 </parameterindex>
+
+</submodel1_1>
+
+</submodels>
+
+# type: the method used to simulate your model. ODE, SDE or Gillespie.
+<type> SDE </type>
+
+# Priors on parameters:
+# one of 
+#       constant, value 
+#       normal, mean, variance 
+#       uniform, lower, upper 
+#       lognormal, mean, variance 
+
+<parameters>
+<parameter1> uniform 0 1.0 </parameter1>
+<parameter2> constant 0.0 </parameter2>
+<parameter3> constant 0.0 </parameter3>
+<parameter4> constant 0.0 </parameter4>
+<parameter5> constant 0.0 </parameter5>
+<parameter6> uniform 0  1.0 </parameter6>
+</parameters>
+</model1>
+
+</models>
+
+</input>
+
