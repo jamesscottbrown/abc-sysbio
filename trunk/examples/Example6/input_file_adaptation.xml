@@ -6,7 +6,7 @@
 
 <autoepsilon>
 <finalepsilon> 0.1 1.0 </finalepsilon>
-<alpha> 0.9 </alpha>
+<alpha> 0.1 </alpha>
 </autoepsilon>
 
 <particles> 1000 </particles>
