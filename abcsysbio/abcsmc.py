@@ -583,7 +583,7 @@ class abcsmc:
             for i in range(self.nbatch):
                 ret[i] = statistics.w_choice( range(self.nmodel), self.margins_prev )
 
-            if( len(self.dead_models) > self.nmodel-1 ):
+            if( len(self.dead_models) < self.nmodel-1 ):
             #if(0): 
                 # perturb models
                 for i in range(self.nbatch):
