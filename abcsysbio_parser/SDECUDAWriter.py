@@ -4,6 +4,29 @@ import os
 import re
 from Writer import Writer
 
+## replace the species and parameters recursively
+##
+## replace
+## pq = re.compile(speciesId[q])
+## string=pq.sub('y['+repr(q)+']' ,string)
+## with
+## string = rep(string, speciesId[q],'y['+repr(q)+']')
+
+def rep(str,find,replace):
+
+    ex = find+"[^0-9]"
+    ss = str;
+    while re.search(ex,ss) != None:
+        res = re.search(ex,ss)
+        ss = ss[0:res.start()] + replace + " " + ss[res.end()-1:]
+
+    ex = find+"$"
+    if re.search(ex,ss) != None:
+        res = re.search(ex,ss)
+        ss = ss[0:res.start()] + replace + " " + ss[res.end():]
+ 
+    return ss;
+
 class SdeCUDAWriter(Writer):
     def __init__(self, sbmlFileName, modelName="", inputPath="", outputPath=""):
         Writer.__init__(self, sbmlFileName, modelName, inputPath, outputPath)
@@ -82,8 +105,9 @@ class SdeCUDAWriter(Writer):
     
                 string = self.parsedModel.ruleFormula[i]
                 for q in range(0,len(self.parsedModel.speciesId)):
-                    pq = re.compile(self.parsedModel.speciesId[q])
-                    string=pq.sub('y['+repr(q)+']' ,string)
+                    #pq = re.compile(self.parsedModel.speciesId[q])
+                    #string=pq.sub('y['+repr(q)+']' ,string)
+                    string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                 for q in range(0,len(self.parsedModel.parameterId)):
                     if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                         flag = False
@@ -114,8 +138,9 @@ class SdeCUDAWriter(Writer):
                 
                 string = self.parsedModel.eventFormula[i][j]
                 for q in range(0,len(self.parsedModel.speciesId)):
-                    pq = re.compile(self.parsedModel.speciesId[q])
-                    string=pq.sub('y['+repr(q)+']' ,string)
+                    #pq = re.compile(self.parsedModel.speciesId[q])
+                    #string=pq.sub('y['+repr(q)+']' ,string)
+                    string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                 for q in range(0,len(self.parsedModel.parameterId)):
                     if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                         flag = False
@@ -197,8 +222,9 @@ class SdeCUDAWriter(Writer):
                             
                         string = self.parsedModel.kineticLaw[k]
                         for q in range(len(self.parsedModel.speciesId)-1,-1,-1):  
-                            pq = re.compile(self.parsedModel.speciesId[q])
-                            string=pq.sub('y['+repr(q)+']' ,string)
+                            #pq = re.compile(self.parsedModel.speciesId[q])
+                            #string=pq.sub('y['+repr(q)+']' ,string)
+                            string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                         for q in range(0,len(self.parsedModel.parameterId)):
                             if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                                 flag = False
@@ -284,8 +310,9 @@ class SdeCUDAWriter(Writer):
     
                         string = self.parsedModel.kineticLaw[k]
                         for q in range(0,len(self.parsedModel.speciesId)):
-                            pq = re.compile(self.parsedModel.speciesId[q])
-                            string=pq.sub('y['+repr(q)+']' ,string)
+                            #pq = re.compile(self.parsedModel.speciesId[q])
+                            #string=pq.sub('y['+repr(q)+']' ,string)
+                            string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                         for q in range(0,len(self.parsedModel.parameterId)):
                             if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                                 flag = False
@@ -388,8 +415,9 @@ class SdeCUDAWriter(Writer):
     
                 string = self.parsedModel.ruleFormula[i]
                 for q in range(0,len(self.parsedModel.speciesId)):
-                    pq = re.compile(self.parsedModel.speciesId[q])
-                    string=pq.sub('y['+repr(q)+']' ,string)
+                    #pq = re.compile(self.parsedModel.speciesId[q])
+                    #string=pq.sub('y['+repr(q)+']' ,string)
+                    string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                 for q in range(0,len(self.parsedModel.parameterId)):
                     if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                         flag = False
@@ -420,8 +448,9 @@ class SdeCUDAWriter(Writer):
                 
                 string = self.parsedModel.eventFormula[i][j]
                 for q in range(0,len(self.parsedModel.speciesId)):
-                    pq = re.compile(self.parsedModel.speciesId[q])
-                    string=pq.sub('y['+repr(q)+']' ,string)
+                    #pq = re.compile(self.parsedModel.speciesId[q])
+                    #string=pq.sub('y['+repr(q)+']' ,string)
+                    string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                 for q in range(0,len(self.parsedModel.parameterId)):
                     if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                         flag = False
@@ -502,8 +531,9 @@ class SdeCUDAWriter(Writer):
     
                         string = self.parsedModel.kineticLaw[k]
                         for q in range(0,len(self.parsedModel.speciesId)):
-                            pq = re.compile(self.parsedModel.speciesId[q])
-                            string=pq.sub('y['+repr(q)+']' ,string)
+                            #pq = re.compile(self.parsedModel.speciesId[q])
+                            #string=pq.sub('y['+repr(q)+']' ,string)
+                            string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                         for q in range(0,len(self.parsedModel.parameterId)):
                             if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                                 flag = False
@@ -589,8 +619,9 @@ class SdeCUDAWriter(Writer):
     
                         string = self.parsedModel.kineticLaw[k]
                         for q in range(0,len(self.parsedModel.speciesId)):
-                            pq = re.compile(self.parsedModel.speciesId[q])
-                            string=pq.sub('y['+repr(q)+']' ,string)
+                            #pq = re.compile(self.parsedModel.speciesId[q])
+                            #string=pq.sub('y['+repr(q)+']' ,string)
+                            string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                         for q in range(0,len(self.parsedModel.parameterId)):
                             if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
                                 flag = False
