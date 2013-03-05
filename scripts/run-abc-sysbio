@@ -21,9 +21,6 @@ from abcsysbio import checkInputArguments
 from abcsysbio import kernels
 from abcsysbio import euclidian
 
-import abcsysbio_parser
-from abcsysbio_parser import ParseAndWrite
-
 import sys
 sys.path.insert(0, ".")
 
@@ -172,6 +169,10 @@ def main():
         except ImportError:
             print "ABORT: libSBML required for SBML parsing. Please install libSBML"
             sys.exit()
+
+    if usesbml == True:
+	import abcsysbio_parser
+	from abcsysbio_parser import ParseAndWrite
 
     # Check that we can import scipy if we have ODE models
     o = re.compile('ODE')
