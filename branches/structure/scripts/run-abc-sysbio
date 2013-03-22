@@ -101,8 +101,9 @@ def main():
             elif option[0:9] == 'cudacode=' : app_file = option[9:]
 	    elif option == 'timing' : timing = True 
 	    elif option == 'custk' : custom_kernel = True
-	    elif option == 'custd' : custom_distance = True
-            elif option == 'cuda' : use_cuda = True
+	    ##elif option == 'custd' : custom_distance = True
+            elif option[0:6] == 'custd=' : custom_distance = option[6:]
+	    elif option == 'cuda' : use_cuda = True
             elif option == 'c++' : use_c = True
 	    elif option == 'infile': 
                 input_file=sys.argv[i+1]
@@ -295,11 +296,11 @@ def main():
     kernelpdffn = kernels.getPdfParameterKernel
     perturbfn = kernels.perturbParticle
 
-    if custom_distance == True or custom_kernel == True:
-        import customABC
-        if custom_distance == True:
-            distancefn = customABC.distance
-        if custom_kernel == True:
+    if custom_distance != False or custom_kernel == True:
+        customABC = __import__(custom_distance)
+        distancefn = customABC.distance
+        
+	if custom_kernel == True:
             kernelfn = customABC.getKernel
             kernelpdffn = customABC.getPdfParameterKernel
             perturbfn = customABC.perturbParticle

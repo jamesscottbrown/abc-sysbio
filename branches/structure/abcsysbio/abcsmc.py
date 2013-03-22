@@ -32,6 +32,7 @@ priors:
               3   ---   lognormal distribution.
                         Example: lognormal distribution with mean 3 and var 1.5
                         [3 , 3 , 1.5]
+              4   ---   discrete distribution.
 
               Example:
               1 model with 3 parameter, the first two parameter have uniform prior between 0 and
@@ -570,7 +571,13 @@ class abcsmc:
                 if self.models[ sampled_models[i] ].prior[n][0] == 3: 
                     reti[n]=rnd.lognormal(mean=self.models[ sampled_models[i] ].prior[n][1],
                                           sigma=numpy.sqrt(self.models[ sampled_models[i] ].prior[n][2]) )
-            
+
+                if self.models[ sampled_models[i] ].prior[n][0] == 4: 
+                    # reti[n]=rnd.random_integers(self.models[ sampled_models[i] ].prior[n][1],self.models[ sampled_models[i] ].prior[n][2])
+                    v = [-1,0,1]
+                    str_prior = [0.1,0.8,0.1]
+                    reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
+
             ret.append( reti[:] )
             
         return [x[:] for x in ret]

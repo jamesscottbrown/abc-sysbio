@@ -9,6 +9,7 @@ re_prior_const=re.compile('constant')
 re_prior_uni=re.compile('uniform')
 re_prior_normal=re.compile('normal')
 re_prior_logn=re.compile('lognormal') 
+re_prior_discrete=re.compile('discrete')
 
 # implemented kernels
 re_kernel_uniform=re.compile('uniform')
@@ -92,6 +93,15 @@ def process_prior( tmp ):
         try:
             prior_tmp[1] = float( tmp[1] )
             prior_tmp[2] = float( tmp[2] )
+        except:
+            print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
+            sys.exit()
+
+    elif re_prior_discrete.match( tmp[0] ):
+        prior_tmp[0] = 4
+        try:
+            prior_tmp[1] = int( tmp[1] )
+            prior_tmp[2] = int( tmp[2] )
         except:
             print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
             sys.exit()

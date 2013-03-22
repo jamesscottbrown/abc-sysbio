@@ -147,7 +147,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
 	    if not len(priors[mod][param])==3:
 		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
 	    
-	    if not (priors[mod][param][0]==0 or priors[mod][param][0]==1 or priors[mod][param][0]==2 or priors[mod][param][0]==3):
+	    if not (priors[mod][param][0]==0 or priors[mod][param][0]==1 or priors[mod][param][0]==2 or priors[mod][param][0]==3 or priors[mod][param][0]==4):
 		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
             
 	    if priors[mod][param][0]==2:
