@@ -183,6 +183,7 @@ class input_output:
         # trajectories are stored as [nparticle][nbeta][ species ][ times ]
         traj_file=open(self.folder + '/trajectories.txt',"a")
         for i in range(nparticles):
+            ##print results.trajectories[i][0]
             for j in range(beta): 
                 arr = results.trajectories[i][j]
                 nrow, ncol = numpy.shape( arr )
