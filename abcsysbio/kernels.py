@@ -156,16 +156,6 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
         ind=0
         for n in kernel[0]:
             if priors[n][0] == 4:
-                # change the link with probability linkp
-                #u = rnd.uniform(0,1)
-                #if u < linkp:
-                #    s = set([-1, 0, 1])
-                #    ss = set( [params[n]] )
-                #    ar = numpy.array( list(s-ss) )
-                #    rnd.shuffle( ar )
-                #    print params[n], "->", ar[0] 
-                #    params[n] = ar[0]
-
                 params[n] = perturbLink(params[n], linkp)
                 ind+=1
             else:
