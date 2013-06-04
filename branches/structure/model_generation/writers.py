@@ -1,7 +1,7 @@
 # writer functions
 
 import numpy as np
-import string
+import string, re
 
 class input_writer:
     def __init__(self, network, xmlfile, times, model_name):
@@ -106,9 +106,24 @@ def fill_species(network,rate):
     # loop over all species in the network
     # replace the occurances in rate
     ret = rate
+    #print "\n"
+    #print "\t", rate
     for i in range(network.nspecies):
         cs = "y["+repr(i)+"]";
-        ret = string.replace(ret, network.species[i], cs)
+        #print "\t", i, "replace", network.species[i], "with", cs,
+
+        # old way
+        #ret = string.replace(ret, network.species[i], cs)
+
+        # new way
+        #p = re.compile("(?<!-)"+network.species[i]+"(?!-)")
+        #ret = p.sub(cs,ret);
+
+        # new way 2
+        p = re.compile("(?<=\s)"+network.species[i]+"(?=\s)")
+        ret = p.sub(cs,ret);
+
+        #print "to get", ret
 
     return ret
 
@@ -119,6 +134,7 @@ class mjp_code_writer(base_code_writer):
         # initialise using the base class
         base_code_writer.__init__(self, network, outfile)
         base_code_writer.write_header(self)
+        base_code_writer.write_params(self)
         base_code_writer.write_laws(self)
        
         print >>self.fout, "__constant__ int smatrix[]={"
@@ -136,9 +152,9 @@ class mjp_code_writer(base_code_writer):
         print >>self.fout, "\n\n"
 
         print >>self.fout, "__device__ void hazards(int *y, float *h, float t, int tid){"
-        print >>self.fout, "\tif( t >= 50 && t <= 51){"
-        print >>self.fout, "\t\ty[0]=60;"
-        print >>self.fout, "\t}"
+        #print >>self.fout, "\tif( t >= 50 && t <= 51){"
+        #print >>self.fout, "\t\ty[0]=60;"
+        #print >>self.fout, "\t}"
 
         print >>self.fout, "\t// reactions //\n"
         for i in range(network.nreactions):
@@ -167,9 +183,9 @@ class ode_code_writer(base_code_writer):
         print >>self.fout, "struct myFex{"
         print >>self.fout, "__device__ void operator()(int *neq, double *t, double *y, double *ydot/*, void *otherData*/){"
         print >>self.fout, "\tint tid = blockDim.x * blockIdx.x + threadIdx.x;"
-        print >>self.fout, "\tif( t[0] >= 100){"
-        print >>self.fout, "\t\ty[0]=0.6;"
-        print >>self.fout, "\t}"
+        #print >>self.fout, "\tif( t[0] >= 100){"
+        #print >>self.fout, "\t\ty[0]=0.6;"
+        #print >>self.fout, "\t}"
 
         # loop over the stoichiometry matrix
         smt = np.transpose( self.network.smatrix )

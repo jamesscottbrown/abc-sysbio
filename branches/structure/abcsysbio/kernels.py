@@ -17,9 +17,6 @@ from abcsysbio import statistics
 # kernel[1] contains the informations required to build the kernels in function getKernels - those informations are defined in the input file
 # kernel[2] contains the kernel (list, matrix or dictionnary) once it has been built
 
-p_str = 0.5
-#fpert = open('perturb.txt','w')
-
 # Compute the kernels WITHIN a model by examining the previous population of particles
 # populations, weights refers to particles and weights from previous population for one model
 def getKernel(kernel_type, kernel, population, weights):
@@ -128,12 +125,26 @@ def getKernel(kernel_type, kernel, population, weights):
 
     return kernel
 
+def perturbLink(par, linkp):
 
+    # ret is the returned link value
+    ret = par
+    
+    # change the link with probability linkp
+    u = rnd.uniform(0,1)
+    if u < linkp:
+        s = set([-1, 0, 1])
+        ss = set( [par] )
+        ar = numpy.array( list(s-ss) )
+        rnd.shuffle( ar )
+        ret = ar[0]
 
+    ## print par, "->", ret 
+    return ret
 
 # Here params refers to one particle
 # The function changes params in place and returns the probability (which may be zero)
-def perturbParticle(params, priors, kernel, kernel_type, special_cases):
+def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
     np = len( priors )
     prior_prob = 1
 
@@ -145,15 +156,17 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
         ind=0
         for n in kernel[0]:
             if priors[n][0] == 4:
-                # change the link with probability p_str
-                u = rnd.uniform(0,1)
-                if u < p_str:
-                    s = set([-1, 0, 1])
-                    ss = set( [params[n]] )
-                    ar = numpy.array( list(s-ss) )
-                    rnd.shuffle( ar )
-                    ## print params[n], "->", ar[0] 
-                    params[n] = ar[0]
+                # change the link with probability linkp
+                #u = rnd.uniform(0,1)
+                #if u < linkp:
+                #    s = set([-1, 0, 1])
+                #    ss = set( [params[n]] )
+                #    ar = numpy.array( list(s-ss) )
+                #    rnd.shuffle( ar )
+                #    print params[n], "->", ar[0] 
+                #    params[n] = ar[0]
+
+                params[n] = perturbLink(params[n], linkp)
                 ind+=1
             else:
                 lflag = (params[n] + kernel[2][ind][0]) < priors[n][1]
@@ -262,7 +275,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
 
 # Here params and params0 refer to one particle each.
 # Auxilliary is a vector size of nparameters
-def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type):
+def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type, linkp):
     if kernel_type==1:
         prob=1
 	# n refers to the index of the parameter (integer between 0 and np-1)
@@ -272,9 +285,9 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 	    if priors[n][0] == 4:
                 # p( t | t -1 ) =  1-p_str (t == t-1), p_str (t != t-1 )
                 if params[n] == params[0]:
-                    kern = 1-p_str
+                    kern = 1-linkp
                 else:
-                    kern = p_str
+                    kern = linkp
             else:
                 kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
             prob=prob*kern
