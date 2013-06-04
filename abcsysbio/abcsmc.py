@@ -33,6 +33,10 @@ priors:
                         Example: lognormal distribution with mean 3 and var 1.5
                         [3 , 3 , 1.5]
               4   ---   discrete distribution.
+                        [4 , range, factor ]
+                        range : 0 = {-1 0 1 } or 1 ={ 0 1 } or -1 = {-1 0 } or 2 = {-1 1}
+                        factor : pro
+                        
 
               Example:
               1 model with 3 parameter, the first two parameter have uniform prior between 0 and
@@ -98,6 +102,7 @@ class abcsmc:
                  modelKernel,
                  debug,
                  timing,
+                 linkp,
                  distancefn = euclidian.euclidianDistance,
                  kernel_type = 1,
                  kernelfn = kernels.getKernel,
@@ -181,6 +186,9 @@ class abcsmc:
         self.rate = []
         self.dead_models = []
         self.sample_from_prior = True
+
+        self.linkp = linkp
+        
 
     def run_fixed_schedule(self, epsilon, io):
         all_start_time = time.time()
@@ -629,7 +637,7 @@ class abcsmc:
                     #print reti[nn], self.parameters_prev[ p ][nn]
                     reti[nn] = self.parameters_prev[ p ][nn]
                 
-                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type, self.special_cases[sampled_models[i]] )
+                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type, self.special_cases[sampled_models[i]], self.linkp )
 
                 if self.debug == 2:print "\t\t\tsampled p prob:", prior_prob
                 if self.debug == 2:print "\t\t\tnew:", reti
@@ -687,7 +695,7 @@ class abcsmc:
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
                         self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
-                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
+                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type, self.linkp )
 
                 if self.debug == 2: print "\tnumer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, self.margins_prev[this_model]
 

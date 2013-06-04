@@ -178,6 +178,10 @@ class algorithm_info:
         self.rtol = 1e-5
         self.atol = 1e-5
 
+        # structure related parameters
+        self.linkp = 0.7
+
+
         ##################################################
         ## Required arguments
 
@@ -397,6 +401,13 @@ class algorithm_info:
                 self.modelprior = ret[:]
         except:
             null = 0
+
+        ### link perturbation probability
+        try:
+            data = xmldoc.getElementsByTagName('linkp')[0].firstChild.data
+            self.linkp = float(data)
+        except:
+            null = 0    
                 
 
     def print_info(self):
@@ -422,6 +433,7 @@ class algorithm_info:
             print "kernel:", self.kernel
             print "model kernel:", self.modelkernel
         print "model prior:", self.modelprior
+        print "link kernel:", self.linkp
         
         print "DATA:"
         print "\ttimes:", self.times
