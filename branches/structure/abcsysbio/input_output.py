@@ -90,19 +90,65 @@ class input_output:
             if counts[mod] > 0:
                 weight_file=open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Weights'+repr(population+1)+".txt","w")
                 param_file = open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Population'+repr(population+1)+".txt","w") 
+                link_file = open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Links'+repr(population+1)+".txt","w") 
+                link_sum_file = open(self.folder+'/results_'+ models[mod].name + '/Population_'+repr(population+1)+'/data_Links_sum'+repr(population+1)+".txt","w")
+
+                # count the number of links in this model
+                nl = 0
+                npar = models[ mod ].nparameters
+                for i in range(npar):
+                    if models[ mod ].prior[i][0] == 4:
+                        nl += 1
+                print "number of links in this model", nl
+                counter = {}
          
                 nparticles = len(results.weights)
                 for g in range(nparticles):
                     if( results.models[g] == mod ):
+
+                        # print parameter
                         for k in range(len(results.parameters[g])):
                             print >>param_file, results.parameters[g][k],
                         print >>param_file, ""
 
+                        # print weights
                         print >>weight_file, results.weights[g]
+
+                        # print weights and links
+                        print >>link_file, results.weights[g], 
+                        for k in range(len(results.parameters[g])):
+                            if models[mod].prior[k][0] == 4:
+                                print >>link_file, results.parameters[g][k],
+                        print >>link_file, ""
+
+
+                        # place links into dictionary
+                        rep = ""
+                        for k in range(len(results.parameters[g])):
+                            if models[ mod ].prior[k][0] == 4:
+                                # add one to representation so they are positive
+                                rep += repr( results.parameters[g][k]+1 )
+
+                        ## print rep
+
+                        if not rep in counter:
+                            counter[rep] = results.weights[g]
+                        else:
+                            counter[rep] += results.weights[g]
+
+                # print links summary
+                print counter
+                for keys in sorted(counter, key=counter.get, reverse=True):
+                    m = [int(keys[i])-1 for i in range(nl)]
+                    for j in range(nl):
+                        print >>link_sum_file, m[j],
+                    print >>link_sum_file, sum(numpy.abs(m)), counter[keys]   
 
                 weight_file.close()
                 param_file.close()
-
+                link_file.close()
+                link_sum_file.close()
+                
 
         # do diagnostics such as scatter plots, histograms and model distribution
         npop = len(self.all_results)
@@ -196,6 +242,7 @@ class input_output:
 
         # dump out all the parameters
         param_file=open(self.folder + '/particles.txt',"a")
+      
         for i in range(nparticles):
             print >>param_file, i, results.models[i],
             for j in results.parameters[i]:
@@ -203,6 +250,53 @@ class input_output:
             print >>param_file, ""
         param_file.close()
 
+        # dump out the links
+        link_file = open(self.folder+'/links.txt',"a")
+        for i in range(nparticles):
+            mod = results.models[i]
+            print >>link_file, i, results.models[i],
+            for j in range(len(results.parameters[i])):
+                if models[ mod ].prior[j][0] == 4:
+                    print >>link_file, results.parameters[i][j],  
+            print >>link_file, ""
+        link_file.close()
+
+        # get links summary but assuming only one model
+        # count the number of links in this model
+        nl = 0
+        npar = models[ 0 ].nparameters
+        for i in range(npar):
+            if models[ 0 ].prior[i][0] == 4:
+                nl += 1
+
+        ## print "number of links in this model", nl
+        
+        weights = [1/float(nparticles) for i in range(nparticles)]
+        counter = {}
+        for i in range(nparticles):
+            mod = results.models[i]
+            rep = ""
+            for j in range(len(results.parameters[i])):
+                if models[ mod ].prior[j][0] == 4:
+                    # add one to representation so they are positive
+                    rep += repr( results.parameters[i][j]+1 )
+
+            ## print rep
+            if not rep in counter:
+                counter[rep] = weights[i]
+            else:
+                counter[rep] += weights[i]
+
+        # print links summary
+        ## print counter
+        link_sum_file = open(self.folder+'/link_summary.txt',"a")
+        for keys in sorted(counter, key=counter.get, reverse=True):
+            m = [int(keys[i])-1 for i in range(nl)]
+            for j in range(nl):
+                print >>link_sum_file, m[j],
+            print >>link_sum_file, sum(numpy.abs(m)), counter[keys]   
+        link_sum_file.close()
+        
         # do timeseries plots
         npop = len(self.all_results)
         nmodels = len(models)
