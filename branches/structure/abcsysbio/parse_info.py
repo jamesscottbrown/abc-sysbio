@@ -101,7 +101,7 @@ def process_prior( tmp ):
         prior_tmp[0] = 4
         try:
             prior_tmp[1] = int( tmp[1] )
-            prior_tmp[2] = int( tmp[2] )
+            prior_tmp[2] = float( tmp[2] )
         except:
             print "\nValue of the prior for model ", self.name[self.nmodels-1], "has the wrong format:", tmp[1]
             sys.exit()
@@ -180,7 +180,7 @@ class algorithm_info:
 
         # structure related parameters
         self.linkp = 0.7
-
+        self.linkprior = []
 
         ##################################################
         ## Required arguments
@@ -408,7 +408,6 @@ class algorithm_info:
             self.linkp = float(data)
         except:
             null = 0    
-                
 
     def print_info(self):
         print "\nALGORITHM INFO"
