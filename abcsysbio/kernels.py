@@ -125,16 +125,25 @@ def getKernel(kernel_type, kernel, population, weights):
 
     return kernel
 
-def perturbLink(par, linkp):
+def perturbLink(params, priors, n, linkp):
 
     # ret is the returned link value
-    ret = par
+    ret = params[n]
+
+    s = 0
+    if priors[n][1] == 3:
+        s = set([-1, 0, 1])
+
+    elif priors[n][1] == 2:
+        s = set([0, 1])
+
+    else:
+        s = set([-1, 0])
     
     # change the link with probability linkp
     u = rnd.uniform(0,1)
     if u < linkp:
-        s = set([-1, 0, 1])
-        ss = set( [par] )
+        ss = set( [params[n]] )
         ar = numpy.array( list(s-ss) )
         rnd.shuffle( ar )
         ret = ar[0]
@@ -148,15 +157,13 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
     np = len( priors )
     prior_prob = 1
 
-    ### fix this for the case in hand
-    special_cases = 1
-
     if special_cases == 1:
-        # this is the case where kernel is uniform and all priors are uniform    
+        # this is the case where kernel is uniform and all priors are uniform
+        # the perturbation can be made "prior aware" so that we sample efficiently
         ind=0
         for n in kernel[0]:
             if priors[n][0] == 4:
-                params[n] = perturbLink(params[n], linkp)
+                params[n] = perturbLink(params, priors, n, linkp)
                 ind+=1
             else:
                 lflag = (params[n] + kernel[2][ind][0]) < priors[n][1]
@@ -199,15 +206,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
 
             for n in kernel[0]:
                 if priors[n][0] == 4:
-                    # change the link with probability p_str
-                    u = rnd.uniform(0,1)
-                    if u < p_str:
-                        s = set([-1, 0, 1])
-                        ss = set( [params[n]] )
-                        ar = numpy.array( list(s-ss) )
-                        rnd.shuffle( ar )
-                        ## print params[n], "->", ar[0] 
-                        params[n] = ar[0]
+                    params[n] = perturbLink(params, priors, n, linkp)
                     ind+=1
                 else:
                     params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
@@ -246,16 +245,22 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
         prior_prob=1
         for n in range(np):
             x = 1.0
-            #if priors[n][0]==1: 
-            #    x=statistics.getPdfGauss(priors[n][1], numpy.sqrt(priors[n][2]), params[n])
-                # if we do not care about the value of prior_prob, then here: x=1.0
-
+            
             if priors[n][0]==2: 
                 x=statistics.getPdfUniform(priors[n][1],priors[n][2],params[n])
 
-            #if priors[n][0]==3: 
-            #    x=statistics.getPdfLognormal(priors[n][1],priors[n][2],params[n])
-                # if we do not care about the value of prior_prob, then here: x=1.0 if params[n]>=0 and 0 otherwise
+            if priors[n][0]==4: 
+                
+                prior_type = priors[n][1]
+                p0 = priors[n][2]
+
+                if prior_type == 3:
+                    if params[n] == 0 : x = p0
+                    else : x = (1-p0)/2
+
+                else:
+                    if params[n] == 0: x = p0
+                    else : x = 1-p0
 
             prior_prob = prior_prob*x
 

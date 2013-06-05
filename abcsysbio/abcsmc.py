@@ -33,10 +33,9 @@ priors:
                         Example: lognormal distribution with mean 3 and var 1.5
                         [3 , 3 , 1.5]
               4   ---   discrete distribution.
-                        [4 , range, factor ]
-                        range : 0 = {-1 0 1 } or 1 ={ 0 1 } or -1 = {-1 0 } or 2 = {-1 1}
-                        factor : pro
-                        
+                        [4 , range, p0 ]
+                        range is either 3 (-1,0,1), 2 (0,1) or -2 (-1,0)
+                        p0 is the prior probability of no link
 
               Example:
               1 model with 3 parameter, the first two parameter have uniform prior between 0 and
@@ -168,15 +167,30 @@ class abcsmc:
             # kernel info will get set after first population
             self.kernels.append( [ind, kernel_option[i], 0 ] ) 
 
-        # get
+        # check for special cases
         self.special_cases = [0 for m in range(self.nmodel)]
         if self.kernel_type == 1:
             
             for m in range(self.nmodel):
                 all_uniform = True
                 for j in range(self.models[m].nparameters):
-                    if not (self.models[m].prior[j][0]==0 or self.models[m].prior[j][0]==2):
+                    # if the prior is constant, uniform
+                    prior_type = self.models[m].prior[j][0]
+
+                    if prior_type == 0 or prior_type == 2 or prior_type == 4:
+                        if prior_type == 4:
+                            supp = self.models[m].prior[j][1]
+                            p0 = self.models[m].prior[j][2]
+
+                            if (supp == 3 ) and (p0 - 0.3333 > 0.01):
+                                all_uniform = False
+                            if (supp == 2 ) and (p0 - 0.5 > 0.01):
+                                all_uniform = False
+                            if (supp == -2) and (p0 - 0.5 > 0.01):
+                                all_uniform = False
+                    else:
                         all_uniform = False
+                    
                 if all_uniform == True:
                     self.special_cases[m] = 1
                     print "### Found special kernel case 1 for model ", m, "###"
@@ -582,10 +596,24 @@ class abcsmc:
 
                 if self.models[ sampled_models[i] ].prior[n][0] == 4: 
                     # reti[n]=rnd.random_integers(self.models[ sampled_models[i] ].prior[n][1],self.models[ sampled_models[i] ].prior[n][2])
-                    v = [-1,0,1]
-                    str_prior = [0.1,0.8,0.1]
-                    reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
+                    prior_type = self.models[ sampled_models[i] ].prior[n][1]
+                    p0 = self.models[ sampled_models[i] ].prior[n][2]
 
+                    if prior_type == 3:
+                        v = [-1,0,1]
+                        str_prior = [(1-p0)/2, p0, (1-p0)/2]
+                        reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
+
+                    if prior_type == -2:
+                        v = [-1,0]
+                        str_prior = [(1-p0), p0 ]
+                        reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
+
+                    if prior_type == 2:
+                        v = [0,1]
+                        str_prior = [p0, (1-p0) ]
+                        reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
+                    
             ret.append( reti[:] )
             
         return [x[:] for x in ret]
@@ -679,6 +707,21 @@ class abcsmc:
                     x=statistics.getPdfLognormal(self.models[ this_model ].prior[n][1],
                                                  numpy.sqrt(self.models[ this_model ].prior[n][2]),
                                                  this_param[n])
+
+                if self.models[ this_model ].prior[n][0]==4: 
+                    prior_type = self.models[ this_model ].prior[n][1]
+                    p0 = self.models[ this_model ].prior[n][2]
+
+                    if prior_type == 3:
+                        # v = [-1,0,1]
+                        if this_param[n] == 0 : x = p0
+                        else : x = (1-p0)/2
+                    else:
+                        # v = [-1, 0]
+                        # v = [ 0, 1]
+                        if this_param[n] == 0 : x = p0
+                        else : x = (1-p0)
+                    
                 pprob = pprob*x
 
             numer = self.b[k] * mprob * pprob
