@@ -151,6 +151,54 @@ def perturbLink(params, priors, n, linkp):
     ## print par, "->", ret 
     return ret
 
+def perturbLinks(kernel, params, priors, linkp):
+
+    for n in kernel[0]:
+        if priors[n][0] == 4:
+                    
+            # ret is the returned link value
+            ret = params[n]
+
+            s = 0
+            if priors[n][1] == 3:
+                s = set([-1, 0, 1])
+
+            elif priors[n][1] == 2:
+                s = set([0, 1])
+
+            else:
+                s = set([-1, 0])
+    
+            # change the link with probability linkp
+            u = rnd.uniform(0,1)
+            if u < linkp:
+                ss = set( [params[n]] )
+                ar = numpy.array( list(s-ss) )
+                rnd.shuffle( ar )
+                ret = ar[0]
+
+            ## print params[n], "->", ret 
+            params[n] = ret
+            
+    return params
+
+def getPdfLinks(kernel, params, params0, priors, linkp):
+    prob=1
+    ind=0
+    for n in kernel[0]:
+        if priors[n][0] == 4:
+            # p( t | t -1 ) =  1-linkp (t == t-1), linkp (t != t-1 )
+            kern = 0;
+            if params[n] == params0[n]:
+                kern = 1-linkp
+            else:
+                kern = linkp
+           
+            prob=prob*kern
+    ##print "pdf kernel:", prob
+    return prob
+
+
 # Here params refers to one particle
 # The function changes params in place and returns the probability (which may be zero)
 def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
@@ -163,7 +211,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
         ind=0
         for n in kernel[0]:
             if priors[n][0] == 4:
-                params[n] = perturbLink(params, priors, n, linkp)
+                ## params[n] = perturbLink(params, priors, n, linkp)
                 ind+=1
             else:
                 lflag = (params[n] + kernel[2][ind][0]) < priors[n][1]
@@ -195,7 +243,11 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
                 params[n] = params[n] + delta
                 ind+=1
 
-        # this is not the actaul value of the pdf but we only require it to be non zero
+
+        # perturb all the links jointly together
+        params = perturbLinks(kernel, params, priors, linkp)
+
+        # this is not the actual value of the pdf but we only require it to be non zero
         return 1.0
 
     else:
@@ -206,11 +258,15 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
 
             for n in kernel[0]:
                 if priors[n][0] == 4:
-                    params[n] = perturbLink(params, priors, n, linkp)
+                    ## params[n] = perturbLink(params, priors, n, linkp)
                     ind+=1
                 else:
                     params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
                     ind+=1
+
+            # perturb all the links jointly together
+            params = perturbLinks(kernel, params, priors, linkp)
+            
 
         if kernel_type==2:
             ind=0
@@ -277,16 +333,14 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
 	ind=0
         for n in kernel[0]:
-	    if priors[n][0] == 4:
-                # p( t | t -1 ) =  1-p_str (t == t-1), p_str (t != t-1 )
-                if params[n] == params[0]:
-                    kern = 1-linkp
-                else:
-                    kern = linkp
-            else:
+	    if priors[n][0] != 4:
                 kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
-            prob=prob*kern
-	    ind += 1
+                prob=prob*kern
+                ind += 1
+
+        # get the probability of this set of links
+        prob=prob*getPdfLinks(kernel, params, params0, priors, linkp)
+
         return prob
 
     elif kernel_type==2:

@@ -99,7 +99,7 @@ class input_output:
                 for i in range(npar):
                     if models[ mod ].prior[i][0] == 4:
                         nl += 1
-                print "number of links in this model", nl
+                ##print "number of links in this model", nl
                 counter = {}
          
                 nparticles = len(results.weights)
@@ -137,7 +137,7 @@ class input_output:
                             counter[rep] += results.weights[g]
 
                 # print links summary
-                print counter
+                ##print counter
                 for keys in sorted(counter, key=counter.get, reverse=True):
                     m = [int(keys[i])-1 for i in range(nl)]
                     for j in range(nl):
