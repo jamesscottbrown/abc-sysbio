@@ -172,7 +172,8 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
 
 
         # perturb all the links jointly together
-        params = link_stats.perturbLinks(kernel, params, priors, link_info)
+        ##params = link_stats.perturbLinks(kernel, params, priors, link_info)
+        params = link_info.perturbLinks(params)
 
         # this is not the actual value of the pdf but we only require it to be non zero
         return 1.0
@@ -192,8 +193,8 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
                     ind+=1
 
             # perturb all the links jointly together
-            params = link_stats.perturbLinks(kernel, params, priors, link_info)
-            
+            ##params = link_stats.perturbLinks(kernel, params, priors, link_info)
+            params = link_info.perturbLinks(params)
 
         if kernel_type==2:
             ind=0
@@ -233,8 +234,11 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
                 x=statistics.getPdfUniform(priors[n][1],priors[n][2],params[n])
             prior_prob = prior_prob*x
 
+        ##print "p(params):", prior_prob
+
         ## get the prior for this set of links
         prior_links = link_info.getLinksPriorPdf(params)
+        ## print "p(links):", prior_links
         prior_prob = prior_prob*prior_links
 
         ##print "done perturbation"
@@ -256,7 +260,8 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
                 ind += 1
 
         # get the probability of this set of links given the previous set of links
-        prob=prob*link_stats.getLinksKernelPdf(kernel, params, params0, priors, link_info)
+        #prob=prob*link_stats.getLinksKernelPdf(kernel, params, params0, priors, link_info)
+        prob=prob*link_info.getLinksKernelPdf(params, params0)
 
         return prob
 

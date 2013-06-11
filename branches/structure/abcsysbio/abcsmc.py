@@ -206,7 +206,7 @@ class abcsmc:
                     else:
                         all_uniform = False
                     
-                if all_uniform == True and nfixed == -1:
+                if all_uniform == True:
                     self.special_cases[m] = 1
                     print "### Found special kernel case 1 for model ", m, "###"
 
@@ -647,6 +647,7 @@ class abcsmc:
             #print '\n\t\t\tsampleTheParameter, model np prior:', sampled_models[i], self.models[ sampled_models[i] ].name, np, self.models[ sampled_models[i] ].prior
             
             prior_prob = -1
+            ##print "perturbing particle"
             while prior_prob <= 0 :
 
                 # sample putative particle from previous population
@@ -655,7 +656,7 @@ class abcsmc:
                 for nn in range(np):
                     #print reti[nn], self.parameters_prev[ p ][nn]
                     reti[nn] = self.parameters_prev[ p ][nn]
-                
+
                 prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type, self.special_cases[sampled_models[i]], self.link_info )
 
                 if self.debug == 2:print "\t\t\tsampled p prob:", prior_prob
