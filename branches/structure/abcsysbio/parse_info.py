@@ -180,7 +180,7 @@ class algorithm_info:
 
         # structure related parameters
         self.linkp = 0.7
-        self.linkprior = []
+        self.nfixed = -1
 
         ##################################################
         ## Required arguments
@@ -407,7 +407,14 @@ class algorithm_info:
             data = xmldoc.getElementsByTagName('linkp')[0].firstChild.data
             self.linkp = float(data)
         except:
-            null = 0    
+            null = 0
+
+        ### link fixed
+        try:
+            data = xmldoc.getElementsByTagName('linkn')[0].firstChild.data
+            self.nfixed = float(data)
+        except:
+            null = 0  
 
     def print_info(self):
         print "\nALGORITHM INFO"
