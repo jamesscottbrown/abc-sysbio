@@ -43,6 +43,17 @@ class link_stats:
          else:
              return link_stats.getLinksPriorPdf_fixed(self, params)
 
+    def perturbLinks(self, params):
+        if self.nfixed == -1:
+            return link_stats.perturbLinks_1(self, params)
+        else:
+            return link_stats.perturbLinks_prior(self,params)
+
+    def getLinksKernelPdf(self, params, params0 ):
+        if self.nfixed == -1:
+            return link_stats.getLinksKernelPdf_1(self, params, params0)
+        else:
+            return link_stats.getLinksKernelPdf_2(self, params, params0)
 
     ######################################################
     # FIXED EDGES
@@ -92,7 +103,7 @@ class link_stats:
 
         prior_prob = 1.0
         if total_links == self.nfixed:
-            prior_prob = 1.0
+            prior_prob = 1.0 # should really be 1/(total number of possible networks)
         else:
             prior_prob = 0.0
 
@@ -153,133 +164,130 @@ class link_stats:
             prior_prob = prior_prob*x
             ##print prior_prob,
 
-        print ""
+        ##print ""
         return prior_prob
 
        
-####################### KERNELS
+    ####################### KERNELS
 
-def perturbLinks_1(kernel, params, priors, link_info):
+    # This is an independent kernel, effectively sampling from the prior distribution
+    def perturbLinks_prior(self,params):
+        
+        # change the links with probability linkp
+        u = rnd.uniform(0,1)
+        if u < self.linkp:
+               params = link_stats.sample_links_from_prior_fixed(self, params)
+        
+        return params
+
     # Here every link is perturbed independently
+    def perturbLinks_1(self, params):
+       
 
-    ##print "link:",
-    for n in kernel[0]:
-        if priors[n][0] == 4:
-                    
-            # ret is the returned link value
-            ret = params[n]
+        links = [0 for i in range(self.nlinks)]
+        newlinks = [0 for i in range(self.nlinks)]
+
+        for i in range(self.nlinks):
+            links[i] = params[ self.locations[i] ]
 
             s = 0
-            if priors[n][1] == 3:
+            if self.prior_type[i] == 3:
                 s = set([-1, 0, 1])
-
-            elif priors[n][1] == 2:
+            elif  self.prior_type[i] == 2:
                 s = set([0, 1])
-
             else:
                 s = set([-1, 0])
-    
+
             # change the link with probability linkp
             u = rnd.uniform(0,1)
-            if u < link_info.linkp:
-                ss = set( [params[n]] )
+            if u < self.linkp:
+                ss = set( [ links[i] ] )
                 ar = numpy.array( list(s-ss) )
                 rnd.shuffle( ar )
-                ret = ar[0]
+                newlinks[i] = ar[0]
+            else:
+                newlinks[i] = links[i]
 
-            ##print params[n], "->", ret, 
-            params[n] = ret
+        ##print links, "->", newlinks 
 
-    ##print ""
-    return params
+        for i in range(self.nlinks):
+            params[ self.locations[i] ] = newlinks[i]
 
-def perturbLinks_2(kernel, params, priors, link_info):
-    # Here only one link is perturbed independently
-    
-    # change one link with probability linkp
-    u = rnd.uniform(0,1)
-    if u < link_info.linkp :
-        # choose a link to perturb uniformly
-        v = [i for i in range(link_info.nlinks) ]
-        p = [1/float(nlinks) for i in range(links_info.nlinks) ]
-        linknum = v[ numpy.where(rnd.multinomial(n=1,pvals=p,size=1)[0]==1)[0][0] ]
+        return params
 
-        #print "linknum:", linknum
-        # loop over to modify link num
-        count = 0
-        for n in kernel[0]:
-            if priors[n][0] == 4:
-                if linknum == count:
-                    # perturb this link
-
-                    s = 0
-                    if priors[n][1] == 3:
-                        s = set([-1, 0, 1])
-
-                    elif priors[n][1] == 2:
-                        s = set([0, 1])
-
-                    else:
-                        s = set([-1, 0])
-
-                    ss = set( [params[n]] )
-                    ar = numpy.array( list(s-ss) )
-                    rnd.shuffle( ar )
-                    ret = ar[0]
-
-                    #print linknum, params[n], "->", ret 
-                    params[n] = ret
-
-                count += 1
+    ## get probability of all links given another set of links and the the kernel
+    def getLinksKernelPdf_1(self, params, params0):
+        prob=1
         
-    return params
-
-## get probability of all links given another set of links and the the kernel
-def getLinksKernelPdf_1(kernel, params, params0, priors, link_info):
-    prob=1
-    ind=0
-    for n in kernel[0]:
-        if priors[n][0] == 4:
+        for i in range(self.nlinks):
             # p( t | t -1 ) =  1-linkp (t == t-1), linkp (t != t-1 )
             kern = 0;
-            if params[n] == params0[n]:
-                kern = 1-link_info.linkp
+            if params[ self.locations[i] ] == params0[ self.locations[i] ]:
+                kern = 1-self.linkp
             else:
-                kern = link_info.linkp
+                kern = self.linkp
            
             prob=prob*kern
-    ##print "pdf kernel:", prob
-    return prob
+        ## print "pdf kernel:", prob
+        return prob
 
-def getLinksKernelPdf_2(kernel, params, params0, priors, link_info):
+    def getLinksKernelPdf_2(self, params, params0):
     
-    nochange = True
-    prob = (1-link_info.linkp)
-    for n in kernel[0]:
-        if priors[n][0] == 4:
-            if not (params[n] == params0[n]):
+        nochange = True
+        prob = (1-self.linkp)
+
+        for i in range(self.nlinks):
+            if not (params[ self.locations[i] ] == params0[ self.locations[i] ]):
                 nochange = False
 
-    if nochange == False:
-        prob = link_info.linkp
+        if nochange == False:
+            prob = self.linkp
+        
+        ## print "pdf kernel:", prob
+        return prob
+
+
+
+## def perturbLinks_2(kernel, params, priors, link_info):
+##     # Here only one link is perturbed independently
     
-    ##print "pdf kernel:", prob
-    return prob
+##     # change one link with probability linkp
+##     u = rnd.uniform(0,1)
+##     if u < link_info.linkp :
+##         # choose a link to perturb uniformly
+##         v = [i for i in range(link_info.nlinks) ]
+##         p = [1/float(nlinks) for i in range(links_info.nlinks) ]
+##         linknum = v[ numpy.where(rnd.multinomial(n=1,pvals=p,size=1)[0]==1)[0][0] ]
 
+##         #print "linknum:", linknum
+##         # loop over to modify link num
+##         count = 0
+##         for n in kernel[0]:
+##             if priors[n][0] == 4:
+##                 if linknum == count:
+##                     # perturb this link
 
+##                     s = 0
+##                     if priors[n][1] == 3:
+##                         s = set([-1, 0, 1])
 
+##                     elif priors[n][1] == 2:
+##                         s = set([0, 1])
 
-## calculate the probability of all the links under the prior
-##def getLinksPriorPdf_fixed(params, priors):  
-##  return prior_prob
+##                     else:
+##                         s = set([-1, 0])
 
-# set the defaults
-def perturbLinks(kernel, params, priors, linkp):
-    return perturbLinks_1(kernel, params, priors, linkp)
-    ##return perturbLinks_2(kernel, params, priors, linkp, nlinks=2)
+##                     ss = set( [params[n]] )
+##                     ar = numpy.array( list(s-ss) )
+##                     rnd.shuffle( ar )
+##                     ret = ar[0]
 
-def getLinksKernelPdf(kernel, params, params0, priors, linkp):
-    return getLinksKernelPdf_1(kernel, params, params0, priors, linkp)
-    ##return getLinksKernelPdf_2(kernel, params, params0, priors, linkp)
+##                     #print linknum, params[n], "->", ret 
+##                     params[n] = ret
+
+##                 count += 1
+        
+##     return params
+
 
 
