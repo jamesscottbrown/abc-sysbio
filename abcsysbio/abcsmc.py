@@ -6,6 +6,7 @@ import copy, time
 from abcsysbio import euclidian
 from abcsysbio import kernels
 from abcsysbio import statistics
+from abcsysbio import link_stats
 
 """
 priors: 
@@ -102,6 +103,7 @@ class abcsmc:
                  debug,
                  timing,
                  linkp,
+                 nfixed,
                  distancefn = euclidian.euclidianDistance,
                  kernel_type = 1,
                  kernelfn = kernels.getKernel,
@@ -165,11 +167,21 @@ class abcsmc:
                 if not(self.models[i].prior[j][0]==0):
                     ind.append(j)
             # kernel info will get set after first population
-            self.kernels.append( [ind, kernel_option[i], 0 ] ) 
+            self.kernels.append( [ind, kernel_option[i], 0 ] )
+            
+        self.hits = []
+        self.sampled = []
+        self.rate = []
+        self.dead_models = []
+        self.sample_from_prior = True
+
+        self.link_info = link_stats.link_stats(self.models[0], linkp, nfixed) 
+
 
         # check for special cases
         self.special_cases = [0 for m in range(self.nmodel)]
         if self.kernel_type == 1:
+            print "#### checking kernels ####"
             
             for m in range(self.nmodel):
                 all_uniform = True
@@ -182,27 +194,21 @@ class abcsmc:
                             supp = self.models[m].prior[j][1]
                             p0 = self.models[m].prior[j][2]
 
-                            if (supp == 3 ) and (p0 - 0.3333 > 0.01):
+                            if (supp == 3 ) and ( abs(p0 - 0.3333) > 0.01):
+                                ##print "1"
                                 all_uniform = False
-                            if (supp == 2 ) and (p0 - 0.5 > 0.01):
+                            if (supp == 2 ) and ( abs(p0 - 0.5) > 0.01):
+                                ##print "2"
                                 all_uniform = False
-                            if (supp == -2) and (p0 - 0.5 > 0.01):
+                            if (supp == -2) and ( abs(p0 - 0.5) > 0.01):
+                                ##print "3"
                                 all_uniform = False
                     else:
                         all_uniform = False
                     
-                if all_uniform == True:
+                if all_uniform == True and nfixed == -1:
                     self.special_cases[m] = 1
                     print "### Found special kernel case 1 for model ", m, "###"
-        
-        self.hits = []
-        self.sampled = []
-        self.rate = []
-        self.dead_models = []
-        self.sample_from_prior = True
-
-        self.linkp = linkp
-        
 
     def run_fixed_schedule(self, epsilon, io):
         all_start_time = time.time()
@@ -369,7 +375,7 @@ class abcsmc:
                 sampled_params = self.sampleTheParameterFromPrior(sampled_models)
                 
             accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models,sampled_params,next_epsilon)
-
+            
             for i in range(self.nbatch):
                 if naccepted < self.nparticles:
                     sampled = sampled + 1
@@ -387,7 +393,7 @@ class abcsmc:
                     self.distances.append( copy.deepcopy(distances[i]) )
                     
                     naccepted = naccepted + 1
-
+            print "#### current naccepted:", naccepted
             
             if self.debug == 2:print "\t****end  batch naccepted/sampled:", naccepted,  sampled
 
@@ -569,7 +575,8 @@ class abcsmc:
                 ret[i] = statistics.w_choice( range(self.nmodel), self.modelprior )
         
         return ret[:]
-   
+
+
     def sampleTheParameterFromPrior(self, sampled_models):
         ret = []
  
@@ -594,26 +601,10 @@ class abcsmc:
                     reti[n]=rnd.lognormal(mean=self.models[ sampled_models[i] ].prior[n][1],
                                           sigma=numpy.sqrt(self.models[ sampled_models[i] ].prior[n][2]) )
 
-                if self.models[ sampled_models[i] ].prior[n][0] == 4: 
-                    # reti[n]=rnd.random_integers(self.models[ sampled_models[i] ].prior[n][1],self.models[ sampled_models[i] ].prior[n][2])
-                    prior_type = self.models[ sampled_models[i] ].prior[n][1]
-                    p0 = self.models[ sampled_models[i] ].prior[n][2]
-
-                    if prior_type == 3:
-                        v = [-1,0,1]
-                        str_prior = [(1-p0)/2, p0, (1-p0)/2]
-                        reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
-
-                    if prior_type == -2:
-                        v = [-1,0]
-                        str_prior = [(1-p0), p0 ]
-                        reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
-
-                    if prior_type == 2:
-                        v = [0,1]
-                        str_prior = [p0, (1-p0) ]
-                        reti[n] = v[ numpy.where(rnd.multinomial(n=1,pvals=str_prior,size=1)[0]==1)[0][0]]
-                    
+            # sample links from the prior together 
+            #reti = link_stats.sample_links_from_prior(reti, self.models[ sampled_models[i] ] ) 
+            reti = self.link_info.sample_links_from_prior(reti) 
+            
             ret.append( reti[:] )
             
         return [x[:] for x in ret]
@@ -665,7 +656,7 @@ class abcsmc:
                     #print reti[nn], self.parameters_prev[ p ][nn]
                     reti[nn] = self.parameters_prev[ p ][nn]
                 
-                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type, self.special_cases[sampled_models[i]], self.linkp )
+                prior_prob = self.perturbfn( reti, self.models[ sampled_models[i] ].prior, self.kernels[sampled_models[i]], self.kernel_type, self.special_cases[sampled_models[i]], self.link_info )
 
                 if self.debug == 2:print "\t\t\tsampled p prob:", prior_prob
                 if self.debug == 2:print "\t\t\tnew:", reti
@@ -707,22 +698,13 @@ class abcsmc:
                     x=statistics.getPdfLognormal(self.models[ this_model ].prior[n][1],
                                                  numpy.sqrt(self.models[ this_model ].prior[n][2]),
                                                  this_param[n])
-
-                if self.models[ this_model ].prior[n][0]==4: 
-                    prior_type = self.models[ this_model ].prior[n][1]
-                    p0 = self.models[ this_model ].prior[n][2]
-
-                    if prior_type == 3:
-                        # v = [-1,0,1]
-                        if this_param[n] == 0 : x = p0
-                        else : x = (1-p0)/2
-                    else:
-                        # v = [-1, 0]
-                        # v = [ 0, 1]
-                        if this_param[n] == 0 : x = p0
-                        else : x = (1-p0)
-                    
+ 
                 pprob = pprob*x
+
+            
+            ## get the prior for this set of links
+            prior_links = self.link_info.getLinksPriorPdf( this_param )
+            pprob = pprob*prior_links
 
             numer = self.b[k] * mprob * pprob
         
@@ -738,7 +720,7 @@ class abcsmc:
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
                         self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
-                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type, self.linkp )
+                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type, self.link_info )
 
                 if self.debug == 2: print "\tnumer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, self.margins_prev[this_model]
 

@@ -10,7 +10,7 @@ import numpy
 from numpy import random as rnd
 from scipy.stats import norm
 from abcsysbio import statistics
-
+import link_stats
 
 # kernel is a list of length 3 such that :
 # kernel[0] contains the index of the non-constant paramameters
@@ -125,83 +125,10 @@ def getKernel(kernel_type, kernel, population, weights):
 
     return kernel
 
-def perturbLink(params, priors, n, linkp):
-
-    # ret is the returned link value
-    ret = params[n]
-
-    s = 0
-    if priors[n][1] == 3:
-        s = set([-1, 0, 1])
-
-    elif priors[n][1] == 2:
-        s = set([0, 1])
-
-    else:
-        s = set([-1, 0])
-    
-    # change the link with probability linkp
-    u = rnd.uniform(0,1)
-    if u < linkp:
-        ss = set( [params[n]] )
-        ar = numpy.array( list(s-ss) )
-        rnd.shuffle( ar )
-        ret = ar[0]
-
-    ## print par, "->", ret 
-    return ret
-
-def perturbLinks(kernel, params, priors, linkp):
-
-    for n in kernel[0]:
-        if priors[n][0] == 4:
-                    
-            # ret is the returned link value
-            ret = params[n]
-
-            s = 0
-            if priors[n][1] == 3:
-                s = set([-1, 0, 1])
-
-            elif priors[n][1] == 2:
-                s = set([0, 1])
-
-            else:
-                s = set([-1, 0])
-    
-            # change the link with probability linkp
-            u = rnd.uniform(0,1)
-            if u < linkp:
-                ss = set( [params[n]] )
-                ar = numpy.array( list(s-ss) )
-                rnd.shuffle( ar )
-                ret = ar[0]
-
-            ## print params[n], "->", ret 
-            params[n] = ret
-            
-    return params
-
-def getPdfLinks(kernel, params, params0, priors, linkp):
-    prob=1
-    ind=0
-    for n in kernel[0]:
-        if priors[n][0] == 4:
-            # p( t | t -1 ) =  1-linkp (t == t-1), linkp (t != t-1 )
-            kern = 0;
-            if params[n] == params0[n]:
-                kern = 1-linkp
-            else:
-                kern = linkp
-           
-            prob=prob*kern
-    ##print "pdf kernel:", prob
-    return prob
-
 
 # Here params refers to one particle
 # The function changes params in place and returns the probability (which may be zero)
-def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
+def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_info):
     np = len( priors )
     prior_prob = 1
 
@@ -245,7 +172,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
 
 
         # perturb all the links jointly together
-        params = perturbLinks(kernel, params, priors, linkp)
+        params = link_stats.perturbLinks(kernel, params, priors, link_info)
 
         # this is not the actual value of the pdf but we only require it to be non zero
         return 1.0
@@ -265,7 +192,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
                     ind+=1
 
             # perturb all the links jointly together
-            params = perturbLinks(kernel, params, priors, linkp)
+            params = link_stats.perturbLinks(kernel, params, priors, link_info)
             
 
         if kernel_type==2:
@@ -297,28 +224,18 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
                 params[n] = tmp[ind]
                 ind=ind+1
 
-        # compute the likelihood
+        # compute the probability under the uniform prior
         prior_prob=1
         for n in range(np):
             x = 1.0
             
             if priors[n][0]==2: 
                 x=statistics.getPdfUniform(priors[n][1],priors[n][2],params[n])
-
-            if priors[n][0]==4: 
-                
-                prior_type = priors[n][1]
-                p0 = priors[n][2]
-
-                if prior_type == 3:
-                    if params[n] == 0 : x = p0
-                    else : x = (1-p0)/2
-
-                else:
-                    if params[n] == 0: x = p0
-                    else : x = 1-p0
-
             prior_prob = prior_prob*x
+
+        ## get the prior for this set of links
+        prior_links = link_info.getLinksPriorPdf(params)
+        prior_prob = prior_prob*prior_links
 
         ##print "done perturbation"
         return prior_prob
@@ -326,7 +243,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, linkp):
 
 # Here params and params0 refer to one particle each.
 # Auxilliary is a vector size of nparameters
-def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type, linkp):
+def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type, link_info):
     if kernel_type==1:
         prob=1
 	# n refers to the index of the parameter (integer between 0 and np-1)
@@ -338,8 +255,8 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
                 prob=prob*kern
                 ind += 1
 
-        # get the probability of this set of links
-        prob=prob*getPdfLinks(kernel, params, params0, priors, linkp)
+        # get the probability of this set of links given the previous set of links
+        prob=prob*link_stats.getLinksKernelPdf(kernel, params, params0, priors, link_info)
 
         return prob
 
