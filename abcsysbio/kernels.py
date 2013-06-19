@@ -132,13 +132,15 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
     np = len( priors )
     prior_prob = 1
 
+    #special_cases = 0
+
     if special_cases == 1:
         # this is the case where kernel is uniform and all priors are uniform
         # the perturbation can be made "prior aware" so that we sample efficiently
         ind=0
         for n in kernel[0]:
             if priors[n][0] == 4:
-                ## params[n] = perturbLink(params, priors, n, linkp)
+                # skip but increment ind
                 ind+=1
             else:
                 lflag = (params[n] + kernel[2][ind][0]) < priors[n][1]
@@ -186,7 +188,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
 
             for n in kernel[0]:
                 if priors[n][0] == 4:
-                    ## params[n] = perturbLink(params, priors, n, linkp)
+                    # skip but increment ind
                     ind+=1
                 else:
                     params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
@@ -254,15 +256,20 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
 	ind=0
         for n in kernel[0]:
-	    if priors[n][0] != 4:
+	    if priors[n][0] == 4:
+                # skip but increment ind
+                ind += 1
+            else:
                 kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
+                ##print "n, kern:,", n, kern, params[n], params0[n], kernel[2][ind][0], kernel[2][ind][1]
                 prob=prob*kern
                 ind += 1
 
         # get the probability of this set of links given the previous set of links
-        #prob=prob*link_stats.getLinksKernelPdf(kernel, params, params0, priors, link_info)
-        prob=prob*link_info.getLinksKernelPdf(params, params0)
-
+        probl = link_info.getLinksKernelPdf(params, params0)
+        ## print "prob params / links", prob, probl
+        prob=prob*probl
+        
         return prob
 
     elif kernel_type==2:

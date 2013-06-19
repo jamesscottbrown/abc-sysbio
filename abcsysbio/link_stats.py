@@ -51,9 +51,9 @@ class link_stats:
 
     def getLinksKernelPdf(self, params, params0 ):
         if self.nfixed == -1:
-            return link_stats.getLinksKernelPdf_1(self, params, params0)
+            return link_stats.getLinksKernelPdf_1(self, params, params0) ## looks at individual links
         else:
-            return link_stats.getLinksKernelPdf_2(self, params, params0)
+            return link_stats.getLinksKernelPdf_2(self, params, params0) ## looks at all the links together
 
     ######################################################
     # FIXED EDGES
@@ -162,9 +162,8 @@ class link_stats:
                 else:  x = 1-p0
 
             prior_prob = prior_prob*x
-            ##print prior_prob,
 
-        ##print ""
+        ## print "prior prob:", prior_prob
         return prior_prob
 
        
@@ -228,7 +227,7 @@ class link_stats:
                 kern = self.linkp
            
             prob=prob*kern
-        ## print "pdf kernel:", prob
+        ##print "pdf kernel:", prob
         return prob
 
     def getLinksKernelPdf_2(self, params, params0):
