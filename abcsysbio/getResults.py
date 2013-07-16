@@ -115,6 +115,63 @@ def plotData(data, filename):
     matplotlib.pyplot.savefig(filename)
     matplotlib.pylab.clf()
 
+
+
+
+def plotTimeSeries2(model, pars, data, beta, filename, traj2, population, plotdata=True):
+
+    """
+    Plot simulated trajectories from the model with accepted parameters.
+        
+    ***** args *****
+    
+    model:
+
+            model object
+
+    pars:
+            2D list of parameters for plotting to be done
+    
+    data:
+
+            data object
+   
+    filename:
+
+            Name of the output file to write to.
+
+    plotdata:
+
+            Boolean
+            Whether or not to plot the data over the trajectories.
+
+    """
+
+    # do the simulations
+#    nsim = len(pars)
+#    sims = model.simulate( pars, data.timepoints, nsim, beta = beta )s
+
+    nsim = len(pars)
+    matplotlib.pyplot.subplot(111)
+    clf()
+    for i in range(nsim):
+        for j in range(beta):
+          #  points = sims[i,j,:,:]
+          #  points_sim = abcsmc.howToFitData(model.fit,points)
+            points_sim = traj2[i][j]
+        
+            matplotlib.pyplot.plot(data.timepoints,points_sim)
+
+    if plotdata==True: 
+        matplotlib.pyplot.plot(data.timepoints,data.values,'o')
+        xlabel('time')
+        ylabel('Unit')
+   
+    
+    matplotlib.pyplot.savefig(filename)
+    matplotlib.pylab.clf()
+
+
 def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
 
     """
