@@ -3,7 +3,7 @@ import numpy
 
 from getResults import getAllScatterPlots
 from getResults import getAllHistograms
-from getResults import plotTimeSeries
+from getResults import plotTimeSeries2
 from getResults import getModelDistribution
 from getResults import plotData
 
@@ -158,17 +158,20 @@ class input_output:
                 for mod in range(nmodels):
                     # get the first n of the accepted particles for this model
                     pars = []
+                    traj2 = []
                     n = 10
                     count = 0
                     nparticles = len(results.weights)
                     for np in range(nparticles):
                         if results.models[np] == mod and count < n:
                             pars.append( results.parameters[np] )
+                            traj2.append(results.trajectories[np])
                             count = count + 1
 
                     if len(pars) > 0:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
-                        plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
+                      #  plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
+                        plotTimeSeries2(models[mod],pars,data,beta,filename,traj2,population,plotdata=self.havedata)
 
 
     ################ writes trajectories and parameters from simulations    
@@ -210,17 +213,21 @@ class input_output:
         for mod in range(nmodels):
             # get the first n of the accepted particles for this model
             pars = []
+            traj2 = []
             n = nparticles
             count = 0
             for np in range(nparticles):
                 if results.models[np] == mod and count < n:
                     pars.append( results.parameters[np] )
+                    traj2.append(results.trajectories[np])
+
                     count = count + 1
 
             if len(pars) > 0:
                 filename = self.folder + '/' + models[mod].name + '_timeseries'
-                plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=False)
-                
+               #  plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=False)
+                plotTimeSeries2(models[mod],pars,data,beta,filename,traj2,population,plotdata=False)
+
                         
     ################create output folders
     def create_output_folders(self, modelnames, numOutput, pickling, simulation):
