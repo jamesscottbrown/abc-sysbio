@@ -82,7 +82,12 @@ class link_stats:
 
             total_links = sum( numpy.abs(links) )
 
-            if( total_links == self.nfixed ):
+            # if nlinks is greater than zero then we can the exact number
+            # in nlinks is less than zero we want less than
+            # ie nlinks = 3 means nlinks == 3 but nlinks == -3 means nlinks <= 3
+            if( self.nfixed > 0 and total_links == self.nfixed ):
+                accept = True
+            elif( self.nfixed < 0 and total_links <= abs(self.nfixed) ):
                 accept = True
 
         ## print 'sample from prior:', links
@@ -102,10 +107,17 @@ class link_stats:
         total_links = sum( numpy.abs(links) )
 
         prior_prob = 1.0
-        if total_links == self.nfixed:
-            prior_prob = 1.0 # should really be 1/(total number of possible networks)
-        else:
-            prior_prob = 0.0
+        if self.nfixed > 0:
+            if total_links == self.nfixed:
+                prior_prob = 1.0 # should really be 1/(total number of possible networks)
+            else:
+                prior_prob = 0.0
+
+        if self.nfixed < 0:
+            if total_links <= abs(self.nfixed):
+                prior_prob = 1.0 # should really be 1/(total number of possible networks)
+            else:
+                prior_prob = 0.0
 
         return prior_prob
    
@@ -214,7 +226,7 @@ class link_stats:
 
         return params
 
-    ## get probability of all links given another set of links and the the kernel
+    # no constraints
     def getLinksKernelPdf_1(self, params, params0):
         prob=1
         
@@ -230,6 +242,7 @@ class link_stats:
         ##print "pdf kernel:", prob
         return prob
 
+    # constraints
     def getLinksKernelPdf_2(self, params, params0):
     
         nochange = True
