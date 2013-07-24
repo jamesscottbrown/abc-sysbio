@@ -13,10 +13,7 @@ ABC SMC for parameter inference and ABC SMC for model selection.
 #################################
 1) Prerequisites
 2) Linux installation
-3) Mac OSX installation
-4) Windows Vista installation
-5) pycuda on Linuxa
-6) Package contents
+3) Mac OS X installation
 
 #################################
 # 1) Prerequisites
@@ -44,6 +41,9 @@ location containing lib and bin directories (usually
 
 The --prefix=<dir> option is recommended since it will 
 guarantee that each package picks up the correct dependency.
+
+These instructions are for old versions of packages and the 
+newest versions should be used in their place.
 
 1) Download and install python
 http://www.python.org/ftp/python/2.6.5/Python-2.6.5.tgz
@@ -124,7 +124,9 @@ the ATLAS libraries
 	python setup.py build
 	python setup.py install --prefix=<dir>
 
-7) Install abc-sysbio
+7) Download and install cuda-sim (optional)
+
+8) Install abc-sysbio
 In the unzipped abc-sysbio package directory do
    
 	python setup.py install --prefix=<dir>
@@ -151,65 +153,40 @@ should display a list of options and you are ready to run the examples.
 
 
 #################################
-# 3) Mac OSX 10.5 installation
+# 3) Mac OSX 10.8 installation
 #################################
 
-What follows is one way to install abc-sysbio on Mac OSX 10.5. It assumes that you have admin rights. 
+What follows is one way to install abc-sysbio on Mac OSX 10.8 (though it should work on 10.7 as well). It assumes that you have admin rights. 
 
-1) Download and install python 2.6
-http://www.python.org/ftp/python/2.6.5/python-2.6.5-macosx10.3-2010-03-24.dmg
-Note that the default python that comes with OSX will not work. 
+Before installing ABC-SysBio we need to install Python the following packages:
+Numpy, Scipy, Matplotlib, libSBML 
 
-2) Download and install numpy
-http://downloads.sourceforge.net/project/numpy/NumPy/1.4.1rc2/numpy-1.4.1rc2-py2.6-python.org.dmg
+Luckily the first three can be obtained easily by installing the Scipy Superpack 
+http://fonnesbeck.github.io/ScipySuperpack/
 
-3) Download and install matplotlib
-http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-0.99.1/matplotlib-0.99.1.1-py2.6-macosx10.5.dmg
+To obtain a compatible version of libSBML it is best to install from source. Download libSBML from http://sourceforge.net/projects/sbml/files/libsbml/ and unzip it. In the terminal go to the libSBML directory and type:
 
-4) Download and install scipy
-http://downloads.sourceforge.net/project/scipy/scipy/0.7.2rc2/scipy-0.7.2rc2-py2.6-python.org.dmg
+   	  ./configure --with-python=/usr/ --prefix=/usr/ --enable-m64
+   	  make
+   	  sudo make install
+   	  sudo cp -r /usr/lib/python2.7/site-packages/* /Library/Python/2.7/site-packages/
 
-5) Download and install libsbml source code
-http://downloads.sourceforge.net/project/sbml/libsbml/4.0.1/libsbml-4.0.1-src.zip
-Do following in an xterm
+Assuming that the previous steps were completed successfully, we can now install ABC-SysBio. Download the ABC-SysBio package from http://sourceforge.net/projects/abc-sysbio/files/ and unzip it. Open a terminal and type:
 
-	unzip libsbml-4.0.1-src.zip
-	cd libsbml-4.0.1
-	./configure --with-python=/usr/local
-	make
-	sudo make install
-	cp -r /usr/local/lib/python2.6/site-packages/libsbml* /Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/
+	 cd abc-sysbio-2.07
+	 sudo python setup.py install 
 
-6) Install abc-sysbio
-In the unzipped abc-sysbio package directory do
-   
-	python2.6 setup.py install
+This places the ABC-SysBio package into 
 
-This places the abcsysbio package into 
-
-	/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/
+     	 /Library/Python/2.7/site-packages/
 
 and writes the scripts
-    
-	/Library/Frameworks/Python.framework/Versions/2.6/bin/abc-sysbio-sbml-sum
-	/Library/Frameworks/Python.framework/Versions/2.6/bin/run-abc-sysbio
 
-Add the script directory to the path (must be done in each session or added to .bashrc file)
+    	 /usr/bin/abc-sysbio-sbml-sum
+	 /usr/bin/run-abc-sysbio
 
-	export PATH=/Library/Frameworks/Python.framework/Versions/2.6/bin:$PATH
+Then the command
 
-Then  the command
+     	 run-abc-sysbio -h
 
-	run-abc-sysbio -h
-
-should display a list of options and you are ready to run the examples.
-
-#################################
-# 4) Windows Vista installation	 
-#################################
-
-Windows is not currently supported but we have succesfully installed
-matplotlib, numpy, scipy, libsbml and abc-sysbio on Windows Vista
-using WinPython.
-
-
+will display a list of options and you are ready to run the examples.
