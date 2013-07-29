@@ -41,7 +41,7 @@ class cuda_model:
 
         n_per_card[self.ngpu-1] = n - (self.ngpu-1)*nc
 
-        print n, n_per_card, numpy.shape(p)
+        ## print n, n_per_card, numpy.shape(p)
    
         for c in range(self.ngpu):
 
@@ -70,10 +70,10 @@ class cuda_model:
             ## print id, np.shape(results)
             result_dict[id] = results
 
-        print result_dict.keys()
+        ## print result_dict.keys()
         result = numpy.vstack( result_dict.values() )
 
-        print numpy.shape(result)
+        ## print numpy.shape(result)
 
         return result
 
