@@ -13,6 +13,7 @@ import re
 from abcsysbio import parse_info
 from abcsysbio import model_py
 from abcsysbio import model_cu
+from abcsysbio import model_mg_cu
 from abcsysbio import model_c
 from abcsysbio import data
 from abcsysbio import abcsmc
@@ -76,6 +77,8 @@ def main():
     custom_kernel = False
     custom_distance = False
     use_cuda = False
+    use_cudamg = False  
+    ngpu=1
     use_c = False
     full_debug = False
 
@@ -104,6 +107,9 @@ def main():
 	    ##elif option == 'custd' : custom_distance = True
             elif option[0:6] == 'custd=' : custom_distance = option[6:]
 	    elif option == 'cuda' : use_cuda = True
+	    elif option[0:7] == 'cudamg=' : 
+                use_cudamg = True
+                ngpu = int( option[7:] )            
             elif option == 'c++' : use_c = True
 	    elif option == 'infile': 
                 input_file=sys.argv[i+1]
@@ -203,7 +209,7 @@ def main():
     if usesbml == True :
         integrationType = []
         
-        if use_cuda == True:
+        if use_cuda == True or use_cudamg == True:
             # CUDA
             for i in range(len(info_new.type)):
                 integrationType.append(info_new.type[i]+' CUDA')
@@ -247,6 +253,11 @@ def main():
                                           prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                           source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
                                           dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i])
+	elif( use_cudamg == True ):
+            new_model = model_mg_cu.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
+                                          prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                          source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i], ngpu=ngpu)
         elif( use_c == True ):
             new_model = model_c.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
                                        prior=info_new.prior[i], x0prior=info_new.x0prior[i],
@@ -282,7 +293,9 @@ def main():
     #
     nbatch = 10
     if use_cuda == True:
-        nbatch = 25000/info_new.beta
+        nbatch = 25000
+    if use_cudamg == True:
+        nbatch = 25000*ngpu
 
     ########################### ABC SMC
     #
