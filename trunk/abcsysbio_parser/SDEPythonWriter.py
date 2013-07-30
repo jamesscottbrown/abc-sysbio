@@ -129,6 +129,19 @@ class SDEPythonWriter(Writer):
     ##################################################
     
         self.out_file.write("\n")
+
+        # check for columns of the stochiometry matrix with more than one entry
+        randomVariables = ["*random.normal(0.0,sqrt(dt))"] * self.parsedModel.numReactions
+        for k in range(0,self.parsedModel.numReactions):
+            countEntries = 0
+            for i in range(0,self.parsedModel.numSpecies):
+                if(self.parsedModel.stoichiometricMatrix[i][k] != 0.0): countEntries += 1
+                
+            # define specific randomVariable
+            if countEntries > 1:
+                self.out_file.write("\trand"+repr(k)+" = random.normal(0.0,sqrt(dt))\n")
+                randomVariables[k] = "*rand" + repr(k)
+                    
     
         if(method==1):
     
@@ -141,8 +154,8 @@ class SDEPythonWriter(Writer):
                         self.out_file.write(")*trunc_sqrt(")
                         string=p.sub('',self.parsedModel.kineticLaw[k])
                         self.out_file.write(string)
-                        self.out_file.write(")*")
-                        self.out_file.write("random.normal(0.0,sqrt(dt))")
+                        self.out_file.write(")")
+                        self.out_file.write(randomVariables[k])
                         self.out_file.write("+")
                 self.out_file.write("0\n")
     
@@ -152,7 +165,8 @@ class SDEPythonWriter(Writer):
                     self.out_file.write(self.parsedModel.ruleVariable[i])
                     self.out_file.write("= trunc_sqrt(")
                     self.out_file.write(self.parsedModel.ruleFormula[i])
-                    self.out_file.write(" ) * random.normal(0.0,sqrt(dt))")
+                    self.out_file.write(")")
+                    self.out_file.write(randomVariables[k])
                     self.out_file.write("\n")
                     
     
