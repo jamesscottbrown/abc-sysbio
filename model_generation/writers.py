@@ -222,3 +222,78 @@ struct myJex{
         base_code_writer.finish(self)
 
         
+class sde_code_writer(base_code_writer):
+
+    def __init__(self, network, outfile):         
+
+        # initialise using the base class
+        base_code_writer.__init__(self, network, outfile)
+        base_code_writer.write_header(self)
+        base_code_writer.write_params(self)
+
+        print >>self.fout, "//Code for texture memory\n"
+        base_code_writer.write_laws(self)
+        
+        print >>self.fout, "__device__ void step(float *y, float t, unsigned *rngRegs, int tid){"
+        
+        #print >>self.fout, "\tif( t[0] >= 100){"
+        #print >>self.fout, "\t\ty[0]=0.6;"
+        #print >>self.fout, "\t}"
+
+        # get the transpose of A = S
+        smt = np.transpose( self.network.smatrix )
+
+        # define the standard gaussian noises, one per reaction
+        print >>self.fout, "\n"
+        for i in range(  np.shape(smt)[1] ):
+            print >>self.fout, "\tfloat W"+repr(i)+" = randNormal(rngRegs,sqrt(DT));"
+
+        print >>self.fout, "\n"
+
+        # first do the deterministc part
+        for i in range(network.nspecies):
+            print >>self.fout, "\tfloat dy"+repr(i)+" = DT *( ",
+
+            # get the non zero contributions from the S matrix
+            r = np.nonzero( smt[i,:] )[0]
+            nr = len( r )
+ 
+            for j in range(nr):
+                print >>self.fout, "("+repr(smt[i,r[j]] )+")*"+ fill_species(network,network.total_reactions[r[j]].rate),
+ 
+                if j != nr-1:
+                    print >>self.fout, " + ",
+                
+            print >>self.fout, ");"
+
+        print >>self.fout, "\n"
+        
+        # next do the stochastic part
+        for i in range(network.nspecies):
+            print >>self.fout, "\tdy"+repr(i)+" +=",
+
+            # get the non zero contributions from the S matrix
+            r = np.nonzero( smt[i,:] )[0]
+            nr = len( r )
+        
+            for j in range(nr):
+                print >>self.fout, "(" +repr(smt[i,r[j]] )+")*sqrt("+ fill_species(network,network.total_reactions[r[j]].rate)+")*W"+repr(r[j]),
+ 
+                if j != nr-1:
+                    print >>self.fout, " + ",
+                
+            print >>self.fout, ";"
+ 
+            
+        print >>self.fout, "\n"
+        # fill values for return
+        for i in range(network.nspecies):
+            print >>self.fout, "\ty["+repr(i)+"] += dy"+repr(i)+";"
+            
+
+        print >>self.fout, "\n"
+        print >>self.fout, "}"
+            
+        base_code_writer.finish(self)
+
+        
