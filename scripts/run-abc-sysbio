@@ -79,6 +79,7 @@ def main():
     use_cuda = False
     use_cudamg = False  
     ngpu=1
+    gpu_ids=[0]
     use_c = False
     full_debug = False
 
@@ -109,7 +110,11 @@ def main():
 	    elif option == 'cuda' : use_cuda = True
 	    elif option[0:7] == 'cudamg=' : 
                 use_cudamg = True
-                ngpu = int( option[7:] )            
+		# get string without square brackets
+		l = len( option[8:] )
+		s = option[8:8+l-1]  
+		gpu_ids = [int(x) for x in s.split(",")]      
+		ngpu = len(gpu_ids)         
             elif option == 'c++' : use_c = True
 	    elif option == 'infile': 
                 input_file=sys.argv[i+1]
@@ -257,7 +262,7 @@ def main():
             new_model = model_mg_cu.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
                                           prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                           source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i], ngpu=ngpu)
+                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i], ngpu=ngpu, gpu_ids=gpu_ids)
         elif( use_c == True ):
             new_model = model_c.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
                                        prior=info_new.prior[i], x0prior=info_new.x0prior[i],
