@@ -7,7 +7,7 @@ import cudasim.Gillespie_mg as Gillespie
 class cuda_model:
     
     # instantiation
-    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, timepoints, logp, ngpu):
+    def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, timepoints, logp, ngpu, gpu_ids):
         self.nspecies = nspecies
         self.name = name
 
@@ -28,6 +28,7 @@ class cuda_model:
         self.timepoints = timepoints
         self.logp = logp
         self.ngpu = ngpu
+        self.gpu_ids = gpu_ids
        
     def simulate(self, p, t, n, beta):
         gpu_threads = []
@@ -42,7 +43,7 @@ class cuda_model:
         n_per_card[self.ngpu-1] = n - (self.ngpu-1)*nc
 
         ## print n, n_per_card, numpy.shape(p)
-   
+        
         for c in range(self.ngpu):
 
             ### Create local parameter and species arrays
@@ -61,9 +62,11 @@ class cuda_model:
 
             ### Run on multiple GPUs
             if self.integration == "ODE":
-                gpu_thread = Lsoda.Lsoda(self.timepoints, self.cudaCode, pp, species, output_cpu, card=c, dt=self.dt, dump=False, info=False, timing=True)
-            elif self.integration == "Gillespie":
-                gpu_thread = Gillespie.Gillespie(self.timepoints, self.cudaCode, pp, species, output_cpu, card=c, dt=self.dt, dump=False, info=False, timing=True)
+                gpu_thread = Lsoda.Lsoda(self.timepoints, self.cudaCode, pp, species, output_cpu, card=self.gpu_ids[c], dt=self.dt, dump=False, info=False, timing=True)
+            if self.integration == "Gillespie":
+                gpu_thread = Gillespie.Gillespie(self.timepoints, self.cudaCode, pp, species, output_cpu, card=self.gpu_ids[c], dt=self.dt, dump=False, info=False, timing=True)
+            if self.integration == "SDE":
+                gpu_thread = EulerMaruyama.EulerMaruyama(self.timepoints, self.cudaCode, pp, species, output_cpu, card=self.gpu_ids[c], dt=self.dt, dump=False, info=False, timing=True)
 
             gpu_threads.append(gpu_thread)
             gpu_thread.start()
