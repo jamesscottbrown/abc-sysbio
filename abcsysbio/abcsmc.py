@@ -7,6 +7,7 @@ from abcsysbio import euclidian
 from abcsysbio import kernels
 from abcsysbio import statistics
 from abcsysbio import link_stats
+from abcsysbio import weights_cuda
 
 """
 priors: 
@@ -401,7 +402,8 @@ class abcsmc:
         if self.debug == 2:print "**** end of population naccepted/sampled:", naccepted,  sampled
 
         if( prior == False):
-            self.computeParticleWeights()
+            ## self.computeParticleWeights()
+            self.computeParticleWeightsCUDA()
         else:
             for i in range(self.nparticles):
                 self.weights_curr[i] = self.b[i]
@@ -685,21 +687,10 @@ class abcsmc:
                 if self.models[ this_model ].prior[n][0]==0:
                     x=1
 
-                if self.models[ this_model ].prior[n][0]==1: 
-                    x=statistics.getPdfGauss(self.models[ this_model ].prior[n][1],
-                                             numpy.sqrt(self.models[ this_model ].prior[n][2]),
-                                             this_param[n])
-                
                 if self.models[ this_model ].prior[n][0]==2: 
                     x=statistics.getPdfUniform(self.models[ this_model ].prior[n][1],
                                                self.models[ this_model ].prior[n][2],
                                                this_param[n])
-    
-                if self.models[ this_model ].prior[n][0]==3: 
-                    x=statistics.getPdfLognormal(self.models[ this_model ].prior[n][1],
-                                                 numpy.sqrt(self.models[ this_model ].prior[n][2]),
-                                                 this_param[n])
- 
                 pprob = pprob*x
 
             
@@ -718,9 +709,6 @@ class abcsmc:
 
                 if(int(this_model) == int(self.model_prev[j]) ):
                     # print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
-                    if self.debug == 2:
-                        print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
-                        self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type, self.link_info )
                     denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type, self.link_info )
 
                 if self.debug == 2:
@@ -728,6 +716,10 @@ class abcsmc:
                     print "\tnumer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, self.margins_prev[this_model]
 
             self.weights_curr[k] = numer/(denom_m*denom/self.margins_prev[this_model])
+
+
+    def computeParticleWeightsCUDA(self):
+        weights_cuda.weights_cuda(self.nparticles, self.models[0].kparameters, self.models[0].prior, self.kernels[0], self.link_info, self.parameters_curr, self.parameters_prev, self.weights_prev, self.weights_curr )
         
     def normalizeWeights(self):
         n = sum( self.weights_curr )
