@@ -14,10 +14,10 @@ class input_output:
         self.diagnostic = diagnostic
         self.plotDataSeries = plotDataSeries
         self.havedata = havedata
-
+      
         # Hold all data here for plotting purposes.
         # May want to remove this as could get large
-        self.all_results = []
+        # self.all_results = []
         
         if restart==True:
             self.folder = self.folder + '_restart'
@@ -28,9 +28,6 @@ class input_output:
 
     ################write rates, distances, trajectories    
     def write_data(self, population, results, timing, models, data):
-
-        # results abcsmc_results class
-        self.all_results.append( results )
 
         beta = len(results.trajectories[0])
         
@@ -151,20 +148,19 @@ class input_output:
                 
 
         # do diagnostics such as scatter plots, histograms and model distribution
-        npop = len(self.all_results)
         if self.diagnostic == True:
             
-            if nmodels > 1:
-                # create matrix [npop][nmodel]
-                m = numpy.zeros( [ len(self.all_results), nmodels ] )
-                r = []
-                e = []
-                for i in range( len(self.all_results) ):
-                    m[i,:] = self.all_results[i].margins
-                    r.append( self.all_results[i].rate )
-                    e.append( self.all_results[i].epsilon )
+            #if nmodels > 1:
+            #    # create matrix [npop][nmodel]
+            #    m = numpy.zeros( [ npop, nmodels ] )
+            #    r = []
+            #    e = []
+            #    for i in range( npop ):
+            #        m[i,:] = self.all_results[i].margins
+            #        r.append( self.all_results[i].rate )
+            #        e.append( self.all_results[i].epsilon )
             
-                getModelDistribution(m,e,r,PlotName=self.folder+'/ModelDistribution')
+            #    getModelDistribution(m,e,r,PlotName=self.folder+'/ModelDistribution')
 
             # for scatter plots and histograms we require container [model][population][parameter][values]
             population_mod=[]
@@ -177,28 +173,27 @@ class input_output:
                 if counts[mod] > 0:
                     #PlotName = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/ScatterPlots_Population' + repr(population+1)
                     PlotName2 = self.folder+'/results_' + models[mod].name + '/Population_'+repr(population+1) + '/weightedHistograms_Population' + repr(population+1)
-                
-                    for eps in range( npop ):
-                        population_mod[mod].append([])
-                        weights_mod[mod].append([])
 
-                        non_const = 0
-                        for param in range(models[mod].nparameters):
-                            if not( models[mod].prior[param][0]==0 ):
-                                population_mod[mod][eps].append([])
-                                weights_mod[mod][eps].append([])
+                    population_mod[mod].append([])
+                    weights_mod[mod].append([])
 
-                                nparticles = len(self.all_results[eps].weights)
-                                for np in range( nparticles ):
-                                    if self.all_results[eps].models[np] == mod:
-                                        # print mod, eps, param, self.all_results[eps].models[np], self.all_results[eps].parameters[np][param]
-                                        population_mod[mod][eps][non_const].append( self.all_results[eps].parameters[np][param] )
-                                        weights_mod[mod][eps][non_const].append( self.all_results[eps].weights[np] )
+                    non_const = 0
+                    for param in range(models[mod].nparameters):
+                        if not( models[mod].prior[param][0]==0 ):
+                            population_mod[mod][0].append([])
+                            weights_mod[mod][0].append([])
 
-                                non_const = non_const + 1
+                            nparticles = len(results.weights)
+                            for np in range( nparticles ):
+                                if results.models[np] == mod:
+                                    ##print mod, param, results.models[np], results.parameters[np][param]
+                                    population_mod[mod][0][non_const].append( results.parameters[np][param] )
+                                    weights_mod[mod][0][non_const].append( results.weights[np] )
+
+                            non_const = non_const + 1
 
                     #getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(1,population+2),PlotName=PlotName,model=mod+1)
-                    getAllHistograms(population_mod, weights_mod, population=population+1, PlotName=PlotName2, model=mod+1)
+                    getAllHistograms(population_mod, weights_mod, population=1, PlotName=PlotName2, model=mod+1)
 
             if self.plotDataSeries == True:
                 for mod in range(nmodels):
@@ -213,7 +208,7 @@ class input_output:
                             count = count + 1
 
                     if len(pars) > 0:
-                        filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
+                        filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(population+1) + '/Timeseries_Population' + repr(population+1)
                         plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
 
 
