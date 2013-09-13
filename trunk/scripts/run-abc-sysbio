@@ -106,9 +106,9 @@ def main():
 	    elif option == 'custk' : custom_kernel = True
 	    elif option == 'custd' : custom_distance = True
             elif option == 'cuda' : use_cuda = True
-	    elif option[0:7] == 'cudamg=' : 
-		use_cudamg = True
-		ngpu = int( option[7:] )            
+	    #elif option[0:7] == 'cudamg=' : 
+	    #	use_cudamg = True
+	    #	ngpu = int( option[7:] )            
 	    elif option == 'c++' : use_c = True
 	    elif option == 'infile': 
                 input_file=sys.argv[i+1]
@@ -176,7 +176,6 @@ def main():
             print "ABORT: libSBML required for SBML parsing. Please install libSBML"
             sys.exit()
 
-    if usesbml == True:
 	import abcsysbio_parser
 	from abcsysbio_parser import ParseAndWrite
 
@@ -223,8 +222,16 @@ def main():
             for i in range(len(info_new.type)):
                 integrationType.append(info_new.type[i]+' Python')
             
-
-        ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
+	try:
+            ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
+	
+	except:
+	    print "\n#################\n Could not parse the provided SBML file(s). Check the following options:"
+            print "\n -provided file names correct?"
+            print "\n -provided file names correct?"
+            print "\n -input arguments correct?"
+            print "\n -SBML files correctly defined?"
+            sys.exit()    
 
         if simulate==False :
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
