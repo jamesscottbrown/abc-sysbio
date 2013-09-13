@@ -1,0 +1,364 @@
+#!/usr/bin/python2.5
+
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+from pylab import *
+
+import abcsysbio
+import numpy
+import sys
+import re
+
+from abcsysbio import parse_info
+from abcsysbio import model_py
+from abcsysbio import model_cu
+from abcsysbio import model_c
+from abcsysbio import data
+from abcsysbio import abcsmc
+from abcsysbio import input_output
+from abcsysbio import checkInputArguments
+from abcsysbio import kernels
+from abcsysbio import euclidian
+
+import sys
+sys.path.insert(0, ".")
+
+def printOptions():
+    
+    print "\nList of possible options:"
+
+    print "\n Input options:"
+    print "-i\t--infile\t declaration of the input file. This input file has to be provided to run the program!"
+    print "-lc\t--localcode\t do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file"
+
+    print "\n Algorithmic options:"
+    print "-sd\t--setseed\t seed the random number generator in numpy with an integer eg -sd=2, --setseed=2"
+    print "-tm\t--timing\t print timing information"
+    print "--c++\t\t\t use C++ implementation"
+    print "-cu\t--cuda\t\t use CUDA implementation"
+    ##print "-cumg\t--cudamg\t\t use multiple GPU CUDA implementation"
+    
+    print "\n Output options:"  
+    print "-of\t--outfolder\t write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)"
+    print "-f\t--fulloutput\t print epsilon, sampling steps and acceptence rates after each population"
+    print "-s\t--save\t\t no backup after each population"
+    print "-db\t--debug\t set the debug mode"
+    
+    print "\n Simulate options:"
+    print "-S\t--simulate\t simulate the model over the range of timepoints, using paramters sampled from the priors"
+
+    print "\n Design options:"
+    print "-D\t--design\t run ABC-SysBio in design mode"
+    
+    print "\n Plotting options:"
+    print "-d\t--diagnostic\t no printing of diagnostic plots"
+    print "-t\t--timeseries\t no plotting of simulation results after each population"
+    print "-p\t--plotdata\t no plotting of given data points"
+    print "\n-h\t--help\t\t print this list of options."
+
+    print "\n"
+
+    
+def main():
+    
+    diagnostic=True
+    pickling=True
+    file_exist=False
+    plot=True
+    plotTimeSeries=True
+    simulate=False
+    design=False
+    full=False
+    usesbml=True
+    seed = None
+    timing = False
+    fname = "_results_"
+    custom_kernel = False
+    custom_distance = False
+    use_cuda = False
+    use_cudamg = False	
+    ngpu=1
+    use_c = False
+    full_debug = False
+
+    for i in range(1,len(sys.argv)):
+
+        if sys.argv[i].startswith('--'):
+            option = sys.argv[i][2:]
+          
+            if option == 'help':
+                printOptions()
+                sys.exit()
+            elif option == 'diagnostic': diagnostic=False
+            elif option == 'save': pickling=False
+            elif option == 'timeseries': plotTimeSeries=False
+            elif option == 'plotdata': plot=False
+            elif option == 'simulate': simulate=True
+            elif option == 'design': design=True
+            elif option == 'debug': full_debug=True
+            elif option == 'fulloutput': full=True
+	    elif option == 'localcode' : usesbml = False 
+            elif option[0:8] == 'setseed=' : seed = int( option[8:] )
+            elif option[0:10] == 'outfolder=' : fname = option[10:]
+            elif option[0:9] == 'cudacode=' : app_file = option[9:]
+	    elif option == 'timing' : timing = True 
+	    elif option == 'custk' : custom_kernel = True
+	    elif option == 'custd' : custom_distance = True
+            elif option == 'cuda' : use_cuda = True
+	    #elif option[0:7] == 'cudamg=' : 
+	    #	use_cudamg = True
+	    #	ngpu = int( option[7:] )            
+	    elif option == 'c++' : use_c = True
+	    elif option == 'infile': 
+                input_file=sys.argv[i+1]
+                file_exist=True
+	    elif not(sys.argv[i-1][2:] == 'infile'): 
+                print "\nunknown option "+sys.argv[i]
+                printOptions()
+                sys.exit()
+            
+        
+        elif sys.argv[i].startswith('-'):
+            option = sys.argv[i][1:]
+            if option == 'h':
+                printOptions()
+                sys.exit()
+            elif option == 'd': diagnostic=False
+            elif option == 's': pickling=False
+            elif option == 't': plotTimeSeries=False
+            elif option == 'p': plot=False
+            elif option == 'S': simulate=True
+            elif option == 'D': design=True
+            elif option == 'db': full_debug=True
+            elif option == 'f': full=True
+            elif option == 'cu': use_cuda = True
+	    elif option == 'lc' : usesbml = False
+            elif option[0:3] == 'sd=' : seed = int( option[3:] )
+            elif option[0:3] == 'of=' : fname = option[3:]
+            elif option == 'tm' : timing = True
+            elif option == 'i': 
+                input_file=sys.argv[i+1]
+                file_exist=True
+            elif not(sys.argv[i-1][2:] == 'i'): 
+                print "\nunknown option "+sys.argv[i]
+                printOptions()
+                sys.exit()
+        elif not((sys.argv[i-1][2:] == 'infile') or (sys.argv[i-1][1:] == 'i')):
+            print "\nunknown expression \""+sys.argv[i]+"\""
+            printOptions()
+            sys.exit()
+
+    if file_exist == False:
+        print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
+        sys.exit()
+
+    # python, C++ or CUDA 
+    if use_cuda == True and use_c == True:
+        print "specified both c++ and CUDA "
+        sys.exit()
+    if design == True and simulate==True:
+        print "specified both design and simulate "
+        sys.exit()
+
+    # parse the input file
+    mode = 0
+    if simulate == True: mode = 1
+    if design == True: mode = 2
+    info_new = parse_info.algorithm_info(input_file, mode) 
+
+    info_new.print_info()
+
+    # Check that we have libSBML if it is requested
+    if usesbml == True:
+        try: import libsbml
+        except ImportError:
+            print "ABORT: libSBML required for SBML parsing. Please install libSBML"
+            sys.exit()
+
+	import abcsysbio_parser
+	from abcsysbio_parser import ParseAndWrite
+
+    # Check that we can import scipy if we have ODE models
+    o = re.compile('ODE')
+    for m in range( info_new.nmodels ):
+        if o.search(info_new.type[m]):
+            try: from scipy.integrate.odepack import odeint
+            except ImportError:
+                print "ABORT: scipy required for ODE modelling. Please install scipy"
+                sys.exit()
+            break
+
+    # Check that we have cuda-sim installed
+    if use_cuda == True:
+        try: import cudasim
+        except ImportError:
+            print "ABORT: cudasim required for running on CUDA GPUs. Please install cuda-sim"
+            sys.exit()
+    
+    # set the random seeds
+    if seed != None:
+	print "#### Seeding random number generator : ", seed
+        numpy.random.seed(seed)
+
+
+    # Check the information is correct for simulation or inference
+    modelCorrect = False
+    if usesbml == True :
+        integrationType = []
+        
+        if use_cuda == True or use_cudamg == True:
+            # CUDA
+            for i in range(len(info_new.type)):
+                integrationType.append(info_new.type[i]+' CUDA')
+        elif use_c == True :
+            # C
+            for i in range(len(info_new.type)):
+                if info_new.type[i] == "SDE":
+                    info_new.type[i] = "EulerSDE"
+                integrationType.append(info_new.type[i]+' C')
+        else:
+            # python 
+            for i in range(len(info_new.type)):
+                integrationType.append(info_new.type[i]+' Python')
+            
+	try:
+            ParseAndWrite.ParseAndWrite(info_new.source,integrationType,info_new.name,inputPath="",outputPath="",method=None)
+	
+	except:
+	    print "\n#################\n Could not parse the provided SBML file(s). Check the following options:"
+            print "\n -provided file names correct?"
+            print "\n -input arguments correct?"
+            print "\n -SBML files correctly defined and in local directory?"
+            sys.exit()    
+
+        if simulate==False :
+            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
+        else:
+            modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
+    else:
+        info_new.source = None
+        if simulate==False :
+            modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
+        else:
+            modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
+
+    if modelCorrect==False:
+        print message
+        sys.exit()
+
+
+    ########################### MODEL CREATION
+    #
+    # create a list of model objects from the information we have
+    models = []
+    for i in range(info_new.modelnumber):
+        if( use_cuda == True ):
+            new_model = model_cu.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
+                                          prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                          source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i])
+	elif( use_cudamg == True ):
+	    from abcsysbio import model_mg_cu
+	    new_model = model_mg_cu.cuda_model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i], 
+                                          prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                          source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                          dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times, logp=info_new.logp[i], ngpu=ngpu)	
+        elif( use_c == True ):
+            new_model = model_c.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
+                                       prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                       source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                       dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol, absoluteError=info_new.atol,
+                                       logp=info_new.logp[i])
+        
+        else:
+            new_model = model_py.model( name=info_new.name[i], nspecies=info_new.nspecies[i], nparameters=info_new.nparameters[i],
+                                     prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                     source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                     dt=info_new.dt, atol=info_new.atol, rtol=info_new.rtol, logp=info_new.logp[i])
+        
+
+        models.append( new_model )
+
+    ########################### DATA CREATION
+    #
+    # create a data object
+    data_new = data.data( info_new.times, info_new.data )
+
+    ########################### IO
+    #
+    if simulate == True or design == True:
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries, havedata=False )
+        io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
+    else:
+        io = input_output.input_output(fname,info_new.restart, diagnostic, plotTimeSeries )
+        io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
+        io.plot_data(data_new)
+        
+    ########################### BATCHES
+    #
+    nbatch = 10
+    if use_cuda == True:
+        nbatch = 25000
+    if use_cudamg == True:
+	nbatch = 25000*ngpu
+
+    ########################### ABC SMC
+    #
+    debug = 0
+    if full == True: debug = 1
+    if full_debug == True: debug = 2
+
+    # set the required distance and kernel functions
+    distancefn = euclidian.euclidianDistance
+    kernelfn = kernels.getKernel
+    kernelpdffn = kernels.getPdfParameterKernel
+    perturbfn = kernels.perturbParticle
+
+    if custom_distance == True or custom_kernel == True:
+        import customABC
+        if custom_distance == True:
+            distancefn = customABC.distance
+        if custom_kernel == True:
+            kernelfn = customABC.getKernel
+            kernelpdffn = customABC.getPdfParameterKernel
+            perturbfn = customABC.perturbParticle
+
+    # instantiate the abcsmc algorithm class
+    algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
+                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernel_type=info_new.kernel, kernelfn=kernelfn,
+                              kernelpdffn=kernelpdffn, perturbfn=perturbfn )
+    
+    if simulate==False :
+        if len(info_new.final_epsilon) == 0:
+            # Manual epsilon
+            
+            # fill data from disk if required
+            if info_new.restart == True:
+                algorithm.fill_values( io.read_pickled(fname) )
+
+            # transpose epsilon so it is epsilon[npop][ndistance]
+            tepsilon = info_new.epsilon.transpose()
+
+            # run ABC SMC
+            algorithm.run_fixed_schedule(tepsilon, io)
+
+        else:
+            # Automatic epsilon
+            if info_new.restart == True:
+                print "Restart not implemented for automated epsilon"
+                sys.exit()
+            
+            algorithm.run_automated_schedule(info_new.final_epsilon, info_new.alpha, io)
+
+        exit()
+
+    else :
+
+        # run simulations only
+        algorithm.run_simulations(io)
+
+        exit()
+	
+
+main()
