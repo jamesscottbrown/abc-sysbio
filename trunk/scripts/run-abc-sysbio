@@ -228,9 +228,8 @@ def main():
 	except:
 	    print "\n#################\n Could not parse the provided SBML file(s). Check the following options:"
             print "\n -provided file names correct?"
-            print "\n -provided file names correct?"
             print "\n -input arguments correct?"
-            print "\n -SBML files correctly defined?"
+            print "\n -SBML files correctly defined and in local directory?"
             sys.exit()    
 
         if simulate==False :
