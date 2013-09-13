@@ -42,6 +42,7 @@ class cuda_model:
         n_per_card[self.ngpu-1] = n - (self.ngpu-1)*nc
 
         ## print n, n_per_card, numpy.shape(p)
+        ## card_ids = [0, 1, 3, 4]
    
         for c in range(self.ngpu):
 
@@ -60,7 +61,7 @@ class cuda_model:
                     pp[i,:] = numpy.power(10,p[place_mark + i][0:self.kparameters])
 
             ### Run on multiple GPUs
-            gpu_thread = Lsoda.Lsoda(self.timepoints, self.cudaCode, pp, species, output_cpu, card=c, dt=self.dt, dump=False, info=False, timing=False)
+            gpu_thread = Lsoda_mg.Lsoda(self.timepoints, self.cudaCode, pp, species, output_cpu, card=c, dt=self.dt, dump=False, info=False, timing=False)
             gpu_threads.append(gpu_thread)
             gpu_thread.start()
 
