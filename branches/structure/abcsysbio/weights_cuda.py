@@ -12,9 +12,14 @@ def fp(v):
 
 class weights_cuda:
 
-    # this only works when there is one model. prior and kernels are for th esingle model
+    # this only works when there is one model. prior and kernels are for the single model
 
     def __init__(self, nparticles, nparam, prior, kernel, link_info, parameters_curr, parameters_prev, weights_prev, weights_out):
+
+        if nparticles % 64 != 0:
+            print "number of particles must be divisible by 64"
+            exit()
+
 
         # get some required information
         uniform_params = []
@@ -40,13 +45,15 @@ class weights_cuda:
         predef  = ""
         predef += "\n#define NPARTICLES "+repr(nparticles)
         predef += "\n#define NPARAM "+repr(nparam)
-        predef += "\n#define LINKP "+repr(link_info.linkp)
-        predef += "\n#define NLINKS "+repr( len(links_params) )
         predef += "\n#define NUNIF "+repr( len(uniform_params) )
-
-        predef += "\n__device__ const int link_locations["+repr(len(links_params))+"] = {"+fp(links_params)+"};"
         predef += "\n__device__ const int uniform_pars["+repr(len(uniform_params))+"] = {"+fp(uniform_params)+"};"
         predef += "\n__device__ const double unif_kern["+repr(len(kernel_vals))+"] = {"+fp(kernel_vals)+"};"
+
+        if link_info.nlinks > 0:
+            predef += "\n#define LINKP "+repr(link_info.linkp)
+            predef += "\n#define NLINKS "+repr( len(links_params) )
+            predef += "\n__device__ const int link_locations["+repr(len(links_params))+"] = {"+fp(links_params)+"};"
+       
 
         parameter_unif_pdf_code="""
 
@@ -74,6 +81,25 @@ class weights_cuda:
 
         """
 
+        link_kernel_pdf_code_1="""
+        
+        // this functions take pointers to the first elements of the parameter arrays
+        __device__ double link_kernel_pdf(double* par_j, double* par_i)
+        {
+            // this function is for a free edge model. We just at the change of each link
+            double prob = 1;
+            double s = 0;
+
+            for(int k=0; k<NLINKS; k++){
+                s = ( par_j[ link_locations[k] ] - par_i[ link_locations[k] ] );
+                if( s < 1e-3 ) prob = prob*(1-LINKP);
+                else  prob = prob*LINKP;
+            }
+            return prob;
+        }
+
+        """
+
         link_kernel_pdf_code_2="""
         
         // this functions take pointers to the first elements of the parameter arrays
@@ -90,6 +116,17 @@ class weights_cuda:
         }
 
         """
+
+        link_kernel_pdf_code_null="""
+        
+        // this function is a place holder for when there are no free links
+        __device__ double link_kernel_pdf(double* par_j, double* par_i)
+        {
+           return 1.0;
+        }
+
+        """
+        
 
         weight_calculation_code="""
         
@@ -112,8 +149,22 @@ class weights_cuda:
         """
 
         # Build the code
-        all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code_2 + weight_calculation_code
-        if True:
+        
+        if link_info.nfixed == -1:
+            print "weights_cuda : running free link model"
+            link_kernel_pdf_code = link_kernel_pdf_code_1  ## looks at individual links
+        else:
+            print "weights_cuda : running constrained link model"
+            link_kernel_pdf_code = link_kernel_pdf_code_2  ## looks at all the links together
+
+        
+        if link_info.nlinks > 0:
+            all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code + weight_calculation_code
+        else:
+            all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code_null + weight_calculation_code
+        
+
+        if False:
             of = open("full_weight_kernel.cu","w")
             print >>of, all_code
 
