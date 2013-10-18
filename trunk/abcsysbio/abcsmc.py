@@ -318,6 +318,8 @@ class abcsmc:
                     
                     naccepted = naccepted + 1
 
+            print "#### current naccepted:", naccepted
+
             if self.debug == 2:print "\t****end  batch naccepted/sampled:", naccepted,  sampled
 
         # Finished loop over particles
@@ -364,7 +366,7 @@ class abcsmc:
                     self.distances.append( copy.deepcopy(distances[i]) )
                     
                     naccepted = naccepted + 1
-
+            print "#### current naccepted:", naccepted
             
             if self.debug == 2:print "\t****end  batch naccepted/sampled:", naccepted,  sampled
 
