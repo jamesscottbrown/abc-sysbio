@@ -84,12 +84,30 @@ class base_code_writer:
 
         print >>self.fout, "\n\n"
         print >>self.fout, "#define geq(a,b) a>=b"
-        #print >>self.fout, "#define par(a) tex2D(param_tex,a,tid)"
         print >>self.fout, "\n"
+
+        #print >>self.fout, "// if v is -1 0 +1 then switchp(v) is 0 0 1"
+        #print >>self.fout, "#define switchp(v) 0.5*v*(v+1)"
+        #print >>self.fout, "// if v is -1 0 +1 then switchn(v) is 1 0 0"
+        #print >>self.fout, "#define switchn(v) 0.5*v*(v-1)"
+        #print >>self.fout, "// if v is -1 0 +1 then switch0(v) is 0 1 0"
+        #print >>self.fout, "#define switch0(v) abs( (v+1)*(v-1) )"
+        #print >>self.fout, "// if v is -1 0 +1 then switch1(v) is 1 0 1"
+        #print >>self.fout, "#define switch1(v) switchp(v) + switchn(v)"
+
         print >>self.fout, "// if v is -1 0 +1 then switchp(v) is 0 0 1"
-        print >>self.fout, "#define switchp(v) 0.5*v*(v+1)"
+        print >>self.fout, "__device__ double switchp( float v ){"
+	print >>self.fout, "return (double) 0.5*v*(v+1);"
+        print >>self.fout, "}"
         print >>self.fout, "// if v is -1 0 +1 then switchn(v) is 1 0 0"
-        print >>self.fout, "#define switchn(v) 0.5*v*(v-1)"
+        print >>self.fout, "__device__ double switchn( float v ){"
+        print >>self.fout, "	return (double) 0.5*v*(v-1);"
+        print >>self.fout, "}"
+        print >>self.fout, "// if v is -1 0 +1 then switch1(v) is 1 0 1"
+        print >>self.fout, "__device__ double switch1( float v ){"
+        print >>self.fout, "	return (double) switchp(v) + switchn(v);"
+        print >>self.fout, "}"
+
         print >>self.fout, "\n"
 
     def write_params(self):
