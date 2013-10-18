@@ -311,20 +311,21 @@ class abcsmc:
 
         # print "new/ret epsilon:", new_epsilon, ret_epsilon
 
-        # See if we are finished
-        # Either we have reached the target epsilon
+        # See if we are finished by reaching the target epsilon
         finished = True
         for ne in range(nepsilon):
             if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne]-target_epsilon[ne]) < 1e-6:
                 ret_epsilon[ne] = target_epsilon[ne]
+                finished = True
             else:
                 finished = False 
 
-        # or there has been no change
-        finished = True
-        for ne in range(nepsilon):
-            if ret_epsilon[ne] != this_epsilon[ne]:
-                finished = False 
+        # See if we are finished by reaching the target epsilon
+        if finished == False:
+            finished = True
+            for ne in range(nepsilon):
+                if ret_epsilon[ne] != this_epsilon[ne]:
+                    finished = False 
 
         return finished, ret_epsilon 
 
