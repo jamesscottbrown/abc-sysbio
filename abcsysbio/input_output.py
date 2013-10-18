@@ -216,7 +216,7 @@ class input_output:
     def write_data_simulation(self, population, results, timing, models, data):
 
         # results abcsmc_results class
-        self.all_results.append( results )
+        # self.all_results.append( results )
 
         nparticles = len(results.trajectories)
         beta = len(results.trajectories[0])
@@ -293,7 +293,7 @@ class input_output:
         link_sum_file.close()
         
         # do timeseries plots
-        npop = len(self.all_results)
+        npop = 1
         nmodels = len(models)
 
         # separate timeseries for each model
