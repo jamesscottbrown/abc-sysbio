@@ -1,4 +1,4 @@
-import os, sys, pickle
+import os, sys, pickle, string
 import numpy
 
 from getResults import getAllScatterPlots
@@ -6,6 +6,10 @@ from getResults import getAllHistograms
 from getResults import plotTimeSeries
 from getResults import getModelDistribution
 from getResults import plotData
+
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+
 
 class input_output:
     
@@ -209,7 +213,33 @@ class input_output:
 
                     if len(pars) > 0:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(population+1) + '/Timeseries_Population' + repr(population+1)
-                        plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
+                        #plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
+                        
+                        pp = PdfPages( filename + ".pdf" )
+
+                        # trajectories are stored as list [nparticle][nbeta][ species ][ times ] not numpy array
+
+                        # here we assume beta=1
+                        for i in range(len(results.trajectories)):
+                            # print "printing traj", i
+                            if i < 500:
+                                arr = results.trajectories[i][0]
+                                nrow, ncol = numpy.shape( arr )
+                                # print nrow, ncol
+                                for ic in range(ncol):
+                                    plt.plot(arr[:,ic])
+
+                                dists = [ round( results.distances[i][0][k],3) for k in range(len( results.distances[i][0])) ]
+                                labs = [ repr(x) for x in dists ]
+                                plt.text(10, 0.8*max(arr), string.join(labs, ", ") )
+
+                                plt.title("particle " +repr(i) )
+                                pp.savefig()
+                                plt.close()
+
+                        pp.close()
+
+
 
 
     ################ writes trajectories and parameters from simulations    
