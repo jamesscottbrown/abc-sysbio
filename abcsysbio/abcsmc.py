@@ -300,20 +300,30 @@ class abcsmc:
 
         # Set the next epsilon
         for ne in range(nepsilon):
-            if new_epsilon[ne] < this_epsilon[ne]:
-                ret_epsilon[ne] = new_epsilon[ne]
-            else :
-                # This is an attempt to reduce epsilon even if the new and previous epsilon are equal
-                ret_epsilon[ne] = 0.95*new_epsilon[ne]
+            #if new_epsilon[ne] < this_epsilon[ne]:
+            #    ret_epsilon[ne] = new_epsilon[ne]
+            #else :
+            #    # This is an attempt to reduce epsilon even if the new and previous epsilon are equal
+            #    ret_epsilon[ne] = 0.95*new_epsilon[ne]
+
+            ret_epsilon[ne] = new_epsilon[ne]
+            
 
         # print "new/ret epsilon:", new_epsilon, ret_epsilon
 
         # See if we are finished
+        # Either we have reached the target epsilon
         finished = True
         for ne in range(nepsilon):
             if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne]-target_epsilon[ne]) < 1e-6:
                 ret_epsilon[ne] = target_epsilon[ne]
             else:
+                finished = False 
+
+        # or there has been no change
+        finished = True
+        for ne in range(nepsilon):
+            if ret_epsilon[ne] != this_epsilon[ne]:
                 finished = False 
 
         return finished, ret_epsilon 
@@ -787,7 +797,7 @@ def evaluateDistance(distance,epsilon):
     accepted = False
     for i in range(len(epsilon)):
         #print "d:", distance[i], epsilon[i][t]
-        if(distance[i]<epsilon[i] and distance[i]>=0 ):
+        if(distance[i]<=epsilon[i] and distance[i]>=0 ):
             accepted = True
         else: 
             accepted = False
