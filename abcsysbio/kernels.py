@@ -19,25 +19,35 @@ import link_stats
 
 # Compute the kernels WITHIN a model by examining the previous population of particles
 # populations, weights refers to particles and weights from previous population for one model
-def getKernel(kernel_type, kernel, population, weights):
+def getKernel(kernel_type, kernel, population, weights, priors):
     pop_size = population.shape[0]
     npar = population.shape[1]
 
-    if kernel_type == 1:
-    # component-wise uniform kernels
-        tmp=list()
-	if pop_size == 1:
-            print "WARNING: getKernel : only one particle so adaptation is not possible"
-            for param in kernel[0]:
-                tmp.append([-1, 1])	
-        else: 
-            for param in kernel[0]:
-                minimum=min(population[:,param])
-                maximum=max(population[:,param])
-                scale=(maximum-minimum)
-                tmp.append([-scale/2.0,scale/2.0])
-        kernel[2]=tmp
-	# kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the inf and sup bound of the uniform kernel.
+    # kernel type is always 1 - component-wise uniform kernels
+    tmp=list()
+    for n in kernel[0]:
+
+        if priors[n][0] == 4:
+        #if False:
+            # if switch parameter
+            xx = numpy.array( population[:,n] )
+            pm1 = len( numpy.where(xx == -1)[0] )/float(len(xx))
+            p0  = len( numpy.where(xx ==  0)[0] )/float(len(xx))
+            pp1 = len( numpy.where(xx == +1)[0] )/float(len(xx))
+            tmp.append( [pm1, p0, pp1] )
+            #print "switch kernel:", pm1, p0, pp1
+            
+        else:
+            # if continuous parameter
+            minimum=min(population[:,n])
+            maximum=max(population[:,n])
+            scale=(maximum-minimum)
+            tmp.append([-scale/2.0,scale/2.0])
+
+    kernel[2]=tmp
+    # kernel[2] is a list of length the number of non-constant parameters.
+    # if continuous parameter element of the list contains the inf and sup bound of the uniform kernel.
+    # if switch parameter then it contains p=-1, p=0, p=+1
     
     return kernel
 
@@ -91,7 +101,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
 
         # perturb all the links jointly together
         ##params = link_stats.perturbLinks(kernel, params, priors, link_info)
-        params = link_info.perturbLinks(params)
+        params = link_info.perturbLinks(params,kernel)
 
         # this is not the actual value of the pdf but we only require it to be non zero
         return 1.0
@@ -153,7 +163,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
                 ind += 1
 
         # get the probability of this set of links given the previous set of links
-        probl = link_info.getLinksKernelPdf(params, params0)
+        probl = link_info.getLinksKernelPdf(params, params0, kernel)
         ## print "prob params / links", prob, probl
         prob=prob*probl
         

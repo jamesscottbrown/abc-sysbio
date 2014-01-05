@@ -181,6 +181,8 @@ class algorithm_info:
         # structure related parameters
         self.linkp = 0.7
         self.nfixed = -1
+        self.link_adapt = 0
+        self.link_regf = 1.0
 
         ##################################################
         ## Required arguments
@@ -415,6 +417,21 @@ class algorithm_info:
             self.nfixed = float(data)
         except:
             null = 0  
+
+        ### adaptive
+        try:
+            data = xmldoc.getElementsByTagName('link_adapt')[0].firstChild.data
+            self.link_adapt = float(data)
+        except:
+            null = 0 
+
+        ### adaptive regularisation
+        try:
+            data = xmldoc.getElementsByTagName('link_regf')[0].firstChild.data
+            self.link_regf = float(data)
+        except:
+            null = 0  
+
 
     def print_info(self):
         print "\nALGORITHM INFO"
