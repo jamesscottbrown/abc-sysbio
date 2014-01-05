@@ -105,6 +105,8 @@ class abcsmc:
                  timing,
                  linkp,
                  nfixed,
+                 link_adapt,
+                 link_regf,
                  distancefn = euclidian.euclidianDistance,
                  kernel_type = 1,
                  kernelfn = kernels.getKernel,
@@ -176,7 +178,7 @@ class abcsmc:
         self.dead_models = []
         self.sample_from_prior = True
 
-        self.link_info = link_stats.link_stats(self.models[0], linkp, nfixed) 
+        self.link_info = link_stats.link_stats(self.models[0], linkp, nfixed, link_adapt, link_regf) 
 
 
         # check for special cases
@@ -454,30 +456,24 @@ class abcsmc:
                 self.dead_models.append(j)
         
         #
-        # Compute kernels
+        # Compute kernels assuming one model only
         #
-        for mod in range(self.nmodel):
-            this_model_index = numpy.arange(self.nparticles)[ numpy.array(self.model_prev) == mod ]
-            this_population = numpy.zeros([ len(this_model_index), self.models[mod].nparameters ])
-            this_weights = numpy.zeros( len(this_model_index) ) 
 
-            # if we have just sampled from the prior we shall initialise the kernels using all available particles
-            if prior == True:
-                for it in range(len(this_model_index)):
-                    this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
-                    this_weights[it] = self.weights_prev[ this_model_index[it] ]
-                tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )
-                self.kernels[mod] = tmp_kernel[:]
+        mod = 0
+        # convert lists to numpy arrays
+        this_population = numpy.zeros([ self.nparticles, self.models[mod].nparameters ])
+        this_weights = numpy.zeros( self.nparticles ) 
+        for it in range(self.nparticles):
+            this_population[it,:] = self.parameters_prev[ it ][:]
+            this_weights[it] = self.weights_prev[ it ]
+        
+        tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights, self.models[mod].prior )
+        self.kernels[mod] = tmp_kernel[:]
 
-            else:
-                # only update the kernels if there are > 5 particles
-                if len(this_model_index) > 5:
-                    for it in range(len(this_model_index)):
-                        this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
-                        this_weights[it] = self.weights_prev[ this_model_index[it] ]
-                    tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights )
-                    self.kernels[mod] = tmp_kernel[:]
-
+        # regularize link kernels
+        if self.link_info.adaptive == 1:
+            self.link_info.regularise_kernel( self.kernels[mod] )
+        
         #
         # Kernel auxilliary information
         #

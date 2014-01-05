@@ -325,7 +325,8 @@ def main():
 
     # instantiate the abcsmc algorithm class
     algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
-                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, linkp=info_new.linkp, nfixed=info_new.nfixed,
+                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, 
+			      linkp=info_new.linkp, nfixed=info_new.nfixed, link_adapt=info_new.link_adapt, link_regf=info_new.link_regf,
 			      distancefn=distancefn, kernel_type=info_new.kernel, kernelfn=kernelfn,
                               kernelpdffn=kernelpdffn, perturbfn=perturbfn )
     

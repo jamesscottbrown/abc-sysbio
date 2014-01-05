@@ -229,9 +229,9 @@ class input_output:
                                 for ic in range(ncol):
                                     plt.plot(arr[:,ic])
 
-                                dists = [ round( results.distances[i][0][k],3) for k in range(len( results.distances[i][0])) ]
-                                labs = [ repr(x) for x in dists ]
-                                plt.text(10, 0.8*max(arr), string.join(labs, ", ") )
+                                #dists = [ round( results.distances[i][0][k],3) for k in range(len( results.distances[i][0])) ]
+                                #labs = [ repr(x) for x in dists ]
+                                #plt.text(10, 0.8*max(arr), string.join(labs, ", ") )
 
                                 plt.title("particle " +repr(i) )
                                 pp.savefig()
