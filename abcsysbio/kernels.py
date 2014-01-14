@@ -26,7 +26,7 @@ def getKernel(kernel_type, kernel, population, weights, priors):
     # kernel type is always 1 - component-wise uniform kernels
     tmp=list()
     for n in kernel[0]:
-
+        
         if priors[n][0] == 4:
         #if False:
             # if switch parameter
