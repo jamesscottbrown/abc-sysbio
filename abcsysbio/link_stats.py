@@ -2,6 +2,7 @@
 
 import numpy
 from numpy import random as rnd
+#import statsmodels.api as sm
 
 # define class to hold link information
 class link_stats:
@@ -13,6 +14,9 @@ class link_stats:
         self.nparameters = model.nparameters
         self.adaptive = adapt
         self.regf = regf
+       
+        # store the kernel internally to link_stats
+        self.kernel = []
 
         self.nlinks = 0
         for n in range(self.nparameters):
@@ -32,25 +36,88 @@ class link_stats:
                 self.p0s[count] = model.prior[n][2]
                 count += 1
 
-        # calculate where the links occur in the kernel, non constant, parameter list
-        self.klocations = [0 for i in range(self.nlinks)]
-        count_non_const = 0
-        count = 0
-        for n in range(self.nparameters):
-            if model.prior[n][0] != 0:
-                
-                if model.prior[n][0] == 4:
-                    self.klocations[count] = count_non_const
-                    count += 1
+    # get kernels for the links
+    def getKernels(self, population, weights):
+        
+        if self.adaptive == 1:
+            tmp=list()
+            for i in range(self.nlinks):
+                # extract the link info from the data
+                xx = numpy.array( population[:, self.locations[i] ] )
 
-                count_non_const +=1
+                #pm1 = len( numpy.where(xx == -1)[0] )/float(len(xx))
+                #p0  = len( numpy.where(xx ==  0)[0] )/float(len(xx))
+                #pp1 = len( numpy.where(xx == +1)[0] )/float(len(xx))
+                pm1 = numpy.sum( weights[ numpy.where(xx == -1)[0] ] )
+                p0  = numpy.sum( weights[ numpy.where(xx ==  0)[0] ] )
+                pp1 = numpy.sum( weights[ numpy.where(xx == +1)[0] ] )
+                tmp.append( [pm1, p0, pp1] )
 
+            self.kernel = tmp 
+
+            # regularise
+            link_stats.regularise_kernel(self)
+
+        if self.adaptive == 2:
+            # extract all the link info from the data
+            x = numpy.array( population[:, self.locations ] )
+            nparticles = numpy.shape(x)[0]
+
+            tmp=list()
+            tmp.append([])
+            tmp.append([])
+            tmp.append([])
+            
+            # estimate probabilities of S1
+            type = 0
+            obs = x[:,0]
+            pm1 = len( numpy.where(obs == -1)[0] )/float(nparticles)
+            p0  = len( numpy.where(obs ==  0)[0] )/float(nparticles)
+            pp1 = len( numpy.where(obs == +1)[0] )/float(nparticles)
+            tmp[0].append(self.prior_type[0])
+            tmp[1].append(type)
+            tmp[2].append([pm1, p0, pp1])
+          
+            # need to do nlink-1 regressions S_i | S_(i-1), S_(i-2), S_(i-3) .... 0
+            for i in range(1,self.nlinks):
+                obs = x[:,i] # should be 0, 1
+                expl = x[:,range(0,i)]
+                expl = sm.add_constant(expl, prepend=False)
+                # print i+1, numpy.arange(0,i+1), numpy.shape(obs),  numpy.shape(expl)
+
+                #print "obs:"
+                #for j in range(len(obs) ):
+                #    print obs[j], "\t", expl[j,:]
+                #pass 
+
+                try:
+                    glm_binom = sm.GLM(obs, expl, family=sm.families.Binomial())
+                    res = glm_binom.fit()
+                    # print "logistic regression params:", res.params
+
+                    tmp[0].append( self.prior_type[0] )
+                    tmp[1].append( 1 )
+                    tmp[2].append( res.params )
+                    
+                except:
+                    type = 0
+                    pm1 = len( numpy.where(obs == -1)[0] )/float(nparticles)
+                    p0  = len( numpy.where(obs ==  0)[0] )/float(nparticles)
+                    pp1 = len( numpy.where(obs == +1)[0] )/float(nparticles)
+                    tmp[0].append(self.prior_type[0])
+                    tmp[1].append(type)
+                    tmp[2].append([pm1, p0, pp1])
+
+            self.kernel = tmp 
+            print self.kernel
+
+    
     # This function takes the previous population link probabilities and
     # tweaks them by adding a uniform component in order to provide some level of robustness
-    def regularise_kernel(self, kernel ):
+    def regularise_kernel(self):
 
         for i in range(self.nlinks):
-            kdist = kernel[2][ self.klocations[i] ]
+            kdist = self.kernel[i]
             ret = kdist[:]
         
             if self.prior_type[i] == 3:
@@ -74,10 +141,9 @@ class link_stats:
             ret[1] = ret[1]/sr
             ret[2] = ret[2]/sr
         
-            
             print "kernel reg:", self.regf, kdist, ret
 
-            kernel[2][ self.klocations[i] ] = ret
+            self.kernel[i] = ret
 
         #print kernel[2]
 
@@ -93,20 +159,21 @@ class link_stats:
          else:
              return link_stats.getLinksPriorPdf_fixed(self, params)
 
-    def perturbLinks(self, params, kernel):
+    def perturbLinks(self, params):
         if self.adaptive == 0:
             if self.nfixed == -1:
                 return link_stats.perturbLinks_1(self, params)
             else:
-                return link_stats.perturbLinks_prior(self,params)
+                return link_stats.perturbLinks_prior(self, params)
         else:
             if self.nfixed == -1:
-                return link_stats.perturbLinks_1_adaptive(self, params, kernel)
+                if self.adaptive == 1: return link_stats.perturbLinks_1_adaptive(self, params)
+                if self.adaptive == 2: link_stats.perturbLinks_1_logistic(self, params)
             else:
                 print "adaptive and fixed links not implemented"
                 exit()
 
-    def getLinksKernelPdf(self, params, params0, kernel ):
+    def getLinksKernelPdf(self, params, params0):
         if self.adaptive == 0:
             if self.nfixed == -1:
                 return link_stats.getLinksKernelPdf_1(self, params, params0) ## looks at individual links
@@ -114,7 +181,8 @@ class link_stats:
                 return link_stats.getLinksKernelPdf_2(self, params, params0) ## looks at all the links together
         else:
             if self.nfixed == -1:
-                return link_stats.getLinksKernelPdf_1_adaptive(self, params, params0, kernel)
+                if self.adaptive == 1: return link_stats.getLinksKernelPdf_1_adaptive(self, params, params0)
+                if self.adaptive == 2: return link_stats.getLinksKernelPdf_1_logistic(self, params, params0)
             else:
                 print "adaptive and fixed links not implemented"
                 exit()
@@ -258,7 +326,7 @@ class link_stats:
 
     # This is an independent kernel, effectively sampling links from the previous population
     # There is no dependence on the current particle
-    def perturbLinks_1_adaptive(self, params, kernel):
+    def perturbLinks_1_adaptive(self, params):
 
         links = [0 for i in range(self.nlinks)]
         newlinks = [0 for i in range(self.nlinks)]
@@ -267,7 +335,7 @@ class link_stats:
 
         for i in range(self.nlinks):
             links[i] = params[ self.locations[i] ]
-            kdist = kernel[2][ self.klocations[i] ]
+            kdist = self.kernel[i]
 
             # change the link with probability linkp
             #u = rnd.uniform(0,1)
@@ -279,6 +347,69 @@ class link_stats:
 
             newlinks[i] = ss[ numpy.where( numpy.random.multinomial(1, kdist ) == 1 )[0] ]
 
+        #print links, "->", newlinks 
+
+        for i in range(self.nlinks):
+            params[ self.locations[i] ] = newlinks[i]
+
+        return params
+
+    # This is an independent kernel, effectively sampling links from the previous population
+    # There is no dependence on the current particle
+    def perturbLinks_1_logistic(self, params):
+        # print "\n#### sampling from logistic model"
+
+        links = [params[ self.locations[i]] for i in range(self.nlinks)]
+        newlinks = [0 for i in range(self.nlinks)]
+
+        ss = [-1, 0, +1]
+
+        # sample the first link according to p
+        kdist = self.kernel[2][0]
+        newlinks[0] = ss[ numpy.where( numpy.random.multinomial(1, kdist ) == 1 )[0] ]
+      
+        # here i goes from 1 to nlinks
+        for i in range(1,self.nlinks):
+
+            prior = self.kernel[0][i]
+            type = self.kernel[1][i]
+            # print prior, type
+            
+            if type == 0:
+                # just standard sample from p
+                kdist = self.kernel[2][i]
+                newlinks[i] = ss[ numpy.where( numpy.random.multinomial(1, kdist ) == 1 )[0] ]
+
+            elif type == 1:
+                # here we are fitting link S_(i) | S_(i-1), S_(i-2) .... 
+                #  S1 | S0
+                #  S2 | S1, S0
+                #  S3 | S2, S1, S0
+                
+                # sample from single logistic regression
+                beta  = numpy.matrix( self.kernel[2][i] )
+                # there are i regressors + constant
+                # create a column vector, add the previous samples and the constant term
+                x = numpy.matrix( numpy.zeros([i+1, 1]) )
+                x[0,:] =  newlinks[0:i]
+                x[1,:] =  1
+                #print "x:\n", x
+                #print numpy.shape(x)
+                
+                # obtain theoretical p(x) value p(Y = 1 | X = x) = 1/(1 + exp( -( BX ) )
+                # print  "beta:", beta, numpy.shape(beta), beta*x
+                
+                px = 1/(1 + numpy.exp( - (beta*x)[0,0] ) )
+                # print px, numpy.where( rnd.multinomial(1, [ 1-px, px ] ) == 1 )[0]
+
+                if prior ==  2 : v = [0, 1]
+                if prior == -2 : v = [0, -1]
+                newlinks[i] = v[ numpy.where( rnd.multinomial(1, [ 1-px, px ] ) == 1 )[0] ]
+                
+            else:
+                # sample from two logistic regressions
+                pass
+ 
         #print links, "->", newlinks 
 
         for i in range(self.nlinks):
@@ -320,12 +451,12 @@ class link_stats:
 
         return params
 
-    # no constraints and adaptive
-    def getLinksKernelPdf_1_adaptive(self, params, params0, kernel):
+    # no constraints and adaptive (independent of params0)
+    def getLinksKernelPdf_1_adaptive(self, params, params0):
         prob=1
         
         for i in range(self.nlinks):
-            kdist = kernel[2][ self.klocations[i] ]
+            kdist = self.kernel[i]
             
             # p( t | t -1 ) =  1-linkp (t == t-1), linkp (t != t-1 )
             #kern = 0;
@@ -340,6 +471,52 @@ class link_stats:
            
             prob=prob*kern
         ##print "pdf kernel:", prob
+        return prob
+
+    # no constraints and adaptive (independent of params0)
+    def getLinksKernelPdf_1_logistic(self, params, params0):
+
+        links = [params[ self.locations[i]] for i in range(self.nlinks)]
+        prob=1
+
+        # these need to be compared link by link
+        for i in range(self.nlinks):
+            prior = self.kernel[0][i]
+            type = self.kernel[1][i]
+            ## print prior, type
+            
+            if type == 0:
+                # just standard sample from p
+                kdist = self.kernel[2][i]
+                ind = links[i] + 1 # 0, 1, 2
+                kern = kdist[ ind ]
+                prob=prob*kern
+
+            elif type == 1:
+                # here we are calculating p( S_(i) | S_(i-1), S_(i-2) ....) 
+                #  p( S1 | S0 )
+                #  p( S2 | S1, S0)
+                #  p( S3 | S2, S1, S0)
+                
+                # sample from single logistic regression
+                beta  = numpy.matrix( self.kernel[2][i] )
+                # there are i regressors + constant
+                # create a column vector, add the previous samples and the constant term
+                x = numpy.matrix( numpy.zeros([i+1, 1]) )
+                x[0,:] =  links[0:i]
+                x[1,:] =  1
+                #print "x:\n", x
+                #print numpy.shape(x)
+                
+                # obtain theoretical p(x) value p(Y = 1 | X = x) = 1/(1 + exp( -( BX ) )
+                px = 1/(1 + numpy.exp( - (beta*x)[0,0] ) )
+                
+                if links[i] == 0:
+                    prob=prob*(1-px)
+                else:
+                    prob=prob*px
+         
+        #print "pdf kernel:", prob
         return prob
 
     # no constraints

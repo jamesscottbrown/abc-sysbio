@@ -415,8 +415,8 @@ class abcsmc:
         if self.debug == 2:print "**** end of population naccepted/sampled:", naccepted,  sampled
 
         if( prior == False):
-            ## self.computeParticleWeights()
-            self.computeParticleWeightsCUDA()
+            if self.link_info.adaptive == 0: self.computeParticleWeightsCUDA()
+            else: self.computeParticleWeights()
         else:
             for i in range(self.nparticles):
                 self.weights_curr[i] = self.b[i]
@@ -467,13 +467,9 @@ class abcsmc:
             this_population[it,:] = self.parameters_prev[ it ][:]
             this_weights[it] = self.weights_prev[ it ]
         
-        tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights, self.models[mod].prior )
+        tmp_kernel = self.kernelfn( self.kernel_type, self.kernels[mod], this_population, this_weights, self.models[mod].prior, self.link_info )
         self.kernels[mod] = tmp_kernel[:]
-
-        # regularize link kernels
-        if self.link_info.adaptive == 1:
-            self.link_info.regularise_kernel( self.kernels[mod] )
-        
+ 
         #
         # Kernel auxilliary information
         #
@@ -678,7 +674,7 @@ class abcsmc:
     
     def computeParticleWeights(self):
         if self.debug == 2:print "\t***computeParticleWeights"
-
+       
         for k in range(self.nparticles):
             this_model = self.model_curr[k]
             this_param = self.parameters_curr[k]
