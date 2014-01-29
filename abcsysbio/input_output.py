@@ -222,7 +222,8 @@ class input_output:
                         # here we assume beta=1
                         for i in range(len(results.trajectories)):
                             # print "printing traj", i
-                            if i < 500:
+                            if( results.models[i] == mod):
+                            #if i < 500:
                                 arr = results.trajectories[i][0]
                                 nrow, ncol = numpy.shape( arr )
                                 # print nrow, ncol

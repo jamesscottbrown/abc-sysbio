@@ -53,8 +53,17 @@ class weights_cuda:
             predef += "\n#define LINKP "+repr(link_info.linkp)
             predef += "\n#define NLINKS "+repr( len(links_params) )
             predef += "\n__device__ const int link_locations["+repr(len(links_params))+"] = {"+fp(links_params)+"};"
-       
 
+        if link_info.adaptive == 1:
+            predef += "\n__device__ const double kernel_prob["+repr(3*len(links_params))+"] = {"
+
+            # fill in order p0_0 p1_0 p2_0, p0_1 p1_1 p2_1
+            for i in range(link_info.nlinks):
+                kdist = link_info.kernel[i]
+                predef += fp(kdist)
+                if i != link_info.nlinks-1: predef += ","
+            predef += "};"
+            
         parameter_unif_pdf_code="""
 
         __device__ double dunif(double x, double a, double b)
@@ -91,9 +100,28 @@ class weights_cuda:
             double s = 0;
 
             for(int k=0; k<NLINKS; k++){
-                s = ( par_j[ link_locations[k] ] - par_i[ link_locations[k] ] );
+                s = fabs( par_j[ link_locations[k] ] - par_i[ link_locations[k] ] );
                 if( s < 1e-3 ) prob = prob*(1-LINKP);
                 else  prob = prob*LINKP;
+            }
+            return prob;
+        }
+
+        """
+
+        link_kernel_pdf_code_1_adapt="""
+        
+        // this functions take pointers to the first elements of the parameter arrays, order: previous, current
+        __device__ double link_kernel_pdf(double* par_j, double* par_i)
+        {
+            // this function is for a free edge model with independent kernel
+            double prob = 1;
+            double s = 0;
+            int l = 0;
+
+            for(int k=0; k<NLINKS; k++){
+                l = (int) par_i[ link_locations[k] ] + 1; // {-1, 0, 1} -> {0, 1, 2}
+                prob = prob * kernel_prob[ 3*k + l ];
             }
             return prob;
         }
@@ -108,7 +136,7 @@ class weights_cuda:
             // this function is for a constrained edge model. We just look to see if there is any difference in the edges
             double s = 0;
             for(int k=0; k<NLINKS; k++){
-                s += par_j[ link_locations[k] ] - par_i[ link_locations[k] ];
+                s += fabs( par_j[ link_locations[k] ] - par_i[ link_locations[k] ] );
             }
 
             if( s < 1e-3 ) return (double) 1-LINKP;
@@ -150,21 +178,24 @@ class weights_cuda:
 
         # Build the code
         
-        if link_info.nfixed == -1:
-            print "weights_cuda : running free link model"
-            link_kernel_pdf_code = link_kernel_pdf_code_1  ## looks at individual links
-        else:
+        if link_info.nfixed == -1:                                         ## looks at individual links
+            if link_info.adaptive == 0:
+                print "weights_cuda : running free link model"
+                link_kernel_pdf_code = link_kernel_pdf_code_1 
+            if link_info.adaptive == 1:
+                print "weights_cuda : running free link model (adaptive)"
+                link_kernel_pdf_code = link_kernel_pdf_code_1_adapt 
+        else:                                                              ## looks at all the links together
             print "weights_cuda : running constrained link model"
-            link_kernel_pdf_code = link_kernel_pdf_code_2  ## looks at all the links together
+            link_kernel_pdf_code = link_kernel_pdf_code_2  
 
-        
         if link_info.nlinks > 0:
             all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code + weight_calculation_code
         else:
             all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code_null + weight_calculation_code
         
 
-        if False:
+        if True:
             of = open("full_weight_kernel.cu","w")
             print >>of, all_code
 
