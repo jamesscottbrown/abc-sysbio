@@ -415,7 +415,7 @@ class abcsmc:
         if self.debug == 2:print "**** end of population naccepted/sampled:", naccepted,  sampled
 
         if( prior == False):
-            if self.link_info.adaptive == 0: self.computeParticleWeightsCUDA()
+            if self.link_info.adaptive < 2: self.computeParticleWeightsCUDA()
             else: self.computeParticleWeights()
         else:
             for i in range(self.nparticles):
