@@ -7,14 +7,20 @@ from numpy import random as rnd
 # define class to hold link information
 class link_stats:
 
-    def __init__(self, model, linkp, nfixed, adapt, regf):
+    def __init__(self, model, linkp, nfixed, adapt, regf, enum_file):
 
         self.linkp = linkp
         self.nfixed = nfixed
         self.nparameters = model.nparameters
         self.adaptive = adapt
         self.regf = regf
-       
+        self.prior_size = -1
+        self.enum = False
+        self.enum_file = enum_file
+
+        if enum_file != "":
+            self.enum = True
+        
         # store the kernel internally to link_stats
         self.kernel = []
 
@@ -35,6 +41,103 @@ class link_stats:
                 self.prior_type[count] = model.prior[n][1]
                 self.p0s[count] = model.prior[n][2]
                 count += 1
+
+        # get the enumerated prior
+        if self.enum == True:
+            pfile = self.enum_file
+            prior_raw_data = numpy.genfromtxt( pfile, dtype=numpy.int32, delimiter=" ")
+
+            #print self.prior_data
+            #for i in range(self.prior_size):
+            #    print self.prior_data[i,:]
+
+            # extract the models within the prior that we need
+            new_prior = []
+            prior_count = 0
+            for i in range(numpy.shape(prior_raw_data)[0]):
+
+                # if this is a free edges model keep all of the prior
+                if self.nfixed == -1:
+                    prior_count = prior_count + 1
+                    new_prior.append( prior_raw_data[i,:])
+
+                # maximum number of edges model
+                if self.nfixed < -1 and prior_raw_data[i,1] <= abs(self.nfixed) :
+                    prior_count = prior_count + 1
+                    new_prior.append( prior_raw_data[i,:])
+
+                # fixed number model
+                if self.nfixed > 0 and prior_raw_data[i,1] == self.nfixed :
+                    prior_count = prior_count + 1
+                    new_prior.append( prior_raw_data[i,:])
+
+            self.prior_size = prior_count
+            self.prior_data = new_prior
+            
+        if self.adaptive > 0:
+            print "FREE EDGE PRIORS AND ADAPTIVE EDGE KERNELS"
+            print "\tregularisation   :", self.regf
+
+        if self.nfixed != -1:
+            print "CONSTRAINED EDGE PRIORS AND INDEPENDENT PRIOR EDGE KERNELS"
+            print "\tnfixed           :", self.nfixed
+            print "\tlinkp            :", self.linkp
+
+            # ENUMERATED PRIOR CURRENTLY ONLY WORKS WITH CONSTRAINED EDGES
+            if self.enum == True:
+                print "\tENUMERATED EDGE PRIOR"
+                print "\t\tenumeration file :", self.enum_file
+                print "\t\tprior size       :", self.prior_size
+                print "\t\tprior size       :", len(self.prior_data)
+
+        
+    ########################################################3
+    # THIS IS WHERE WE CONTROL ALL THE OPTIONS
+    def sample_links_from_prior(self, reti):
+        if self.nfixed == -1:
+            return link_stats.sample_links_from_prior_free(self, reti)
+        else:
+            if self.enum == 0: return link_stats.sample_links_from_prior_fixed(self, reti)
+            else : return link_stats.sample_links_from_prior_fixed_em(self, reti)
+
+    def getLinksPriorPdf(self, params ):
+         if self.nfixed == -1:
+             return link_stats.getLinksPriorPdf_free(self, params)
+         else:
+             if self.enum == 0: return link_stats.getLinksPriorPdf_fixed(self, params)
+             else : return link_stats.getLinksPriorPdf_fixed_em(self, params)
+
+    def perturbLinks(self, params):
+        if self.adaptive == 0:
+            if self.nfixed == -1:
+                return link_stats.perturbLinks_1(self, params)
+            else:
+                if self.enum == 0: return link_stats.perturbLinks_prior(self, params)
+                else: return link_stats.perturbLinks_prior_em(self, params)
+        else:
+            if self.nfixed == -1:
+                if self.adaptive == 1: return link_stats.perturbLinks_1_adaptive(self, params)
+                #if self.adaptive == 2: link_stats.perturbLinks_1_logistic(self, params)
+            else:
+                print "adaptive and fixed links not implemented"
+                exit()
+
+    def getLinksKernelPdf(self, params, params0):
+        if self.adaptive == 0:
+            if self.nfixed == -1:
+                return link_stats.getLinksKernelPdf_1(self, params, params0) ## looks at individual links
+            else:
+                return link_stats.getLinksKernelPdf_2(self, params, params0) ## looks at all the links together
+        else:
+            if self.nfixed == -1:
+                if self.adaptive == 1: return link_stats.getLinksKernelPdf_1_adaptive(self, params, params0)
+                #if self.adaptive == 2: return link_stats.getLinksKernelPdf_1_logistic(self, params, params0)
+            else:
+                print "adaptive and fixed links not implemented"
+                exit()
+            
+       
+        
 
     # get kernels for the links
     def getKernels(self, population, weights):
@@ -147,46 +250,6 @@ class link_stats:
 
         #print kernel[2]
 
-    def sample_links_from_prior(self, reti):
-        if self.nfixed == -1:
-            return link_stats.sample_links_from_prior_free(self, reti)
-        else:
-            return link_stats.sample_links_from_prior_fixed(self, reti)
-
-    def getLinksPriorPdf(self, params ):
-         if self.nfixed == -1:
-             return link_stats.getLinksPriorPdf_free(self, params)
-         else:
-             return link_stats.getLinksPriorPdf_fixed(self, params)
-
-    def perturbLinks(self, params):
-        if self.adaptive == 0:
-            if self.nfixed == -1:
-                return link_stats.perturbLinks_1(self, params)
-            else:
-                return link_stats.perturbLinks_prior(self, params)
-        else:
-            if self.nfixed == -1:
-                if self.adaptive == 1: return link_stats.perturbLinks_1_adaptive(self, params)
-                if self.adaptive == 2: link_stats.perturbLinks_1_logistic(self, params)
-            else:
-                print "adaptive and fixed links not implemented"
-                exit()
-
-    def getLinksKernelPdf(self, params, params0):
-        if self.adaptive == 0:
-            if self.nfixed == -1:
-                return link_stats.getLinksKernelPdf_1(self, params, params0) ## looks at individual links
-            else:
-                return link_stats.getLinksKernelPdf_2(self, params, params0) ## looks at all the links together
-        else:
-            if self.nfixed == -1:
-                if self.adaptive == 1: return link_stats.getLinksKernelPdf_1_adaptive(self, params, params0)
-                if self.adaptive == 2: return link_stats.getLinksKernelPdf_1_logistic(self, params, params0)
-            else:
-                print "adaptive and fixed links not implemented"
-                exit()
-            
 
     ######################################################
     # FIXED EDGES
@@ -253,6 +316,34 @@ class link_stats:
                 prior_prob = 0.0
 
         return prior_prob
+
+    ######################################################
+    # FIXED EDGES WITH ENUMERATED PRIOR
+    def sample_links_from_prior_fixed_em(self, reti):
+   
+        # sample a number from 1 to prior_size
+        u = numpy.random.randint(0,self.prior_size,1)
+
+        # the links start at third column
+        links = [ self.prior_data[u][i+2] for i in range(self.nlinks)]
+        
+        # print 'sample from prior:', links
+        # loop over and fill links from the precomputed prior
+
+        for i in range(self.nlinks):
+            reti[ self.locations[i] ] = links[i]
+
+        return reti
+
+    
+    def getLinksPriorPdf_fixed_em(self, params):
+
+        # In this special case we have constructed prior
+        # such that all hard work has been done
+        prior_prob = 1/float(self.prior_size)
+
+        return prior_prob
+    
    
     ######################################################
     # FREE EDGES
@@ -320,7 +411,16 @@ class link_stats:
         # change the links with probability linkp
         u = rnd.uniform(0,1)
         if u < self.linkp:
-               params = link_stats.sample_links_from_prior_fixed(self, params)
+            params = link_stats.sample_links_from_prior_fixed(self, params)
+        
+        return params
+
+    def perturbLinks_prior_em(self,params):
+        
+        # change the links with probability linkp
+        u = rnd.uniform(0,1)
+        if u < self.linkp:
+            params = link_stats.sample_links_from_prior_fixed_em(self, params)
         
         return params
 

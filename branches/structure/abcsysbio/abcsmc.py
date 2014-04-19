@@ -107,6 +107,7 @@ class abcsmc:
                  nfixed,
                  link_adapt,
                  link_regf,
+                 link_enum_file,
                  distancefn = euclidian.euclidianDistance,
                  kernel_type = 1,
                  kernelfn = kernels.getKernel,
@@ -178,7 +179,7 @@ class abcsmc:
         self.dead_models = []
         self.sample_from_prior = True
 
-        self.link_info = link_stats.link_stats(self.models[0], linkp, nfixed, link_adapt, link_regf) 
+        self.link_info = link_stats.link_stats(self.models[0], linkp, nfixed, link_adapt, link_regf, link_enum_file) 
 
 
         # check for special cases
