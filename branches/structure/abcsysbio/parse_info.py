@@ -13,10 +13,7 @@ re_prior_discrete=re.compile('discrete')
 
 # implemented kernels
 re_kernel_uniform=re.compile('uniform')
-re_kernel_normal=re.compile('normal')
-re_kernel_mvnormal=re.compile('multiVariateNormal')
-re_kernel_mvnormalKN=re.compile('multiVariateNormalKNeigh')
-re_kernel_mvnormalOCM=re.compile('multiVariateNormalOCM')
+re_kernel_uniform_non_adapt=re.compile('non_adapt')
 
 # True/False
 re_true=re.compile('True')
@@ -173,7 +170,7 @@ class algorithm_info:
         self.logp = []
 
         self.modelkernel = 0.7
-        self.kernel = 1
+        self.kernel = -1
         self.modelprior = []
         self.rtol = 1e-5
         self.atol = 1e-5
@@ -372,16 +369,10 @@ class algorithm_info:
             data = str(xmldoc.getElementsByTagName('kernel')[0].firstChild.data).strip()
             if re_kernel_uniform.match( data ):
                 self.kernel = 1
-            elif re_kernel_normal.match( data ):
+            elif re_kernel_uniform_non_adapt.match( data ):
                 self.kernel = 2
-            elif re_kernel_mvnormal.match( data ):
-                self.kernel = 3
-            elif re_kernel_mvnormalKN.match( data ):
-                self.kernel = 4
-            elif re_kernel_mvnormalOCM.match( data ):
-                self.kernel = 5
             else:
-                print "\n#################\n<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or multivariateNormalOCM  so I am going to ignore your argument"
+                print "\n#################\n<kernel> must be one of uniform, uniform_non_adapt  so I am going to ignore your argument"
         except:
             null = 0
 
