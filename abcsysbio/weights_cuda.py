@@ -14,7 +14,7 @@ class weights_cuda:
 
     # this only works when there is one model. prior and kernels are for the single model
 
-    def __init__(self, nparticles, nparam, prior, kernel, link_info, parameters_curr, parameters_prev, weights_prev, weights_out):
+    def __init__(self, nparticles, nparam, prior,  kernel_type, kernel, link_info, parameters_curr, parameters_prev, weights_prev, weights_out):
 
         if nparticles % 64 != 0:
             print "number of particles must be divisible by 64"
@@ -46,8 +46,10 @@ class weights_cuda:
         predef += "\n#define NPARTICLES "+repr(nparticles)
         predef += "\n#define NPARAM "+repr(nparam)
         predef += "\n#define NUNIF "+repr( len(uniform_params) )
-        predef += "\n__device__ const int uniform_pars["+repr(len(uniform_params))+"] = {"+fp(uniform_params)+"};"
-        predef += "\n__device__ const double unif_kern["+repr(len(kernel_vals))+"] = {"+fp(kernel_vals)+"};"
+
+        if kernel_type == 1:
+            predef += "\n__device__ const int uniform_pars["+repr(len(uniform_params))+"] = {"+fp(uniform_params)+"};"
+            predef += "\n__device__ const double unif_kern["+repr(len(kernel_vals))+"] = {"+fp(kernel_vals)+"};"
 
         if link_info.nlinks > 0:
             predef += "\n#define LINKP "+repr(link_info.linkp)
@@ -78,7 +80,7 @@ class weights_cuda:
         
         // this function take pointers to the first elements of the parameter arrays
         // j is previous particle, i is current particle
-        // this function is for uniform kernels only
+        // this function is for adaptive uniform kernels only
         __device__ double parameter_kernel_pdf(double* par_j, double* par_i)
         {
             double p = 1;
@@ -90,12 +92,26 @@ class weights_cuda:
 
         """
 
+        parameter_kernel_pdf_code_2="""
+        
+        // this function take pointers to the first elements of the parameter arrays
+        // j is previous particle, i is current particle
+        // this function is for uniform, non adaptive kernels only
+        __device__ double parameter_kernel_pdf(double* par_j, double* par_i)
+        {
+            // When the kernel is the prior weights are all equal
+            double p = 1;
+            return p;
+        }
+
+        """
+
         link_kernel_pdf_code_1="""
         
         // this functions take pointers to the first elements of the parameter arrays
         __device__ double link_kernel_pdf(double* par_j, double* par_i)
         {
-            // this function is for a free edge model. We just at the change of each link
+            // this function is for the dependent kernel
             double prob = 1;
             double s = 0;
 
@@ -114,7 +130,7 @@ class weights_cuda:
         // this functions take pointers to the first elements of the parameter arrays, order: previous, current
         __device__ double link_kernel_pdf(double* par_j, double* par_i)
         {
-            // this function is for a free edge model with independent kernel
+            // this function is for independent (adaptive) kernel
             double prob = 1;
             double s = 0;
             int l = 0;
@@ -133,7 +149,7 @@ class weights_cuda:
         // this functions take pointers to the first elements of the parameter arrays
         __device__ double link_kernel_pdf(double* par_j, double* par_i)
         {
-            // this function is for a constrained edge model. We just look to see if there is any difference in the edges
+            // this function is for an independent kernel sampling from the prior
             double s = 0;
             for(int k=0; k<NLINKS; k++){
                 s += fabs( par_j[ link_locations[k] ] - par_i[ link_locations[k] ] );
@@ -178,21 +194,35 @@ class weights_cuda:
 
         # Build the code
         
-        if link_info.nfixed == -1:                                         ## looks at individual links
-            if link_info.adaptive == 0:
-                print "weights_cuda : running free link model"
-                link_kernel_pdf_code = link_kernel_pdf_code_1 
-            if link_info.adaptive == 1:
-                print "weights_cuda : running free link model (adaptive)"
-                link_kernel_pdf_code = link_kernel_pdf_code_1_adapt 
-        else:                                                              ## looks at all the links together
-            print "weights_cuda : running constrained link model"
-            link_kernel_pdf_code = link_kernel_pdf_code_2  
+        #if link_info.nfixed == -1:                                         ## looks at individual links
+        #    if link_info.adaptive == 0:
+        #        print "weights_cuda : running free link model"
+        #        link_kernel_pdf_code = link_kernel_pdf_code_1 
+        #    if link_info.adaptive == 1:
+        #        print "weights_cuda : running free link model (adaptive)"
+        #        link_kernel_pdf_code = link_kernel_pdf_code_1_adapt 
+        #else:                                                              ## looks at all the links together
+        #    print "weights_cuda : running constrained link model"
+        #    link_kernel_pdf_code = link_kernel_pdf_code_2  
+
+        if link_info.adaptive == 0:
+            print "weights_cuda : running dependent edge kernels",
+            link_kernel_pdf_code = link_kernel_pdf_code_1 
+        if link_info.adaptive == 1:
+            print "weights_cuda : running adaptive edge kernels",
+            link_kernel_pdf_code = link_kernel_pdf_code_1_adapt 
+
+        if kernel_type == 1:
+            param_code = parameter_kernel_pdf_code
+            print " with adaptive parameter kernels" 
+        else:
+            print " with non adaptive parameter kernels" 
+            param_code = parameter_kernel_pdf_code_2
 
         if link_info.nlinks > 0:
-            all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code + weight_calculation_code
+            all_code = predef + parameter_unif_pdf_code + param_code + link_kernel_pdf_code + weight_calculation_code
         else:
-            all_code = predef + parameter_unif_pdf_code + parameter_kernel_pdf_code + link_kernel_pdf_code_null + weight_calculation_code
+            all_code = predef + parameter_unif_pdf_code + param__code + link_kernel_pdf_code_null + weight_calculation_code
         
 
         if True:

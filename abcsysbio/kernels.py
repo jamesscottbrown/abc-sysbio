@@ -1,10 +1,8 @@
 # module defining all things kernel
 
 # kernel_type = 1 : component-wise uniform kernels
-# kernel_type = 2 : component-wise normal kernels
-# kernel_type = 3 : multi-variate normal kernels
-# kernel_type = 4 : multi-variate normal kernels using the nearest neighbours of the particles
-# kernel_type = 4 : multi-variate normal kernels using an "optimal covariance matrix" 
+# kernel_type = 2 : component-wise uniform kernels with no adaptation
+
 
 import numpy
 from numpy import random as rnd
@@ -23,7 +21,7 @@ def getKernel(kernel_type, kernel, population, weights, priors, link_info):
     pop_size = population.shape[0]
     npar = population.shape[1]
 
-    # kernel type is always 1 - component-wise uniform kernels
+    # kernel type is always 1 or 2 - component-wise uniform kernels
     tmp=list()
     for n in kernel[0]:
         
@@ -101,7 +99,6 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
                 params[n] = params[n] + delta
                 ind+=1
 
-
         # perturb all the links jointly together
         params = link_info.perturbLinks(params)
 
@@ -109,7 +106,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
         return 1.0
 
     else:
-        if kernel_type==1:
+        if kernel_type==1 or kernel_type==2:
             ind=0
             # n refers to the index of the parameter (integer between 0 and np-1)
             # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
@@ -119,7 +116,8 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
                     # skip but increment ind
                     ind+=1
                 else:
-                    params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
+                    if kernel_type == 1: params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0],high=kernel[2][ind][1])
+                    if kernel_type == 2: params[n] = rnd.uniform(low=priors[n][1],high=priors[n][2])
                     ind+=1
 
             # perturb all the links jointly together
@@ -149,7 +147,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases, link_inf
 # Here params and params0 refer to one particle each.
 # Auxilliary is a vector size of nparameters
 def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type, link_info):
-    if kernel_type==1:
+    if kernel_type==1 or kernel_type==2:
         prob=1
 	# n refers to the index of the parameter (integer between 0 and np-1)
 	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
@@ -159,7 +157,9 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
                 # skip but increment ind
                 ind += 1
             else:
-                kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
+                if kernel_type == 1: kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
+                if kernel_type == 2: kern = statistics.getPdfUniform(priors[n][1], priors[n][2], params[n])
+                
                 ##print "n, kern:,", n, kern, params[n], params0[n], kernel[2][ind][0], kernel[2][ind][1]
                 prob=prob*kern
                 ind += 1

@@ -717,7 +717,7 @@ class abcsmc:
 
 
     def computeParticleWeightsCUDA(self):
-        weights_cuda.weights_cuda(self.nparticles, self.models[0].kparameters, self.models[0].prior, self.kernels[0], self.link_info, self.parameters_curr, self.parameters_prev, self.weights_prev, self.weights_curr )
+        weights_cuda.weights_cuda(self.nparticles, self.models[0].kparameters, self.models[0].prior, self.kernel_type, self.kernels[0], self.link_info, self.parameters_curr, self.parameters_prev, self.weights_prev, self.weights_curr )
         
     def normalizeWeights(self):
         n = sum( self.weights_curr )
