@@ -286,7 +286,8 @@ class link_stats:
     ######################################################
     # Here every link is perturbed independently
     def perturbLinks_1(self, params):
-       
+        #print "perturbing links"
+        
         links = [0 for i in range(self.nlinks)]
         newlinks = [0 for i in range(self.nlinks)]
 
@@ -317,11 +318,13 @@ class link_stats:
             if self.enum == True:
                 # code newlinks and check the prior dictionary
                 code = "".join([str(k+1) for k in newlinks])
-                # print newlinks, code
+                #print newlinks, code
                 if code in self.prior_dict:
                     prior_prob = 1
                 else:
                     prior_prob = 0
+
+                #print prior_prob
             else:
                 # everything exists under the prior
                 prior_prob = 1
@@ -370,14 +373,18 @@ class link_stats:
 
                 newlinks[i] = ss[ numpy.where( numpy.random.multinomial(1, kdist ) == 1 )[0] ]
 
+            #print links, "->", newlinks 
+
             if self.enum == True:
                 # code newlinks and check the prior dictionary
                 code = "".join([str(k+1) for k in newlinks])
-                # print newlinks, code
+                #print newlinks, code
                 if code in self.prior_dict:
                     prior_prob = 1
                 else:
                     prior_prob = 0
+
+                #print prior_prob
             else:
                 # everything exists under the prior
                 prior_prob = 1
