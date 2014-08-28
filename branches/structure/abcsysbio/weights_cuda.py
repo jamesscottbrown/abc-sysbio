@@ -56,15 +56,15 @@ class weights_cuda:
             predef += "\n#define NLINKS "+repr( len(links_params) )
             predef += "\n__device__ const int link_locations["+repr(len(links_params))+"] = {"+fp(links_params)+"};"
 
-        if link_info.adaptive == 1:
-            predef += "\n__device__ const double kernel_prob["+repr(3*len(links_params))+"] = {"
+            if link_info.adaptive == 1:
+                predef += "\n__device__ const double kernel_prob["+repr(3*len(links_params))+"] = {"
 
-            # fill in order p0_0 p1_0 p2_0, p0_1 p1_1 p2_1
-            for i in range(link_info.nlinks):
-                kdist = link_info.kernel[i]
-                predef += fp(kdist)
-                if i != link_info.nlinks-1: predef += ","
-            predef += "};"
+                # fill in order p0_0 p1_0 p2_0, p0_1 p1_1 p2_1
+                for i in range(link_info.nlinks):
+                    kdist = link_info.kernel[i]
+                    predef += fp(kdist)
+                    if i != link_info.nlinks-1: predef += ","
+                predef += "};"
             
         parameter_unif_pdf_code="""
 
@@ -222,7 +222,7 @@ class weights_cuda:
         if link_info.nlinks > 0:
             all_code = predef + parameter_unif_pdf_code + param_code + link_kernel_pdf_code + weight_calculation_code
         else:
-            all_code = predef + parameter_unif_pdf_code + param__code + link_kernel_pdf_code_null + weight_calculation_code
+            all_code = predef + parameter_unif_pdf_code + param_code + link_kernel_pdf_code_null + weight_calculation_code
         
 
         if True:
