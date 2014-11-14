@@ -228,13 +228,21 @@ class input_output:
                                 nrow, ncol = numpy.shape( arr )
                                 # print nrow, ncol
                                 for ic in range(ncol):
-                                    plt.plot(arr[:,ic])
+                                    plt.plot(arr[:,ic], label='sp '+repr(ic))
 
                                 #dists = [ round( results.distances[i][0][k],3) for k in range(len( results.distances[i][0])) ]
                                 #labs = [ repr(x) for x in dists ]
                                 #plt.text(10, 0.8*max(arr), string.join(labs, ", ") )
 
                                 plt.title("particle " +repr(i) )
+                                legend = plt.legend(loc='upper left', shadow=False)
+                                # Set the fontsize
+                                for label in legend.get_texts():
+                                    label.set_fontsize('small')
+
+                                for label in legend.get_lines():
+                                    label.set_linewidth(0.5)
+
                                 pp.savefig()
                                 plt.close()
 
