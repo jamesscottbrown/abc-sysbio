@@ -7,6 +7,9 @@ from getResults import plotTimeSeries2
 from getResults import getModelDistribution
 from getResults import plotData
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+
 class input_output:
     
     def __init__(self, folder, restart, diagnostic, plotDataSeries, havedata=True):
@@ -172,6 +175,40 @@ class input_output:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
                       #  plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
                         plotTimeSeries2(models[mod],pars,data,beta,filename,traj2,population,plotdata=self.havedata)
+
+                        filename2 =  filename + "_byp.pdf"
+                        pp = PdfPages( filename2 )
+
+                        # trajectories are stored as list [nparticle][nbeta][ species ][ times ] not numpy array
+
+                        # here we assume beta=1
+                        for i in range(len(results.trajectories)):
+                            # print "printing traj", i
+                            if( results.models[i] == mod):
+                            #if i < 500:
+                                arr = results.trajectories[i][0]
+                                nrow, ncol = numpy.shape( arr )
+                                # print nrow, ncol
+                                for ic in range(ncol):
+                                    plt.plot(arr[:,ic], label='sp '+repr(ic))
+
+                                plt.title("particle " +repr(i) )
+
+                                # Add legend
+                                legend = plt.legend(loc='upper left', shadow=False)
+                                # Set the fontsize
+                                for label in legend.get_texts():
+                                    label.set_fontsize('small')
+
+                                for label in legend.get_lines():
+                                    label.set_linewidth(0.5)
+
+                                pp.savefig()
+                                plt.close()
+
+                        pp.close()
+
+
 
 
     ################ writes trajectories and parameters from simulations    
