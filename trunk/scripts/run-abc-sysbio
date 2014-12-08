@@ -104,8 +104,9 @@ def main():
             elif option[0:9] == 'cudacode=' : app_file = option[9:]
 	    elif option == 'timing' : timing = True 
 	    elif option == 'custk' : custom_kernel = True
-	    elif option == 'custd' : custom_distance = True
-            elif option == 'cuda' : use_cuda = True
+	    elif option == 'custd' : custom_distance = "customABC"
+	    elif option[0:6] == 'custd=' : custom_distance = option[6:]            
+	    elif option == 'cuda' : use_cuda = True
 	    #elif option[0:7] == 'cudamg=' : 
 	    #	use_cudamg = True
 	    #	ngpu = int( option[7:] )            
@@ -315,14 +316,15 @@ def main():
     kernelpdffn = kernels.getPdfParameterKernel
     perturbfn = kernels.perturbParticle
 
-    if custom_distance == True or custom_kernel == True:
+    if custom_distance != False:
+        customABC = __import__(custom_distance)
+        distancefn = customABC.distance
+    
+    if custom_kernel == True:
         import customABC
-        if custom_distance == True:
-            distancefn = customABC.distance
-        if custom_kernel == True:
-            kernelfn = customABC.getKernel
-            kernelpdffn = customABC.getPdfParameterKernel
-            perturbfn = customABC.perturbParticle
+        kernelfn = customABC.getKernel
+        kernelpdffn = customABC.getPdfParameterKernel
+        perturbfn = customABC.perturbParticle
 
     # instantiate the abcsmc algorithm class
     algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta = info_new.beta, nbatch=nbatch,
