@@ -265,27 +265,32 @@ class abcsmc:
         ntar = int( alpha * self.nparticles )
         #print distance_values
 
+        # this_epsilon is the current value
+        # new epsilon is the calculated epsilon
+        # ret_epsilon is the epsilon that we will return
+        # target_epsilon is the target
+        # finished indicates if this is the last population to run
+
         new_epsilon = [ round(distance_values[ntar,ne],4) for ne in range(nepsilon) ]
         ret_epsilon = [0 for i in range(nepsilon)]
 
-        # Set the next epsilon
+        # Set the next epsilon as the new calculated epsilon
         for ne in range(nepsilon):
-            if new_epsilon[ne] < this_epsilon[ne]:
-                ret_epsilon[ne] = new_epsilon[ne]
-            else :
-                # This is an attempt to reduce epsilon even if the new and previous epsilon are equal
-                ret_epsilon[ne] = 0.95*new_epsilon[ne]
+            ret_epsilon[ne] = new_epsilon[ne]
 
-        # print "new/ret epsilon:", new_epsilon, ret_epsilon
-
-        # See if we are finished
-        finished = True
+        # See if we are finished by reaching the target epsilon
+        finished = 1
         for ne in range(nepsilon):
-            if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne]-target_epsilon[ne]) < 1e-6:
+            # for any statistics that are at the level of, or below the target, set the returned value to be equal to the target
+            if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne]-target_epsilon[ne]) < 1e-3:
                 ret_epsilon[ne] = target_epsilon[ne]
+                finished = finished*1
             else:
-                finished = False 
+                finished = finished*0
 
+        # At this point we have a new epsilon to return and we should know if we are finished
+        print "new/ret epsilon:", new_epsilon, ret_epsilon, finished
+       
         return finished, ret_epsilon 
 
     def run_simulations(self, io):
@@ -754,7 +759,7 @@ def evaluateDistance(distance,epsilon):
     accepted = False
     for i in range(len(epsilon)):
         #print "d:", distance[i], epsilon[i][t]
-        if(distance[i]<epsilon[i] and distance[i]>=0 ):
+        if(distance[i]<=epsilon[i] and distance[i]>=0 ):
             accepted = True
         else: 
             accepted = False
