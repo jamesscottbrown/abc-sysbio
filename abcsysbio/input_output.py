@@ -182,7 +182,7 @@ class input_output:
                         # trajectories are stored as list [nparticle][nbeta][ species ][ times ] not numpy array
 
                         # here we assume beta=1
-                        for i in range(len(results.trajectories)):
+                        for i in range(0,min(len(results.trajectories),1000) ):
                             # print "printing traj", i
                             if( results.models[i] == mod):
                             #if i < 500:
@@ -190,9 +190,15 @@ class input_output:
                                 nrow, ncol = numpy.shape( arr )
                                 # print nrow, ncol
                                 for ic in range(ncol):
-                                    plt.plot(arr[:,ic], label='sp '+repr(ic))
+                                    plt.plot(data.timepoints, arr[:,ic], label='sp '+repr(ic))
 
                                 plt.title("particle " +repr(i) )
+
+                                # Add data points
+                                plt.gca().set_color_cycle(None) # reset colour cycle
+                                if self.havedata == True:
+                                    plt.plot(data.timepoints,data.values,'o')
+
 
                                 # Add legend
                                 legend = plt.legend(loc='upper left', shadow=False)
