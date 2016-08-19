@@ -11,9 +11,9 @@ def compile(name, integration):
 	ABC_GSL_LIB=os.getenv("GSL_LIB")
 	ABC_GSL_INC=os.getenv("GSL_INC")
 
-	if ABC_GSL_LIB == None:
+	if ABC_GSL_LIB is None:
 		ABC_GSL_LIB="/usr/local/lib"
-	if ABC_GSL_INC == None:
+	if ABC_GSL_INC is None:
 		ABC_GSL_INC="/usr/local/include"
 
 	ABC_NM_LIB=os.path.join(os.path.split(os.path.realpath(__file__))[0],'src/newmat11/')

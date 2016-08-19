@@ -198,7 +198,7 @@ def main():
             sys.exit()
     
     # set the random seeds
-    if seed != None:
+    if seed is not None:
 	print "#### Seeding random number generator : ", seed
         numpy.random.seed(seed)
 

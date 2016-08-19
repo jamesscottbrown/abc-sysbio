@@ -17,12 +17,12 @@ def rep(str,find,replace):
 
     ex = find+"[^0-9]"
     ss = str
-    while re.search(ex,ss) != None:
+    while re.search(ex, ss) is not None:
         res = re.search(ex,ss)
         ss = ss[0:res.start()] + replace + " " + ss[res.end()-1:]
 
     ex = find+"$"
-    if re.search(ex,ss) != None:
+    if re.search(ex, ss) is not None:
         res = re.search(ex,ss)
         ss = ss[0:res.start()] + replace + " " + ss[res.end():]
  

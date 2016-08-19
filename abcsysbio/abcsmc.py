@@ -730,7 +730,7 @@ def sample_particle(nparticle, selected_model, margins_prev, model_prev, weights
 ########### how to fit variable to the given data (if fit is None, data for all variables are available in order of the model)
 def howToFitData(fitting_instruction,samplePoints):
     
-    if fitting_instruction!=None:
+    if fitting_instruction is not None:
         #print fitting_instruction, fitting_instruction[2]
         points=numpy.zeros([len(samplePoints), len(fitting_instruction)])
         #print "points", points.shape

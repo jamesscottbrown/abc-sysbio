@@ -64,7 +64,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
         return False,"\nPlease provide a custom distance function when you specify more than 1 epsilon schedule!\n"
 
     ### check model specific properties (comparing with SBML model)
-    if not source==None:
+    if not source is None:
         import libsbml
 
         if not len(source)==len(ModelName): 
@@ -214,7 +214,7 @@ def checkInputSimulation(info_new , fname):
         return False, "\nPlease provide the same number of model names and and integration types!\n"
 
     ### check model specific properties (comparing with SBML model)
-    if not source==None:
+    if not source is None:
         import libsbml
 
         if not len(source)==len(name): 

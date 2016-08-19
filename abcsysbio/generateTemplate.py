@@ -55,7 +55,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
     vars = []
     nvar = 0
     first = True
-    if dataname != None:
+    if dataname is not None:
         have_data = True
         df = open(dataname,'r')
         for line in df:

@@ -241,7 +241,7 @@ class algorithm_info:
 
                     for i in range(self.ntimes):
                         # Search for NA
-                        if re.match("\s*NA\s*", tmp[i]) != None:
+                        if re.match("\s*NA\s*", tmp[i]) is not None:
                             data_mask[i,nvar] = 1
                             tmp[i] = 0
 
