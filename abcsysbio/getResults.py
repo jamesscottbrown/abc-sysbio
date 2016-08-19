@@ -301,9 +301,9 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
 
                     maxX = max(histogramX)
                     minX = min(histogramX)
-                    xrange = maxX - minX
+                    range_x = maxX - minX
 
-                    matplotlib.pyplot.bar(histogramX, histogramY, color='#1E90FF', width=xrange / bins, align='center')
+                    matplotlib.pyplot.bar(histogramX, histogramY, color='#1E90FF', width=range_x / bins, align='center')
                     xlabel('parameter ' + repr(i + 1), size='xx-small')
 
                     xmin, xmax = xlim()
@@ -345,9 +345,9 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
 
             maxX = max(histogramX)
             minX = min(histogramX)
-            xrange = maxX - minX
+            range_x = maxX - minX
 
-            matplotlib.pyplot.bar(histogramX, histogramY, color='#1E90FF', width=xrange / bins, align='center')
+            matplotlib.pyplot.bar(histogramX, histogramY, color='#1E90FF', width=range_x / bins, align='center')
             xlabel('parameter ' + repr(i + 1), size='xx-small')
 
             xmin, xmax = xlim()
@@ -464,8 +464,8 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
 
                             maxX = max(histogramX)
                             minX = min(histogramX)
-                            xrange = maxX - minX
-                            matplotlib.pyplot.bar(histogramX, histogramY, width=xrange / binB, color=myColors[j],
+                            range_x = maxX - minX
+                            matplotlib.pyplot.bar(histogramX, histogramY, width=range_x / binB, color=myColors[j],
                                                   align='center')
                             xlabel('parameter ' + repr(i2), size='xx-small')
 
@@ -551,8 +551,8 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
 
                                 maxX = max(histogramX)
                                 minX = min(histogramX)
-                                xrange = maxX - minX
-                                matplotlib.pyplot.bar(histogramX, histogramY, color=myColors[j], width=xrange / binB,
+                                range_x = maxX - minX
+                                matplotlib.pyplot.bar(histogramX, histogramY, color=myColors[j], width=range_x / binB,
                                                       align='center')
                                 xlabel('parameter ' + repr(i2), size='xx-small')
 

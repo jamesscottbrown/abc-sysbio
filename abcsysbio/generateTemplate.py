@@ -46,7 +46,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
     have_data = False
     times = []
-    vars = []
+    variables = []
     nvar = 0
     first = True
     if dataname is not None:
@@ -58,14 +58,14 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
             if first:
                 for j in range(1, len(vals)):
-                    vars.append([])
+                    variables.append([])
                 first = False
                 nvar = len(vals) - 1
 
             times.append(vals[0])
 
             for j in range(1, len(vals)):
-                vars[j - 1].append(vals[j])
+                variables[j - 1].append(vals[j])
 
     # print times
     # print vars
@@ -147,7 +147,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
     else:
         for k in range(nvar):
             out_file.write("<var" + repr(k + 1) + "> ")
-            for i in vars[k]:
+            for i in variables[k]:
                 out_file.write(" " + repr(i))
             out_file.write(" </var" + repr(k + 1) + ">\n")
 

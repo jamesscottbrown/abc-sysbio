@@ -13,19 +13,18 @@ from Writer import Writer
 ## with
 ## string = rep(string, speciesId[q],'y['+repr(q)+']')
 
-def rep(str, find, replace):
+def rep(string, find, replace):
     ex = find + "[^0-9]"
-    ss = str
-    while re.search(ex, ss) is not None:
-        res = re.search(ex, ss)
-        ss = ss[0:res.start()] + replace + " " + ss[res.end() - 1:]
+    while re.search(ex, string) is not None:
+        res = re.search(ex, string)
+        string = string[0:res.start()] + replace + " " + string[res.end() - 1:]
 
     ex = find + "$"
-    if re.search(ex, ss) is not None:
-        res = re.search(ex, ss)
-        ss = ss[0:res.start()] + replace + " " + ss[res.end():]
+    if re.search(ex, string) is not None:
+        res = re.search(ex, string)
+        string = string[0:res.start()] + replace + " " + string[res.end():]
 
-    return ss
+    return string
 
 
 class SdeCUDAWriter(Writer):
@@ -269,7 +268,7 @@ class SdeCUDAWriter(Writer):
         for k in range(0, self.parsedModel.numReactions):
             countEntries = 0
             for i in range(0, self.parsedModel.numSpecies):
-                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: 
+                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0:
                     countEntries += 1
 
             # define specific randomVariable
@@ -574,7 +573,7 @@ class SdeCUDAWriter(Writer):
         for k in range(0, self.parsedModel.numReactions):
             countEntries = 0
             for i in range(0, numSpecies):
-                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: 
+                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0:
                     countEntries += 1
 
             # define specific randomVariable

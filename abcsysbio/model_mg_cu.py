@@ -69,9 +69,9 @@ class cuda_model:
 
         result_dict = {}
         for gpu_pro in gpu_threads:
-            id, results = output_cpu.get(gpu_pro)
+            thread_id, results = output_cpu.get(gpu_pro)
             ## print id, np.shape(results)
-            result_dict[id] = results
+            result_dict[thread_id] = results
 
         ## print result_dict.keys()
         result = numpy.vstack(result_dict.values())
