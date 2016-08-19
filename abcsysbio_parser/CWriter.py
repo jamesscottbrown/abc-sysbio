@@ -117,10 +117,10 @@ class CWriter(Writer):
             self.cppOutputFile.write("\n\tNSPECIES = " + str(self.parsedModel.numSpecies) + ";")                                    
             self.cppOutputFile.write("\n\tNREACTIONS = " + str(self.parsedModel.numReactions) + ";")                                  
             self.cppOutputFile.write("\n\tpstoichiometricMatrix = new Matrix(NSPECIES,NREACTIONS);")
-            self.cppOutputFile.write("\n\t(*pstoichiometricMatrix) = 0.0;");        
-            self.cppOutputFile.write("\n\tgetStoichiometricMatrix();");
-            self.cppOutputFile.write("\n}");
-    
+            self.cppOutputFile.write("\n\t(*pstoichiometricMatrix) = 0.0;")
+            self.cppOutputFile.write("\n\tgetStoichiometricMatrix();")
+            self.cppOutputFile.write("\n}")
+
     def  writeUserDefinedFunctions(self):
     
             #The user-defined functions used in the model must be written in the file
@@ -154,11 +154,11 @@ class CWriter(Writer):
             self.cppOutputFile.write("\n\n\tColumnVector ChildModel::getHazards(const double concentrations[],const double parameters[]) {")
             self.cppOutputFile.write("\n\t\tColumnVector hazards(NREACTIONS);\n")
             for i in range(0, self.parsedModel.numReactions): 
-                string = self.parsedModel.kineticLaw[i];
+                string = self.parsedModel.kineticLaw[i]
                 string = re.sub('_', '', string)
-                string = p1.sub(r"concentrations[\g<1>-1]", string);
-                string = p2.sub(r"parameters[\g<1>]", string);
-                string = re.sub("compartment1", "parameters[0]", string);
+                string = p1.sub(r"concentrations[\g<1>-1]", string)
+                string = p2.sub(r"parameters[\g<1>]", string)
+                string = re.sub("compartment1", "parameters[0]", string)
                 self.cppOutputFile.write("\n\t\thazards(" + repr(i) + "+1) = " + string)
                 self.cppOutputFile.write(";\n")
             self.cppOutputFile.write("\t\treturn hazards;\n")
@@ -191,18 +191,18 @@ class CWriter(Writer):
         
                     string = self.parsedModel.eventVariable[i][j]
                     string = re.sub('_', '', string)
-                    string = p1.sub(r"concentrations[\g<1>-1]", string);
-                    string = p2.sub(r"parameters[\g<1>]", string);
-                    string = re.sub("compartment1", "parameters[0]", string);
+                    string = p1.sub(r"concentrations[\g<1>-1]", string)
+                    string = p2.sub(r"parameters[\g<1>]", string)
+                    string = re.sub("compartment1", "parameters[0]", string)
                     self.cppOutputFile.write(string)
                     
                     self.cppOutputFile.write("=")
                     
                     string = self.parsedModel.eventFormula[i][j]
                     string = re.sub('_', '', string)
-                    string = p1.sub(r"concentrations[\g<1>-1]", string); 
-                    string = p2.sub(r"parameters[\g<1>]", string);
-                    string = re.sub("compartment1", "parameters[0]", string);
+                    string = p1.sub(r"concentrations[\g<1>-1]", string)
+                    string = p2.sub(r"parameters[\g<1>]", string)
+                    string = re.sub("compartment1", "parameters[0]", string)
                     self.cppOutputFile.write(string)
         
                     self.cppOutputFile.write(";\n\t\t}\n")
@@ -216,20 +216,20 @@ class CWriter(Writer):
             for i in range(0, len(self.parsedModel.listOfRules)):
                 if self.parsedModel.listOfRules[i].isAssignment():
                     self.cppOutputFile.write("\t\t")
-                    string = self.parsedModel.ruleVariable[i];
+                    string = self.parsedModel.ruleVariable[i]
                     string = re.sub('_', '', string)
-                    string = p1.sub(r"concentrations[\g<1>-1]", string); 
-                    string = p2.sub(r"parameters[\g<1>]", string);
-                    string = re.sub("compartment1", "parameters[0]", string);
+                    string = p1.sub(r"concentrations[\g<1>-1]", string)
+                    string = p2.sub(r"parameters[\g<1>]", string)
+                    string = re.sub("compartment1", "parameters[0]", string)
                     self.cppOutputFile.write(string)
         
                     self.cppOutputFile.write("=")
         
                     string = mathMLConditionParser(self.parsedModel.ruleFormula[i])
                     string = re.sub('_', '', string)
-                    string = p1.sub(r"concentrations[\g<1>-1]", string); 
-                    string = p2.sub(r"parameters[\g<1>]", string);
-                    string = re.sub("compartment1", "parameters[0]", string);
+                    string = p1.sub(r"concentrations[\g<1>-1]", string)
+                    string = p2.sub(r"parameters[\g<1>]", string)
+                    string = re.sub("compartment1", "parameters[0]", string)
                     self.cppOutputFile.write(string)
         
                     self.cppOutputFile.write(";\n")

@@ -132,11 +132,11 @@ def generateTemplate(source, filename, sumname, dataname=None):
     if not have_data:
         out_file.write("<times> 0 1 2 3 4 5 6 7 8 9 10 </times>\n\n")
     else:
-        out_file.write("<times>");
+        out_file.write("<times>")
         for i in times:
             out_file.write(" "+repr(i) )
-        out_file.write(" </times>\n\n");
-    
+        out_file.write(" </times>\n\n")
+
     out_file.write("# variables: For ABC SMC, whitespace delimited lists of concentrations (ODE or SDE) or molecule numbers (Gillespie)\n")
     out_file.write("# Denote your data via tags <v1> </v1> or <var1> </var1> or <v2> </v2> etc. The tags are ignored and the data read in order\n")
     out_file.write("# For simulation these data are ignored\n")
@@ -146,10 +146,10 @@ def generateTemplate(source, filename, sumname, dataname=None):
         out_file.write(" <var1> </var1>\n")
     else:
         for k in range(nvar):
-            out_file.write("<var"+repr(k+1)+"> ");
+            out_file.write("<var"+repr(k+1)+"> ")
             for i in vars[k]:
                 out_file.write(" "+repr(i) )
-            out_file.write(" </var"+repr(k+1)+">\n");
+            out_file.write(" </var"+repr(k+1)+">\n")
 
     out_file.write("</variables>\n")
     out_file.write("</data>\n\n")
