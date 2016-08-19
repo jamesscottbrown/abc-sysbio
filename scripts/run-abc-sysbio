@@ -150,7 +150,7 @@ def main():
             printOptions()
             sys.exit()
 
-    if file_exist == False:
+    if not file_exist:
         print "\nNo input_file is given!\nUse: \n\t-i 'inputfile' \nor: \n\t--infile 'inputfile' \n"
         sys.exit()
 
@@ -164,14 +164,14 @@ def main():
 
     # parse the input file
     mode = 0
-    if simulate == True: mode = 1
-    if design == True: mode = 2
+    if simulate: mode = 1
+    if design: mode = 2
     info_new = parse_info.algorithm_info(input_file, mode) 
 
     info_new.print_info()
 
     # Check that we have libSBML if it is requested
-    if usesbml == True:
+    if usesbml:
         try: import libsbml
         except ImportError:
             print "ABORT: libSBML required for SBML parsing. Please install libSBML"
@@ -191,7 +191,7 @@ def main():
             break
 
     # Check that we have cuda-sim installed
-    if use_cuda == True:
+    if use_cuda:
         try: import cudasim
         except ImportError:
             print "ABORT: cudasim required for running on CUDA GPUs. Please install cuda-sim"
@@ -205,14 +205,14 @@ def main():
 
     # Check the information is correct for simulation or inference
     modelCorrect = False
-    if usesbml == True :
+    if usesbml:
         integrationType = []
         
         if use_cuda == True or use_cudamg == True:
             # CUDA
             for i in range(len(info_new.type)):
                 integrationType.append(info_new.type[i]+' CUDA')
-        elif use_c == True :
+        elif use_c:
             # C
             for i in range(len(info_new.type)):
                 if info_new.type[i] == "SDE":
@@ -233,18 +233,18 @@ def main():
             print "\n -SBML files correctly defined and in local directory?"
             sys.exit()    
 
-        if simulate==False :
+        if not simulate:
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
         else:
             modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
     else:
         info_new.source = None
-        if simulate==False :
+        if not simulate:
             modelCorrect, message = checkInputArguments.checkInputABC( info_new , fname, custom_distance, design )
         else:
             modelCorrect, message = checkInputArguments.checkInputSimulation( info_new , fname )
 
-    if modelCorrect==False:
+    if not modelCorrect:
         print message
         sys.exit()
 
@@ -299,16 +299,16 @@ def main():
     ########################### BATCHES
     #
     nbatch = 10
-    if use_cuda == True:
+    if use_cuda:
         nbatch = 25000
-    if use_cudamg == True:
+    if use_cudamg:
 	nbatch = 25000*ngpu
 
     ########################### ABC SMC
     #
     debug = 0
-    if full == True: debug = 1
-    if full_debug == True: debug = 2
+    if full: debug = 1
+    if full_debug: debug = 2
 
     # set the required distance and kernel functions
     distancefn = euclidian.euclidianDistance
@@ -316,11 +316,11 @@ def main():
     kernelpdffn = kernels.getPdfParameterKernel
     perturbfn = kernels.perturbParticle
 
-    if custom_distance != False:
+    if custom_distance:
         customABC = __import__(custom_distance)
         distancefn = customABC.distance
     
-    if custom_kernel == True:
+    if custom_kernel:
         import customABC
         kernelfn = customABC.getKernel
         kernelpdffn = customABC.getPdfParameterKernel
@@ -331,12 +331,12 @@ def main():
                               modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn, kernel_type=info_new.kernel, kernelfn=kernelfn,
                               kernelpdffn=kernelpdffn, perturbfn=perturbfn )
     
-    if simulate==False :
+    if not simulate:
         if len(info_new.final_epsilon) == 0:
             # Manual epsilon
             
             # fill data from disk if required
-            if info_new.restart == True:
+            if info_new.restart:
                 algorithm.fill_values( io.read_pickled(fname) )
 
             # transpose epsilon so it is epsilon[npop][ndistance]
@@ -347,7 +347,7 @@ def main():
 
         else:
             # Automatic epsilon
-            if info_new.restart == True:
+            if info_new.restart:
                 print "Restart not implemented for automated epsilon"
                 sys.exit()
             

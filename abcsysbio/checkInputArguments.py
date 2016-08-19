@@ -47,7 +47,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
     if not len(ModelName)==len(fit):
         return False,"\nPlease provide a fit instruction (or None) for each model. If the fit instruction is None all data will be fitted to the model data.\n"
     
-    if design == False:
+    if not design:
         if not len(data)==len(timepoints):
             return False,"\nPlease provide data that correspond to the length of your timepoints!\n"
 
@@ -109,7 +109,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
 
             listOfRules = model.getListOfRules()
             for k in range (0, len(listOfParameter)):
-                if listOfParameter[k].getConstant()==False:
+                if not listOfParameter[k].getConstant():
                     for j in range(0, len(listOfRules)):
                         if listOfRules[j].isRate():
                             if listOfParameter[k].getId()==listOfRules[j].getVariable():
@@ -170,7 +170,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
 
 
     ### check arguments connected to pickling
-    if restart==True:
+    if restart:
 
         try:
             in_file=open(fname + '/copy/algorithm_parameter.dat',"r")

@@ -43,7 +43,7 @@ class cuda_model:
         for i in range(n):
             species[i,:] = p[i][self.kparameters:self.nparameters]
             
-            if self.logp == False: pp[i,:] = p[i][0:self.kparameters]
+            if not self.logp:pp[i, :] = p[i][0:self.kparameters]
             else: pp[i,:] = numpy.power(10,p[i][0:self.kparameters])
 
         result = self.modelInstance.run(pp, species)

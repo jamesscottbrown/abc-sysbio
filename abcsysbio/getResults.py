@@ -162,7 +162,7 @@ def plotTimeSeries2(model, pars, data, beta, filename, traj2, population, plotda
         
             matplotlib.pyplot.plot(data.timepoints,points_sim)
 
-    if plotdata==True: 
+    if plotdata:
         matplotlib.pyplot.plot(data.timepoints,data.values,'o')
         xlabel('time')
         ylabel('Unit')
@@ -217,7 +217,7 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
         
             matplotlib.pyplot.plot(data.timepoints,points_sim)
 
-    if plotdata==True: 
+    if plotdata:
         matplotlib.pyplot.plot(data.timepoints,data.values,'o')
         xlabel('time')
         ylabel('Unit')
@@ -267,7 +267,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
     if npar > 16:
         multi = True
  
-    if multi == False:
+    if not multi:
         #print "******************* DOING SINGLE"
         # In the below max1 refers to the number of rows
         # and max2 refers to the number of columns ie max2 x max1

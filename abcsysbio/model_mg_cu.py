@@ -55,7 +55,7 @@ class cuda_model:
                 place_mark = sum(n_per_card[0:c])
                 species[i,:] = p[place_mark + i][self.kparameters:self.nparameters]
             
-                if self.logp == False:
+                if not self.logp:
                     pp[i,:] = p[place_mark + i][0:self.kparameters]
                 else:
                     pp[i,:] = numpy.power(10,p[place_mark + i][0:self.kparameters])

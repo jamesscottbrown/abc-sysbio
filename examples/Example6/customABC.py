@@ -37,7 +37,7 @@ def get_ES(ts):
             skip = True
             #print "skipped -ve", Omin, Omax
 
-    if skip == False:
+    if not skip:
         # (I2-I1)/I1 = 0.2
         E = abs(O2-O1)/(0.2*O1)
         S = abs(Op-O1)/(0.2*O1)

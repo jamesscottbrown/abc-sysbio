@@ -97,7 +97,7 @@ class OdeCUDAWriter(Writer):
     
         #write rules and events
         for i in range(0,len(self.parsedModel.listOfRules)):
-            if self.parsedModel.listOfRules[i].isRate() == True:
+            if self.parsedModel.listOfRules[i].isRate():
                 self.out_file.write("        ")
                 if not(self.parsedModel.ruleVariable[i] in self.parsedModel.speciesId):
                     self.out_file.write(self.parsedModel.ruleVariable[i])
@@ -117,7 +117,7 @@ class OdeCUDAWriter(Writer):
                         for r in range(0,len(self.parsedModel.eventVariable)):
                             if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
                                 flag = True
-                        if flag==False:
+                        if not flag:
                             pq = re.compile(self.parsedModel.parameterId[q])
                             string=pq.sub('tex2D(param_tex,'+repr(q)+',tid)' ,string)
     
@@ -151,7 +151,7 @@ class OdeCUDAWriter(Writer):
                         for r in range(0,len(self.parsedModel.eventVariable)):
                             if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
                                 flag = True
-                        if flag==False:
+                        if not flag:
                             pq = re.compile(self.parsedModel.parameterId[q])
                             string=pq.sub('tex2D(param_tex,'+repr(q)+',tid)' ,string)
     
@@ -182,7 +182,7 @@ class OdeCUDAWriter(Writer):
                         for r in range(0,len(self.parsedModel.eventVariable)):
                             if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
                                 flag = True
-                        if flag==False:
+                        if not flag:
                             pq = re.compile(self.parsedModel.parameterId[q])
                             x = "tex2D(param_tex,"+repr(q)+",tid)"
                             string=pq.sub(x,string)
@@ -234,7 +234,7 @@ class OdeCUDAWriter(Writer):
                                 for r in range(0,len(self.parsedModel.eventVariable)):
                                     if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
                                         flag = True
-                                if flag==False:
+                                if not flag:
                                     pq = re.compile(self.parsedModel.parameterId[q])
                                     string=pq.sub('tex2D(param_tex,'+repr(q)+',tid)' ,string)
        
@@ -254,7 +254,7 @@ class OdeCUDAWriter(Writer):
                                 for r in range(0,len(self.parsedModel.eventVariable)):
                                     if (self.parsedModel.parameterId[j] in self.parsedModel.eventVariable[r]):
                                         flag = True
-                                if flag==False:
+                                if not flag:
                                     self.out_file.write("tex2D(param_tex,"+repr(j)+",tid)"+";")
                                     break
                                 else:

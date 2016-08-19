@@ -60,7 +60,7 @@ class SDEPythonWriter(Writer):
                 for k in range(0, len(self.parsedModel.listOfRules)):
                     if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): 
                         dontPrint=True
-            if dontPrint == False:
+            if not dontPrint:
                 self.out_file.write(repr(self.parsedModel.parameter[i]))
                 self.out_file.write(",")
     
@@ -77,7 +77,7 @@ class SDEPythonWriter(Writer):
             if (self.parsedModel.listOfParameter[i].getConstant() == False):
                 for k in range(0, len(self.parsedModel.listOfRules)):
                     if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): dontPrint=True
-            if dontPrint == False:
+            if not dontPrint:
                 self.out_file.write("\t"+self.parsedModel.parameterId[i]+"=parameter["+repr(counter)+"]\n")
                 counter += 1
     
@@ -116,7 +116,7 @@ class SDEPythonWriter(Writer):
             self.out_file.write("\n")
     
         for i in range(0,len(self.parsedModel.listOfRules)):
-            if self.parsedModel.listOfRules[i].isRate() == True:
+            if self.parsedModel.listOfRules[i].isRate():
                 self.out_file.write("\td_")
                 self.out_file.write(self.parsedModel.ruleVariable[i])
                 self.out_file.write("=")
@@ -160,7 +160,7 @@ class SDEPythonWriter(Writer):
                 self.out_file.write("0\n")
     
             for i in range(0,len(self.parsedModel.listOfRules)):
-                if self.parsedModel.listOfRules[i].isRate() == True:
+                if self.parsedModel.listOfRules[i].isRate():
                     self.out_file.write("\tnoise_")
                     self.out_file.write(self.parsedModel.ruleVariable[i])
                     self.out_file.write("= trunc_sqrt(")
@@ -178,7 +178,7 @@ class SDEPythonWriter(Writer):
                 self.out_file.write("random.normal(0.0,sqrt(dt))\n")
                     
             for i in range(0,len(self.parsedModel.listOfRules)):
-                if self.parsedModel.listOfRules[i].isRate() == True:
+                if self.parsedModel.listOfRules[i].isRate():
                     self.out_file.write("\tnoise_")
                     self.out_file.write(self.parsedModel.ruleVariable[i])
                     self.out_file.write("= ")
@@ -203,7 +203,7 @@ class SDEPythonWriter(Writer):
                 self.out_file.write("0\n")
     
             for i in range(0,len(self.parsedModel.listOfRules)):
-                if self.parsedModel.listOfRules[i].isRate() == True:
+                if self.parsedModel.listOfRules[i].isRate():
                     self.out_file.write("\tnoise_")
                     self.out_file.write(self.parsedModel.ruleVariable[i])
                     self.out_file.write("= (")
@@ -263,7 +263,7 @@ class SDEPythonWriter(Writer):
                 for k in range(0, len(self.parsedModel.listOfRules)):
                     if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): 
                         dontPrint=True
-            if dontPrint == False:
+            if not dontPrint:
                 self.out_file.write(self.parsedModel.parameterId[i])
                 self.out_file.write(",")
     
@@ -318,7 +318,7 @@ class SDEPythonWriter(Writer):
                 for k in range(0, len(self.parsedModel.listOfRules)):
                     if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): 
                         dontPrint=True
-            if dontPrint == False:
+            if not dontPrint:
                 self.out_file.write(self.parsedModel.parameterId[i])
                 self.out_file.write(",")
     

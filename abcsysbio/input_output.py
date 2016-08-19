@@ -22,11 +22,11 @@ class input_output:
         # May want to remove this as could get large
         self.all_results = []
         
-        if restart==True:
+        if restart:
             self.folder += '_restart'
 
     def plot_data(self, data):
-        if self.havedata == True: plotData( data, self.folder+'/_data' )
+        if self.havedata: plotData(data, self.folder + '/_data')
 
 
     ################write rates, distances, trajectories    
@@ -109,7 +109,7 @@ class input_output:
 
         # do diagnostics such as scatter plots, histograms and model distribution
         npop = len(self.all_results)
-        if self.diagnostic == True:
+        if self.diagnostic:
             
             if nmodels > 1:
                 # create matrix [npop][nmodel]
@@ -157,7 +157,7 @@ class input_output:
                     getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(1,population+2),PlotName=PlotName,model=mod+1)
                     getAllHistograms(population_mod, weights_mod, population=population+1, PlotName=PlotName2, model=mod+1)
 
-            if self.plotDataSeries == True:
+            if self.plotDataSeries:
                 for mod in range(nmodels):
                     # get the first n of the accepted particles for this model
                     pars = []
@@ -196,7 +196,7 @@ class input_output:
 
                                 # Add data points
                                 plt.gca().set_color_cycle(None) # reset colour cycle
-                                if self.havedata == True:
+                                if self.havedata:
                                     plt.plot(data.timepoints,data.values,'o')
 
 
@@ -275,7 +275,7 @@ class input_output:
     ################create output folders
     def create_output_folders(self, modelnames, numOutput, pickling, simulation):
 
-        if simulation == True: pickling = False
+        if simulation: pickling = False
 
         try:
             os.mkdir(self.folder)
@@ -284,7 +284,7 @@ class input_output:
             print "\nThe folder "+ self.folder +" already exists!\n"
             sys.exit()
 
-        if simulation == False:
+        if not simulation:
             for mod in modelnames:
                 try:
                     os.mkdir('results_' + mod)
@@ -294,7 +294,7 @@ class input_output:
 
         os.chdir('..')
 
-        if pickling==True:
+        if pickling:
             try:
                 os.chdir(self.folder)
                 os.mkdir('copy')

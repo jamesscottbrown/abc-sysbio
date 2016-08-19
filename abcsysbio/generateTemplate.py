@@ -62,7 +62,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
             strs = str(line).split(' ')
             vals = [float(i) for i in strs]
             
-            if first==True:
+            if first:
                 for j in range(1,len(vals)):
                     vars.append([])
                 first=False
@@ -129,7 +129,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
     out_file.write("<data>\n")
     out_file.write("# times: For ABC SMC, times must be a whitespace delimited list\n")
     out_file.write("# In simulation mode these are the timepoints for which the simulations will be output\n")
-    if have_data == False:
+    if not have_data:
         out_file.write("<times> 0 1 2 3 4 5 6 7 8 9 10 </times>\n\n")
     else:
         out_file.write("<times>");
@@ -142,7 +142,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
     out_file.write("# For simulation these data are ignored\n")
     out_file.write("# See fitting instruction below if the dimensionality of your data sets differ from the dimensionality of your model\n")
     out_file.write("<variables>\n")
-    if have_data == False:
+    if not have_data:
         out_file.write(" <var1> </var1>\n")
     else:
         for k in range(nvar):
@@ -269,7 +269,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
             out_file.write(" <ic"+repr(x)+"> constant "+repr(getSpeciesValue(species[k]))+" </ic"+repr(x)+">\n")
             sum_file.write("S"+repr(x)+":\t"+species[k].getId()+"\tspecies"+repr(k+1)+"\t("+repr(getSpeciesValue(species[k]))+")\n")
         for k in range(0,len(listOfParameter)):
-            if listOfParameter[k].getConstant()==False:
+            if not listOfParameter[k].getConstant():
                 for j in range(0, len(listOfRules)):
                     if listOfRules[j].isRate():
                         if parameterId[k]==listOfRules[j].getVariable():
@@ -297,12 +297,12 @@ def generateTemplate(source, filename, sumname, dataname=None):
         for k in range(0,numParameters-paramAsSpecies):
             Print = True
             if k<len(listOfParameter):
-                if listOfParameter[k].getConstant()==False:
+                if not listOfParameter[k].getConstant():
                     for j in range(0, len(listOfRules)):
                         if listOfRules[j].isRate():
                             if parameterId[k]==listOfRules[j].getVariable(): Print = False
             else: Print == True
-            if Print ==True:
+            if Print:
                 counter += 1
                 sum_file.write("P"+repr(counter)+":\t"+parameterId[k]+"\t"+parameterId2[k]+"\t("+repr(parameter[k])+")\n")
                 out_file.write("<parameter"+repr(counter)+">")

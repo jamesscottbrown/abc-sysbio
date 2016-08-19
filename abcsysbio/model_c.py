@@ -123,7 +123,7 @@ class model:
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
 			for i in range (self.kparameters):
-				if self.logp==False: cparam[i]=p[ni][i]
+				if not self.logp: cparam[i]=p[ni][i]
 				else: cparam[i]=numpy.power(10,p[ni][i])
 
 			# set initial values; ctypes
@@ -171,7 +171,7 @@ class model:
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
 			for i in range (self.kparameters):
-				if self.logp==False: cparam[i]=p[ni][i]
+				if not self.logp: cparam[i]=p[ni][i]
 				else: cparam[i]=numpy.power(10,p[ni][i])
 
 			# set initial values; ctypes
@@ -218,7 +218,7 @@ class model:
 			par_arr_type = self.nparameters * c_double				
 			cparam = par_arr_type() 
 			for i in range (self.kparameters):
-				if self.logp==False: cparam[i]=p[ni][i]
+				if not self.logp: cparam[i]=p[ni][i]
 				else: cparam[i]=numpy.power(10,p[ni][i])
 
 			# set initial values; ctypes

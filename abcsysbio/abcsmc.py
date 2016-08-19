@@ -171,7 +171,7 @@ class abcsmc:
                 for j in range(self.models[m].nparameters):
                     if not (self.models[m].prior[j][0]==0 or self.models[m].prior[j][0]==2):
                         all_uniform = False
-                if all_uniform == True:
+                if all_uniform:
                     self.special_cases[m] = 1
                     print "### Found special kernel case 1 for model ", m, "###"
         
@@ -201,10 +201,10 @@ class abcsmc:
                 
                 if(len(self.dead_models) > 0):
                     print "\t dead models                      :", self.dead_models
-                if self.timing == True:
+                if self.timing:
                     print "\t timing:                          :", end_time - start_time
 
-        if self.timing == True:
+        if self.timing:
             print "#### final time:", time.time() - all_start_time
 
         return
@@ -217,8 +217,8 @@ class abcsmc:
         pop = 0
         epsilon = [1e10 for i in final_epsilon]
 
-        while done == False:
-            if final==True: done = True
+        while not done:
+            if final: done = True
 
             start_time = time.time()
             if(pop==0 and self.sample_from_prior==True): 
@@ -240,12 +240,12 @@ class abcsmc:
                 
                 if(len(self.dead_models) > 0):
                     print "\t dead models                      :", self.dead_models
-                if self.timing == True:
+                if self.timing:
                     print "\t timing:                          :", end_time - start_time
 
             pop += 1
 
-        if self.timing == True:
+        if self.timing:
             print "#### final time:", time.time() - all_start_time
 
         return
@@ -427,7 +427,7 @@ class abcsmc:
             this_weights = numpy.zeros( len(this_model_index) ) 
 
             # if we have just sampled from the prior we shall initialise the kernels using all available particles
-            if prior == True:
+            if prior:
                 for it in range(len(this_model_index)):
                     this_population[it,:] = self.parameters_prev[ this_model_index[it] ][:]
                     this_weights[it] = self.weights_prev[ this_model_index[it] ]
@@ -526,7 +526,7 @@ class abcsmc:
                     for k in range(self.beta):
                         samplePoints = sims[i,k,:,:]
                         points = howToFitData( self.models[ m ].fit, samplePoints )
-                        if do_comp == True:
+                        if do_comp:
                             distance = self.distancefn(points, self.data.values, this_model_parameters[i], m)
                             dist = evaluateDistance(distance, this_epsilon )
                         else:
@@ -536,7 +536,7 @@ class abcsmc:
                         this_dist.append( distance )
                         this_traj.append( points )
                        
-                        if dist == True:
+                        if dist:
                             ret[mapping[i]] += 1
                             
                         if self.debug == 2:print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, mapping[i], ret[mapping[i]]

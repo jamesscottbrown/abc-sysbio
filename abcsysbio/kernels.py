@@ -144,9 +144,9 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
 
             lower = kernel[2][ind][0]
             upper = kernel[2][ind][1]
-            if lflag == True:
+            if lflag:
                 lower = -(params[n] - priors[n][1])
-            if uflag == True:
+            if uflag:
                 upper = priors[n][2] - params[n]
 
             delta = 0
@@ -158,7 +158,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
                 # decide if the particle is to be perturbed positively or negatively
                 positive = rnd.uniform(0,1) > abs(lower)/(abs(lower)+upper)
 
-                if positive == True:
+                if positive:
                     # theta = theta + U(0, min(prior,kernel) )
                     delta = rnd.uniform(low=0, high=upper)
                 else:
