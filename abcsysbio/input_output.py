@@ -23,7 +23,7 @@ class input_output:
         self.all_results = []
         
         if restart==True:
-            self.folder = self.folder + '_restart'
+            self.folder += '_restart'
 
     def plot_data(self, data):
         if self.havedata == True: plotData( data, self.folder+'/_data' )
@@ -85,7 +85,7 @@ class input_output:
         counts = numpy.zeros([nmodels])
         nparticles = len(results.weights)
         for np in range(nparticles):
-            counts[ results.models[np] ] = counts[ results.models[np] ] + 1
+            counts[results.models[np]] += 1
             
 
         # print out particles and weights if there are particles
@@ -152,7 +152,7 @@ class input_output:
                                         population_mod[mod][eps][non_const].append( self.all_results[eps].parameters[np][param] )
                                         weights_mod[mod][eps][non_const].append( self.all_results[eps].weights[np] )
 
-                                non_const = non_const + 1
+                                non_const += 1
 
                     getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(1,population+2),PlotName=PlotName,model=mod+1)
                     getAllHistograms(population_mod, weights_mod, population=population+1, PlotName=PlotName2, model=mod+1)
@@ -169,7 +169,7 @@ class input_output:
                         if results.models[np] == mod and count < n:
                             pars.append( results.parameters[np] )
                             traj2.append(results.trajectories[np])
-                            count = count + 1
+                            count += 1
 
                     if len(pars) > 0:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(npop) + '/Timeseries_Population' + repr(npop)
@@ -264,7 +264,7 @@ class input_output:
                     pars.append( results.parameters[np] )
                     traj2.append(results.trajectories[np])
 
-                    count = count + 1
+                    count += 1
 
             if len(pars) > 0:
                 filename = self.folder + '/' + models[mod].name + '_timeseries'

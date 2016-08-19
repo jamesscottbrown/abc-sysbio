@@ -83,11 +83,11 @@ def GillespieInt(func, initValues, parameters, outputtimes):
                 else:
                         URN = numpy.random.uniform()
                         new_time = (-1.0/total_hazard) * numpy.log(URN)
-                        time = time + new_time
+                        time += new_time
 
                 while (time >= outputtimes[counter]):
                         concentrations[counter] = current_concentrations
-                        counter = counter + 1
+                        counter += 1
                         if counter >= len(outputtimes):
                                 flag = False
                                 break
@@ -128,7 +128,7 @@ def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, xmax)
 	        
 		URN = numpy.random.uniform()
 		new_time = (-1.0/total_hazard) * numpy.log(URN)
-		time = time + new_time
+        time += new_time
 
 		hazard_chosen=select_hazard(total_hazard,list_of_hazards)
 

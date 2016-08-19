@@ -84,7 +84,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
             
             for i in range(0,NumCompartments):
                 if model.getCompartment(i).isSetVolume():
-                    numGlobalParameters=numGlobalParameters+1
+                    numGlobalParameters += 1
                     listOfParameter.append(model.getListOfCompartments()[i])
 
             for i in range(0, numGlobalParameters-NumCompartments):
@@ -113,8 +113,8 @@ def checkInputABC(info_new , fname, custom_distance, design ):
                     for j in range(0, len(listOfRules)):
                         if listOfRules[j].isRate():
                             if listOfParameter[k].getId()==listOfRules[j].getVariable():
-                                numSpecies=numSpecies+1
-                                numParameters=numParameters-1
+                                numSpecies += 1
+                                numParameters -= 1
                     
             
             if not len(priors[mod])==numParameters:
@@ -232,7 +232,7 @@ def checkInputSimulation(info_new , fname):
             NumCompartments=model.getNumCompartments()   
             for i in range(0,NumCompartments):
                 if model.getCompartment(i).isSetVolume():
-                    numGlobalParameters=numGlobalParameters+1
+                    numGlobalParameters += 1
 
             numLocalParameters=0
             for i in range(0,model.getNumReactions()):

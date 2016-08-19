@@ -83,7 +83,7 @@ class Parser:
         
         for i in range(0, len(listOfCompartments)):
             if listOfCompartments[i].isSetVolume():
-                self.comp = self.comp + 1
+                self.comp += 1
                 self.parameterId.append(listOfCompartments[i].getId())
                 self.writer.parsedModel.parameterId.append('compartment' + repr(i + 1))
                 self.writer.parsedModel.parameter.append(listOfCompartments[i].getVolume())

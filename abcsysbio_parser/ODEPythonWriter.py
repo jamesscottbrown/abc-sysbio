@@ -66,7 +66,7 @@ class ODEPythonWriter(Writer):
                     if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): dontPrint=True
             if dontPrint == False:
                 self.out_file.write("\t"+self.parsedModel.parameterId[i]+"=parameter["+repr(counter)+"]\n")
-                counter=counter+1
+                counter += 1
     
         ##for i in range(0, self.parsedModel.numSpecies):
             ##if (self.parsedModel.species[i].getConstant() == True):

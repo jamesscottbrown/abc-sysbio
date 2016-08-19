@@ -67,7 +67,7 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
         
         if ((timepoints[counter] - intTime2)<0.000000001):
             solutions_out[counter] = data[1]
-            counter = counter+1
+            counter += 1
             if counter == len(timepoints):
                 flag = False
         current_concentrations = data[1]

@@ -196,7 +196,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
             ind=0
             for n in kernel[0]: 
                 params[n] = tmp[ind]
-                ind=ind+1
+                ind += 1
 
         if (kernel_type==4 or kernel_type==5):
             mean=list()
@@ -207,7 +207,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
             ind=0
             for n in kernel[0]: 
                 params[n] = tmp[ind]
-                ind=ind+1
+                ind += 1
 
         # compute the likelihood
         prior_prob=1

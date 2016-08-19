@@ -284,9 +284,9 @@ class abcsmc:
             # for any statistics that are at the level of, or below the target, set the returned value to be equal to the target
             if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne]-target_epsilon[ne]) < 1e-3:
                 ret_epsilon[ne] = target_epsilon[ne]
-                finished = finished*1
+                finished *= 1
             else:
-                finished = finished*0
+                finished *= 0
 
         # At this point we have a new epsilon to return and we should know if we are finished
         print "new/ret epsilon:", new_epsilon, ret_epsilon, finished
@@ -307,7 +307,7 @@ class abcsmc:
 
             for i in range(self.nbatch):
                 if naccepted < self.nparticles:
-                    sampled = sampled + 1
+                    sampled += 1
 
                 if naccepted < self.nparticles and accepted_index[i] > 0 : 
                     
@@ -320,8 +320,8 @@ class abcsmc:
                     self.b[naccepted] = accepted_index[i]
                     self.trajectories.append( copy.deepcopy(traj[i]) )
                     self.distances.append( copy.deepcopy(distances[i]) )
-                    
-                    naccepted = naccepted + 1
+
+                    naccepted += 1
 
             print "#### current naccepted:", naccepted
 
@@ -356,7 +356,7 @@ class abcsmc:
 
             for i in range(self.nbatch):
                 if naccepted < self.nparticles:
-                    sampled = sampled + 1
+                    sampled += 1
 
                 if naccepted < self.nparticles and accepted_index[i] > 0 : 
                     
@@ -369,8 +369,8 @@ class abcsmc:
                     self.b[naccepted] = accepted_index[i]
                     self.trajectories.append( copy.deepcopy(traj[i]) )
                     self.distances.append( copy.deepcopy(distances[i]) )
-                    
-                    naccepted = naccepted + 1
+
+                    naccepted += 1
             print "#### current naccepted:", naccepted
             
             if self.debug == 2:print "\t****end  batch naccepted/sampled:", naccepted,  sampled
@@ -537,7 +537,7 @@ class abcsmc:
                         this_traj.append( points )
                        
                         if dist == True:
-                            ret[mapping[i]] = ret[mapping[i]] + 1
+                            ret[mapping[i]] += 1
                             
                         if self.debug == 2:print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, mapping[i], ret[mapping[i]]
 
@@ -677,7 +677,8 @@ class abcsmc:
         
             denom_m = 0
             for i in range(self.nmodel):
-                denom_m = denom_m + self.margins_prev[i]*getPdfModelKernel(this_model, i, self.modelKernel, self.nmodel, self.dead_models)
+                denom_m += self.margins_prev[i] * getPdfModelKernel(this_model, i, self.modelKernel, self.nmodel,
+                                                                    self.dead_models)
             denom = 0
             # print "Calculating denom\t", selected_model, sampleParameters
             for j in range(self.nparticles):
@@ -687,7 +688,10 @@ class abcsmc:
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
                         self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
-                    denom = denom + self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior, self.kernels[this_model], self.kernel_aux[j], self.kernel_type )
+                    denom += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j],
+                                                                     self.models[this_model].prior,
+                                                                     self.kernels[this_model], self.kernel_aux[j],
+                                                                     self.kernel_type)
 
                 if self.debug == 2: print "\tnumer/denom_m/denom/m(t-1) : ", numer,denom_m, denom, self.margins_prev[this_model]
 
@@ -696,14 +700,14 @@ class abcsmc:
     def normalizeWeights(self):
         n = sum( self.weights_curr )
         for i in range(self.nparticles):
-            self.weights_curr[i] = self.weights_curr[i]/float(n)
+            self.weights_curr[i] /= float(n)
 
     def modelMarginals(self):
         for i in range(self.nmodel):
             self.margins_curr[i] = 0
             for j in range(self.nparticles):
                 if int(self.model_curr[j]) == int(i):
-                    self.margins_curr[i] = self.margins_curr[i] + self.weights_curr[j]
+                    self.margins_curr[i] += self.weights_curr[j]
             
     
 

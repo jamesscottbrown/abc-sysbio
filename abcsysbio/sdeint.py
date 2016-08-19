@@ -61,7 +61,7 @@ def sdeint(func,InitValues,parameter, timepoints,dt=0.01):
             return zeros([len(timepoints),dim])
         if((timepoints[n]-times[i])<0.000000001):
             solutions_out[n]=solutions[i]
-            n=n+1
+            n += 1
 
     return solutions_out
 

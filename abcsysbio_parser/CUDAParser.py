@@ -18,7 +18,7 @@ class CUDAParser(Parser):
         self.analyseEvents()
         self.renameMathFunctions()
         self.renameEverything()
-        self.writer.parsedModel.numGlobalParameters = self.writer.parsedModel.numGlobalParameters + 1
+        self.writer.parsedModel.numGlobalParameters += 1
         
     def getGlobalParameters(self):
         Parser.getGlobalParameters(self)

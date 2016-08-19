@@ -192,16 +192,16 @@ def generateTemplate(source, filename, sumname, dataname=None):
         r3=0
         listOfRules=model.getListOfRules()
         for k in range(0, len(listOfRules)):
-            if model.getRule(k).isAlgebraic(): r1=r1+1
-            if model.getRule(k).isAssignment(): r2=r2+1
-            if model.getRule(k).isRate(): r3=r3+1
+            if model.getRule(k).isAlgebraic(): r1 += 1
+            if model.getRule(k).isAssignment(): r2 += 1
+            if model.getRule(k).isRate(): r3 += 1
 
         comp=0
         NumCompartments=model.getNumCompartments()   
         for k in range(0,NumCompartments):
             if model.getCompartment(k).isSetVolume():
-                comp=comp+1
-                numGlobalParameters=numGlobalParameters+1
+                comp += 1
+                numGlobalParameters += 1
                 parameter.append(model.getListOfCompartments()[k].getVolume())
                 parameterId.append(model.getListOfCompartments()[k].getId())
                 parameterId2.append('compartment'+repr(k+1))
@@ -264,7 +264,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
         x=0
         for k in range(0,len(species)):
             ##if (species[k].getConstant() == False):
-            x=x+1
+            x += 1
             #out_file.write(repr(getSpeciesValue(species[k]))+", ")
             out_file.write(" <ic"+repr(x)+"> constant "+repr(getSpeciesValue(species[k]))+" </ic"+repr(x)+">\n")
             sum_file.write("S"+repr(x)+":\t"+species[k].getId()+"\tspecies"+repr(k+1)+"\t("+repr(getSpeciesValue(species[k]))+")\n")
@@ -273,8 +273,8 @@ def generateTemplate(source, filename, sumname, dataname=None):
                 for j in range(0, len(listOfRules)):
                     if listOfRules[j].isRate():
                         if parameterId[k]==listOfRules[j].getVariable():
-                            x=x+1
-                            paramAsSpecies=paramAsSpecies+1
+                            x += 1
+                            paramAsSpecies += 1
                             #out_file.write(repr(listOfParameter[k].getValue())+", ")
                             out_file.write(" <ic"+repr(x)+"> constant "+repr(listOfParameter[k].getValue())+" </ic"+repr(x)+">\n")
                             sum_file.write("S"+repr(x)+":\t"+listOfParameter[k].getId()+"\tparameter"+repr(k+1-comp)+"\t("+repr(listOfParameter[k].getValue())+") (parameter included in a rate rule and therefore treated as species)\n")
@@ -303,7 +303,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
                             if parameterId[k]==listOfRules[j].getVariable(): Print = False
             else: Print == True
             if Print ==True:
-                counter=counter+1
+                counter += 1
                 sum_file.write("P"+repr(counter)+":\t"+parameterId[k]+"\t"+parameterId2[k]+"\t("+repr(parameter[k])+")\n")
                 out_file.write("<parameter"+repr(counter)+">")
                 out_file.write(" constant ")

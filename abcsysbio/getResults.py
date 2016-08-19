@@ -439,7 +439,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
             for j in range(1,dim+1):
                 permutation[k][0]=i
                 permutation[k][1]=j
-                k=k+1
+                k += 1
 
         binB=20.0
         i2=0
@@ -458,7 +458,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                     if j==len(populations)-1:
                         cla()
                         if not(len(x)==0):
-                            i2=i2+1
+                            i2 += 1
                             #hist=Histogram.WeightedHistogram(x,w,int(binB))
                             #length=hist.__len__()
                             #histogramX=[]
@@ -518,7 +518,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
             for j in range(i,dim+1):
                 permutation[k][0]=i
                 permutation[k][1]=j
-                k=k+1
+                k += 1
         
         binB=20.0
 
@@ -542,7 +542,7 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                         if j==len(populations)-1:
                             cla()
                             if not(len(x)==0):
-                                i2=i2+1
+                                i2 += 1
                                 #hist=Histogram.WeightedHistogram(x,w,int(binB))
                                 #length=hist.__len__()
                                 #histogramX=[]
