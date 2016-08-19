@@ -123,7 +123,7 @@ def mvstdnormcdf(lower,upper,corrcoef, **kwds):
 
 
 def mvnormcdf(lower, upper, mu, cov, **kwds):
-    '''find integral of multivariate normal for rectangular region'''
+    """find integral of multivariate normal for rectangular region"""
     
     lower = array(lower)
     upper = array(upper)
