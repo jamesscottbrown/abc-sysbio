@@ -391,13 +391,13 @@ class abcsmc:
             print "**** end of population naccepted/sampled:", naccepted, sampled
 
         if not prior:
-            self.computeParticleWeights()
+            self.compute_particle_weights()
         else:
             for i in range(self.nparticles):
                 self.weights_curr[i] = self.b[i]
 
         self.normalizeWeights()
-        self.modelMarginals()
+        self.update_model_marginals()
 
         if self.debug == 2:
             print "**** end of population: particles"
@@ -627,7 +627,7 @@ class abcsmc:
         return ret[:]
 
     def sampleTheParameter(self, sampled_models):
-        if self.debug == 2: 
+        if self.debug == 2:
             print "\t\t\t***sampleTheParameter"
         ret = []
 
@@ -635,48 +635,51 @@ class abcsmc:
             np = self.models[sampled_models[i]].nparameters
             reti = [0 for it in range(np)]
 
-            # print '\n\t\t\tsampleTheParameter, model np prior:', sampled_models[i], self.models[ sampled_models[i] ].name, np, self.models[ sampled_models[i] ].prior
-
             prior_prob = -1
             while prior_prob <= 0:
 
                 # sample putative particle from previous population
-                p = sample_particle(self.nparticles, sampled_models[i], self.margins_prev, self.model_prev,
-                                    self.weights_prev)
+                p = sample_particle_from_model(self.nparticles, sampled_models[i], self.margins_prev, self.model_prev,
+                                               self.weights_prev)
 
                 for nn in range(np):
-                    # print reti[nn], self.parameters_prev[ p ][nn]
                     reti[nn] = self.parameters_prev[p][nn]
 
                 prior_prob = self.perturbfn(reti, self.models[sampled_models[i]].prior, self.kernels[sampled_models[i]],
                                             self.kernel_type, self.special_cases[sampled_models[i]])
 
-                if self.debug == 2: 
+                if self.debug == 2:
                     print "\t\t\tsampled p prob:", prior_prob
-                if self.debug == 2: 
+                if self.debug == 2:
                     print "\t\t\tnew:", reti
-                if self.debug == 2: 
+                if self.debug == 2:
                     print "\t\t\told:", self.parameters_prev[p]
 
             ret.append(reti)
 
         return [x[:] for x in ret]
 
-    def computeParticleWeights(self):
-        if self.debug == 2: 
+    def compute_particle_weights(self):
+        """
+        Calculate the weight of each particle.
+        This is given by $w_t^i = \frac{\pi(M_t^i, \theta_t^i) P_{t-1}(M_t^i = M_{t-1}) }{S_1 S_2 }$, where
+        $S_1 = \sum_{j \in M} P_{t-1}(M^j_{t-1}) KM_t(M_t^i | M^j_{t-1})$ and
+        $S_2 = \sum_{k \in M_t^i = M_{t-1}} w^k_{t-1} K_{t, M^i}(\theta_t^i | \theta_{t-1}^k)$
+
+        (See p.4 of SOM to 'Bayesian design of synthetic biological systems', except that here we have moved model
+        marginal out of S2 into a separate term)
+        """
+        if self.debug == 2:
             print "\t***computeParticleWeights"
 
         for k in range(self.nparticles):
             this_model = self.model_curr[k]
             this_param = self.parameters_curr[k]
 
-            # calculate model prior probility 
-            mprob = self.modelprior[this_model]
+            model_prior = self.modelprior[this_model]
 
-            np = len(self.parameters_curr[k])
-            # particle prior probability
-            pprob = 1
-            for n in range(0, np):
+            particle_prior = 1
+            for n in range(0, len(self.parameters_curr[k])):
                 x = 1.0
                 if self.models[this_model].prior[n][0] == 0:
                     x = 1
@@ -695,106 +698,155 @@ class abcsmc:
                     x = statistics.getPdfLognormal(self.models[this_model].prior[n][1],
                                                    numpy.sqrt(self.models[this_model].prior[n][2]),
                                                    this_param[n])
-                pprob = pprob * x
+                particle_prior = particle_prior * x
 
-            numer = self.b[k] * mprob * pprob
+            # self.b[k] is an indicator variable recording whether the simulation corresponding to particle k was accepted
+            numerator = self.b[k] * model_prior * particle_prior
 
-            denom_m = 0
+            S1 = 0
             for i in range(self.nmodel):
-                denom_m += self.margins_prev[i] * getPdfModelKernel(this_model, i, self.modelKernel, self.nmodel,
+                S1 += self.margins_prev[i] * getPdfModelKernel(this_model, i, self.modelKernel, self.nmodel,
                                                                     self.dead_models)
-            denom = 0
-            # print "Calculating denom\t", selected_model, sampleParameters
+            S2 = 0
             for j in range(self.nparticles):
-
                 if int(this_model) == int(self.model_prev[j]):
-                    # print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
+
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
                         self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior,
                                          self.kernels[this_model], self.kernel_aux[j], self.kernel_type)
-                    denom += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j],
+                    S2 += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j],
                                                                      self.models[this_model].prior,
                                                                      self.kernels[this_model], self.kernel_aux[j],
                                                                      self.kernel_type)
 
                 if self.debug == 2:
-                    print "\tnumer/denom_m/denom/m(t-1) : ", numer, denom_m, denom, self.margins_prev[this_model]
+                    print "\tnumer/S1/S2/m(t-1) : ", numerator, S1, S2, self.margins_prev[this_model]
 
-            self.weights_curr[k] = numer / (denom_m * denom / self.margins_prev[this_model])
+            self.weights_curr[k] = self.margins_prev[this_model] * numerator / (S1 * S2)
 
     def normalizeWeights(self):
+        """
+        Normalize weights by dividing each by the total.
+        """
         n = sum(self.weights_curr)
         for i in range(self.nparticles):
             self.weights_curr[i] /= float(n)
 
-    def modelMarginals(self):
-        for i in range(self.nmodel):
-            self.margins_curr[i] = 0
-            for j in range(self.nparticles):
-                if int(self.model_curr[j]) == int(i):
-                    self.margins_curr[i] += self.weights_curr[j]
+    def update_model_marginals(self):
+        """
+        Re-calculate the marginal probability of each model as the sum of the weights of the corresponding particles.
+        """
+        for model in range(self.nmodel):
+            self.margins_curr[model] = 0
+            for particle in range(self.nparticles):
+                if int(self.model_curr[particle]) == int(model):
+                    self.margins_curr[model] += self.weights_curr[particle]
 
 
-# additional work functions
+def sample_particle_from_model(nparticle, selected_model, margins_prev, model_prev, weights_prev):
+    """
+    Select a particle from those in the previous generation whose model was the currently selected model, weighted by
+    their previous weight.
 
-def sample_particle(nparticle, selected_model, margins_prev, model_prev, weights_prev):
+    Parameters
+    ----------
+    nparticle : number of particles
+    selected_model : index of the currently selected model
+    margins_prev : the marginal probability of the selected model at the previous iteration (nb. this is the sum of the
+        weights of the corresponding particles)
+    model_prev : list recording the model index corresponding to each particle from the previous iteration
+    weights_prev : list recording the weight of each particle from the previous iteration
+
+    Returns
+    -------
+    the index of the selected particle
+    """
     u = rnd.uniform(low=0, high=margins_prev[selected_model])
     F = 0
 
     for i in range(0, nparticle):
         if int(model_prev[i]) == int(selected_model):
             F = F + weights_prev[i]
-
             if F > u:
                 break
-
     return i
 
 
-########### how to fit variable to the given data (if fit is None, data for all variables are available in order of the model)
-def howToFitData(fitting_instruction, samplePoints):
+def howToFitData(fitting_instruction, simulation_points):
+    """
+    Given the results of a simulation, evaluate given functions of the state variables of the model.
+
+    This accounts for the correspondance between species defined in the model being simulated and the experimental data
+    being fit.
+
+    Parameters
+    ----------
+    fitting_instruction : list of functions, one per dimension of the data to be fitted. Each is a string representation
+        of an expression of the state variables of the model; dimension n  is represented by 'samplePoints[:,n];.
+
+    simulation_points : a numpy.ndarray of simulation results, with shape (number_timepoints, model_dimension)
+
+    Returns
+    -------
+    transformed_points : a numpy.ndarray of transformed simulation results, with shape (number_timepoints, data_dimension)
+
+    """
+
     if fitting_instruction is not None:
-        # print fitting_instruction, fitting_instruction[2]
-        points = numpy.zeros([len(samplePoints), len(fitting_instruction)])
-        # print "points", points.shape
-        # print "len", len(fitting_instruction)
-        # print "samples", samplePoints.shape
-
+        transformed_points = numpy.zeros([len(simulation_points), len(fitting_instruction)])
         for i in range(len(fitting_instruction)):
-            # print 'eval', i, eval(fitting_instruction[i])
-            points[:, i] = eval(fitting_instruction[i])
-
+            transformed_points[:, i] = eval(fitting_instruction[i])
     else:
-        points = samplePoints
+        transformed_points = simulation_points
 
-    return points[:]
+    return transformed_points[:]
 
 
-def getPdfModelKernel(m, m0, modelK, nmodel, dead_models):
-    ndead = len(dead_models)
+def getPdfModelKernel(new_model, old_model, modelK, num_models, num_dead_models):
+    """
+    Returns the probability of model number m0 being perturbed into model number m (assuming neither is dead).
 
-    if ndead == nmodel - 1:
+    This assumes a uniform model perturbation kernel: with probability modelK the model is not perturbed; with
+    probability (1-modelK) it is replaced by a model randomly chosen from the non-dead models (including the current
+    model).
+
+    Parameters
+    ----------
+    new_model : index of next model
+    old_model : index of previous model
+    modelK : model (non)-perturbation probability
+    num_models : total number of models
+    num_dead_models : number of models which are 'dead'
+    """
+
+    ndead = len(num_dead_models)
+
+    if ndead == num_models - 1:
         return 1.0
     else:
-
-        if m == m0:
+        if new_model == old_model:
             return modelK
         else:
-            return (1 - modelK) / (nmodel - ndead)
+            return (1 - modelK) / (num_models - ndead)
 
 
 def evaluateDistance(distance, epsilon):
+    """
+    Return true if each element of distance is less than the corresponding entry of epsilon (and non-negative)
+
+    Parameters
+    ----------
+    distance : list of distances
+    epsilon : list of maximum acceptable distances
+
+    """
+
     accepted = False
     for i in range(len(epsilon)):
-        # print "d:", distance[i], epsilon[i][t]
         if epsilon[i] >= distance[i] >= 0:
             accepted = True
         else:
             accepted = False
             break
-
-    # if accepted == True:
-    #    print '\teval:', distance, epsilon
-
     return accepted
