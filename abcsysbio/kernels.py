@@ -27,10 +27,10 @@ def getKernel(kernel_type, kernel, population, weights):
     if kernel_type == 1:
     # component-wise uniform kernels
         tmp=list()
-	if pop_size == 1:
+        if pop_size == 1:
             print "WARNING: getKernel : only one particle so adaptation is not possible"
             for param in kernel[0]:
-                tmp.append([-1, 1])	
+                tmp.append([-1, 1])
         else: 
             for param in kernel[0]:
                 minimum=min(population[:,param])
@@ -38,7 +38,7 @@ def getKernel(kernel_type, kernel, population, weights):
                 scale=(maximum-minimum)
                 tmp.append([-scale/2.0,scale/2.0])
         kernel[2]=tmp
-	# kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the inf and sup bound of the uniform kernel.
+    # kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the inf and sup bound of the uniform kernel.
     
     elif kernel_type == 2:
         # component-wise normal kernels
@@ -51,12 +51,12 @@ def getKernel(kernel_type, kernel, population, weights):
                 s2w = statistics.wtvar(population[:,param], weights, method = "R")
                 tmp.append(2*s2w)
         kernel[2]=tmp
-	# kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the variance.
+    # kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the variance.
 
 
     elif kernel_type == 3:
         # multi-variate normal kernel whose covariance is based on all the previous population
-	if pop_size == 1:
+        if pop_size == 1:
             print "WARNING: getKernel : only one particle so adaptation is not possible"
             cov=numpy.eye(len(kernel[0]))
         else:
@@ -65,7 +65,7 @@ def getKernel(kernel_type, kernel, population, weights):
                 pop.append(population[:,param])
             cov = statistics.compute_cov(pop,weights)
         kernel[2]=2*cov
-	# kernel[2] is the covaraince matrix of the multivariate normal kernel of size len(kernel[0])*len(kernel[0])
+        # kernel[2] is the covaraince matrix of the multivariate normal kernel of size len(kernel[0])*len(kernel[0])
 
     if kernel_type == 4:
         # multi-variate normal kernel whose covariance is based on the K nearest neighbours of the particle
@@ -101,7 +101,7 @@ def getKernel(kernel_type, kernel, population, weights):
                 # compute the covariance and write it into the dictionnary
                 D[str(pop_cur)]=2*statistics.compute_cov(subpop,subwei)
         kernel[2]=D
-	# kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
+        # kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
 
     if kernel_type==5:
         # multi-variate normal kernel whose covariance is the OCM
@@ -122,7 +122,7 @@ def getKernel(kernel_type, kernel, population, weights):
                     pop_cur.append(population[n, param])
                 D[str(pop_cur)]=statistics.compute_optcovmat(pop, weights,pop_cur)
         kernel[2]=D
-	# kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
+        # kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
 
     return kernel
 
@@ -234,27 +234,27 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
 def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type):
     if kernel_type==1:
         prob=1
-	# n refers to the index of the parameter (integer between 0 and np-1)
-	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
-	ind=0
+        # n refers to the index of the parameter (integer between 0 and np-1)
+        # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
+        ind=0
         for n in kernel[0]:
-	    kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
+            kern = statistics.getPdfUniform(params0[n]+kernel[2][ind][0],params0[n]+kernel[2][ind][1], params[n])
             prob=prob*kern
-	    ind += 1
+            ind += 1
         return prob
 
     elif kernel_type==2:
-	# n refers to the index of the parameter (integer between 0 and np-1)
-	# ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
+        # n refers to the index of the parameter (integer between 0 and np-1)
+        # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
         prob=1
-	ind=0
+        ind=0
         for n in kernel[0]: 
             mean = params0[n]
             scale = numpy.sqrt(kernel[2][ind])
             kern = statistics.getPdfGauss(mean,scale,params[n])
             kern = kern/auxilliary[n]
             prob=prob*kern
-	    ind+=1
+            ind+=1
         return prob
     
     elif kernel_type==3:
@@ -263,9 +263,9 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
         for n in kernel[0]:
               p0.append(params0[n])
               p.append(params[n])
-	kern = statistics.getPdfMultinormal(p0,kernel[2],p)
-	kern = kern/auxilliary
-	return kern
+        kern = statistics.getPdfMultinormal(p0,kernel[2],p)
+        kern = kern/auxilliary
+        return kern
 
     elif kernel_type==4  or kernel_type==5:
         p0 = list()
@@ -274,9 +274,9 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
         for n in kernel[0]:
               p0.append(params0[n])
               p.append(params[n])
-       	kern = statistics.getPdfMultinormal(p0,D[str(params0)],p)
-	kern = kern/auxilliary
-	return kern
+        kern = statistics.getPdfMultinormal(p0,D[str(params0)],p)
+        kern = kern/auxilliary
+    return kern
     
 
 # Here models and parameters refer to the whole population
@@ -291,40 +291,40 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
         nparam = model_objs[models[k]].nparameters
         if kernel_type == 2:
             ret.append( [1.0 for n in range(nparam)] )
-	    # n refers to the index of the parameter (integer between 0 and np-1)
-	    # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
-	    ind=0
-	    if not(len(this_kernel[2])==1):
-	        for n in this_kernel[0]:
+            # n refers to the index of the parameter (integer between 0 and np-1)
+            # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
+            ind=0
+            if not(len(this_kernel[2])==1):
+                for n in this_kernel[0]:
                     # if prior is uniform
-		    if this_prior[n][0]==2:
-		    	mean = parameters[k][n]
+                    if this_prior[n][0]==2:
+                        mean = parameters[k][n]
                         scale = numpy.sqrt(this_kernel[2][ind])
                         ret[k][n] = norm.cdf(this_prior[n][2],mean,scale) - norm.cdf(this_prior[n][1],mean,scale)
                     # if prior is normal, no truncation required
-		    if this_prior[n][0]==1:
-			ret[k][n] = 1
+                    if this_prior[n][0]==1:
+                        ret[k][n] = 1
                     # if prior is lognormal, trucation for the negative values
-		    if this_prior[n][0]==3:
-		    	mean = parameters[k][n]
+                    if this_prior[n][0]==3:
+                        mean = parameters[k][n]
                         scale = numpy.sqrt(this_kernel[2][ind])
-                        ret[k][n] = 1 - norm.cdf(0,mean,scale)			
-		    ind+=1
+                        ret[k][n] = 1 - norm.cdf(0,mean,scale)
+                    ind+=1
         elif kernel_type==3:
             up=list()
             low=list()
             mean=list()
             for n in this_kernel[0]:
-		if this_prior[n][0]==2:
+                if this_prior[n][0]==2:
                     low.append(this_prior[n][1])
                     up.append(this_prior[n][2])
-		if this_prior[n][0]==1:
-		    low.append(-float('inf'))
-		    up.append(float('inf'))
-		if this_prior[n][0]==3:
-		    low.append(0)
-		    up.append(float('inf'))
-		mean.append(parameters[k][n])
+                if this_prior[n][0]==1:
+                    low.append(-float('inf'))
+                    up.append(float('inf'))
+                if this_prior[n][0]==3:
+                    low.append(0)
+                    up.append(float('inf'))
+                mean.append(parameters[k][n])
             scale=this_kernel[2]
             ret.append(statistics.mvnormcdf(low,up,mean, scale))
         elif kernel_type==4 or kernel_type==5:
@@ -332,15 +332,15 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
             low=list()
             mean=list()
             for n in this_kernel[0]:
-		if this_prior[n][0]==2:
+        if this_prior[n][0]==2:
                     low.append(this_prior[n][1])
                     up.append(this_prior[n][2])
-		if this_prior[n][0]==1:
-		    low.append(-float('inf'))
-		    up.append(float('inf'))
-		if this_prior[n][0]==3:
-		    low.append(0)
-		    up.append(float('inf'))
+        if this_prior[n][0]==1:
+            low.append(-float('inf'))
+            up.append(float('inf'))
+        if this_prior[n][0]==3:
+            low.append(0)
+            up.append(float('inf'))
                 mean.append(parameters[k][n])
             cur_part=list()
             for n in range(nparam):

@@ -12,24 +12,24 @@ def checkInputABC(info_new , fname, custom_distance, design ):
     
     """
 
-    restart = 	        info_new.restart
-    ModelName = 	info_new.name
-    data = 		info_new.data
-    timepoints = 	info_new.times
-    numOutput = 	info_new.particles
-    epsilon = 	        info_new.epsilon
-    integrationType =   info_new.type
-    modelWeights = 	info_new.modelprior
-    priors = 	        info_new.prior
-    x0priors =          info_new.x0prior
-    kernel = 	        info_new.kernel
-    source = 	        info_new.source
-    fit = 		info_new.fit
-    beta = 		info_new.beta
-    dt = 		info_new.dt
-    rtol = 		info_new.rtol
-    atol = 		info_new.atol
-    modelKernel = 	info_new.modelkernel
+    restart = info_new.restart
+    ModelName = info_new.name
+    data = info_new.data
+    timepoints = info_new.times
+    numOutput = info_new.particles
+    epsilon = info_new.epsilon
+    integrationType = info_new.type
+    modelWeights = info_new.modelprior
+    priors = info_new.prior
+    x0priors = info_new.x0prior
+    kernel = info_new.kernel
+    source = info_new.source
+    fit = info_new.fit
+    beta = info_new.beta
+    dt = info_new.dt
+    rtol = info_new.rtol
+    atol = info_new.atol
+    modelKernel = info_new.modelkernel
 
     
     ### check general properties of the given arguments that are independent of the model
@@ -39,7 +39,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
             return False, "\nPlease do not give empty strings for model names!\n"
 
     if not len(ModelName)==len(integrationType): 
-	return False,"\nPlease provide the same amount of model sources and integration types!\n"
+        return False,"\nPlease provide the same amount of model sources and integration types!\n"
     
     if not len(ModelName)==len(modelWeights): 
         return False,"\nPlease provide the same amount of model sources and model weights!\n"
@@ -52,13 +52,13 @@ def checkInputABC(info_new , fname, custom_distance, design ):
             return False,"\nPlease provide data that correspond to the length of your timepoints!\n"
 
     if not len(ModelName)==len(priors):
-	return False,"\nPlease provide prior distributions for each model!\n"
+        return False,"\nPlease provide prior distributions for each model!\n"
     
     if not len(ModelName)==len(x0priors):
-	return False,"\nPlease provide initial values for each model!\n"
+        return False,"\nPlease provide initial values for each model!\n"
     
     if not modelKernel>0.0:
-	return False,"\nPlease provide a model Kernel larger than 0!\n"
+        return False,"\nPlease provide a model Kernel larger than 0!\n"
     
     if len(epsilon)>1 and  custom_distance==False:
         return False,"\nPlease provide a custom distance function when you specify more than 1 epsilon schedule!\n"
@@ -70,11 +70,11 @@ def checkInputABC(info_new , fname, custom_distance, design ):
         if not len(source)==len(ModelName): 
             return False,"\nPlease provide the same amount of model sources and model names!\n"
         
-	reader=libsbml.SBMLReader()
-	for mod in range(0,len(source)):
-	    
-	    document=reader.readSBML(source[mod])
-	    model=document.getModel()
+        reader=libsbml.SBMLReader()
+        for mod in range(0,len(source)):
+
+            document=reader.readSBML(source[mod])
+            model=document.getModel()
 
             numSpecies=model.getNumSpecies()
             numGlobalParameters=model.getNumParameters()
@@ -123,7 +123,7 @@ def checkInputABC(info_new , fname, custom_distance, design ):
             if not len(x0priors[mod])==numSpecies:
                 return False,"\nPlease provide an initial value for each species in model "+ModelName[mod]+"!\n"
 
-	  # number species:  fit-data-variables
+            # number species:  fit-data-variables
 
 
 
@@ -135,35 +135,35 @@ def checkInputABC(info_new , fname, custom_distance, design ):
             
     for mod in range(0,len(ModelName)):
 
-	string=integrationType[mod]
-	if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):
-	    return False,"\nThe integration type for model "+ModelName[mod]+" does not exist!\n"
+        string=integrationType[mod]
+        if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):
+            return False,"\nThe integration type for model "+ModelName[mod]+" does not exist!\n"
 
         for ic in range(len(x0priors[mod])):
              if not (x0priors[mod][ic][0]==0 or x0priors[mod][ic][0]==1 or x0priors[mod][ic][0]==2 or x0priors[mod][ic][0]==3):
-		return False, "\nThe prior distribution of initial condition "+repr(ic+1)+" in model "+ModelName[mod]+" does not exist!\n"           
+                return False, "\nThe prior distribution of initial condition "+repr(ic+1)+" in model "+ModelName[mod]+" does not exist!\n"
 
-	for param in range(0,len(priors[mod])):
-	    if not len(priors[mod][param])==3:
-		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
-	    
-	    if not (priors[mod][param][0]==0 or priors[mod][param][0]==1 or priors[mod][param][0]==2 or priors[mod][param][0]==3):
-		return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
+        for param in range(0,len(priors[mod])):
+            if not len(priors[mod][param])==3:
+                return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
+
+            if not (priors[mod][param][0]==0 or priors[mod][param][0]==1 or priors[mod][param][0]==2 or priors[mod][param][0]==3):
+                return False, "\nThe prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" does not exist!\n"
             
-	    if priors[mod][param][0]==2:
-		if not priors[mod][param][1]<priors[mod][param][2]:
-		    return False, "\nThe range of the uniform prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
-	    
-	    if priors[mod][param][0]==3:
-		if not (priors[mod][param][1]>=0 or priors[mod][param][2]>=0):
-		    return False, "\nThe mean or scale of the lognormal prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
-	    
-	    ##if kernel[mod][param][0]==1 and not priors[mod][param][0]==0:
+            if priors[mod][param][0]==2:
+                if not priors[mod][param][1]<priors[mod][param][2]:
+                    return False, "\nThe range of the uniform prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
+
+            if priors[mod][param][0]==3:
+                if not (priors[mod][param][1]>=0 or priors[mod][param][2]>=0):
+                    return False, "\nThe mean or scale of the lognormal prior distribution of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
+
+        ##if kernel[mod][param][0]==1 and not priors[mod][param][0]==0:
             ##    if constKernels==False:
             ##        if not kernel[mod][param][1]<kernel[mod][param][2]:
             ##            return False, "\nThe range of the uniform pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
-	    
-	    ##if kernel[mod][param][0]==2 and not priors[mod][param][0]==0:
+
+        ##if kernel[mod][param][0]==2 and not priors[mod][param][0]==0:
             ##    if constKernels==False:
             ##        if not kernel[mod][param][2]>0:
             ##            return False, "\nThe variance of the gaussian pertubation kernel of parameter "+repr(param+1)+" in model "+ModelName[mod]+" is wrong defined!\n"
@@ -195,16 +195,16 @@ def checkInputSimulation(info_new , fname):
     
     """
 
-    name = 	info_new.name
-    timepoints = 	info_new.times
-    IntegrationType =   info_new.type
-    modelWeights = 	info_new.modelprior
-    priors = 	        info_new.prior
-    x0priors =          info_new.x0prior
-    source = 	        info_new.source
-    fit = 		info_new.fit
-    beta = 		info_new.beta
-    dt = 		info_new.dt
+    name = info_new.name
+    timepoints = info_new.times
+    IntegrationType = info_new.type
+    modelWeights = info_new.modelprior
+    priors = info_new.prior
+    x0priors = info_new.x0prior
+    source = info_new.source
+    fit = info_new.fit
+    beta = info_new.beta
+    dt = info_new.dt
 
     for i in range(0, len(name)):
         if name[i] == "":
@@ -220,11 +220,11 @@ def checkInputSimulation(info_new , fname):
         if not len(source)==len(name): 
             return False,"\nPlease provide the same amount of model sources and model names!\n"
         
-	reader=libsbml.SBMLReader()
-	for mod in range(0,len(source)):
-	    
-	    document=reader.readSBML(source[mod])
-	    model=document.getModel()
+        reader=libsbml.SBMLReader()
+        for mod in range(0,len(source)):
+
+            document=reader.readSBML(source[mod])
+            model=document.getModel()
 
             numSpecies=model.getNumSpecies()
             numGlobalParameters=model.getNumParameters()
@@ -261,9 +261,9 @@ def checkInputSimulation(info_new , fname):
             
     for mod in range(0,len(name)):
 
-	string=IntegrationType[mod]
-	if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):
-	    return False,"\nThe integration type for model "+ModelName[mod]+" does not exist!\n"
+        string=IntegrationType[mod]
+        if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):
+            return False,"\nThe integration type for model "+ModelName[mod]+" does not exist!\n"
 
 
     return True,""

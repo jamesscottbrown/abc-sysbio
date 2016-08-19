@@ -40,11 +40,11 @@ class CUDAParser(Parser):
         for i in range(0, len(self.listOfReactions)):
             for n in range(0, self.numLocalParameters[i]):
                 self.parameterId.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getId())
-		if (len(self.writer.parsedModel.parameterId) - self.comp) < 10:
+                if (len(self.writer.parsedModel.parameterId) - self.comp) < 10:
                     self.writer.parsedModel.parameterId.append("parameter0" + repr(len(self.parameterId) - self.comp))
                 else:
                     self.writer.parsedModel.parameterId.append("parameter" + repr(len(self.parameterId) - self.comp))
-        	name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()
+                name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()
                 new_name = 'parameter' + repr(len(self.parameterId) - self.comp)
                 node = self.sbmlModel.getReaction(i).getKineticLaw().getMath()
                 new_node = self.rename(node, name, new_name)
@@ -120,4 +120,3 @@ class CUDAParser(Parser):
                         s = self.writer.parsedModel.functionArgument[fun][k]
                         s = re.sub(self.mathPython[nam], self.mathCuda[nam], s)
                         self.writer.parsedModel.functionArgument[fun][k] = s
-        

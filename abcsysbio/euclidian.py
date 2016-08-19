@@ -20,9 +20,8 @@ def euclidianDistance(data1, data2, parameters, model):
     else:
         z = (data1 - data2)*(data1 - data2)
         distance = numpy.sqrt(numpy.sum(z))
-	
+
     if distance < 0:
         return [None]
     else:
         return [distance]
-        

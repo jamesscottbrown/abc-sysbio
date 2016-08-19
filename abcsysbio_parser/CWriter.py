@@ -25,13 +25,13 @@ class CWriter(Writer):
             self.hppOutputFile.write("_HPP_\n")
             
             self.hppOutputFile.write("""
-		
-		#include <vector>
-		#include <iostream>
-		#include "newmat.h"
-		#include "newmatio.h"
-		#include "newmatap.h"
-    		class ChildModel {
+
+        #include <vector>
+        #include <iostream>
+        #include "newmat.h"
+        #include "newmatio.h"
+        #include "newmatap.h"
+        class ChildModel {
               public: 
             
               /**
@@ -67,7 +67,7 @@ class CWriter(Writer):
                * @param double parameters[] Array containing the parameter's values for which we want to compute the hazards (the number of parameters depend on the model and doesn't have to be the number of reactions)
                */
               ColumnVector getHazards(const double concentrations[],
-            				  const double parameters[]);
+                            const double parameters[]);
               
               /**
                * Virtual method modifying the concentrations and parameters depending on some criteria defined by the SBML
@@ -76,7 +76,7 @@ class CWriter(Writer):
                * @param double parameters[] Array containing the parameter's values
                */
               void applyRulesAndEvents(double concentrations[],
-            				   double parameters[], double time);
+                            double parameters[], double time);
             """)
             
             for i in range(0, len(self.parsedModel.listOfFunctions)):

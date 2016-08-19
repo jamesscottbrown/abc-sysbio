@@ -106,19 +106,8 @@ def ParseAndWrite(source, integrationType, modelName = None, inputPath = "", out
                         print "\nError: Only Euler is available in Python"
                     else:
                         if method is None or method[model]== "":
-			    parser = CandPythonParser(source[model], modelName[model], "Python SDE", 1, inputPath, outputPath)
+                            parser = CandPythonParser(source[model], modelName[model], "Python SDE", 1, inputPath, outputPath)
                         else:
                             parser = CandPythonParser(source[model], modelName[model], "Python SDE", method[model], inputPath, outputPath)
                 else:
                     parser = CandPythonParser(source[model], modelName[model], integrationType[model], None, inputPath, outputPath)
-           
-        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        

@@ -163,21 +163,21 @@ def compute_cov(population,w):
     cov = zeros( [dimvar,dimvar], float)
     m=list()
     for k in range(dimvar):
-	m.append(0)
+        m.append(0)
         for i in range(nbsamp):
             m[k] += w[i]*population[k][i]
-	m[k]=m[k]/sum(w)
+        m[k]=m[k]/sum(w)
     for i in range(nbsamp):
-	for j in range(dimvar):
+        for j in range(dimvar):
             for k in range(j):
-	        cov[j,k] += w[i]*(population[j][i] - m[j])*(population[k][i] - m[k])
+                cov[j,k] += w[i]*(population[j][i] - m[j])*(population[k][i] - m[k])
     cov =cov + transpose(cov)
     for i in range(nbsamp):
-	for j in range(dimvar):
+        for j in range(dimvar):
             cov[j,j] += w[i]*(population[j][i] - m[j])*(population[j][i] - m[j])    
     for j in range(dimvar):
         for k in range(dimvar):
-	    cov[j,k]=cov[j,k]/sum(w)
+            cov[j,k]=cov[j,k]/sum(w)
     return cov
 
 
@@ -196,5 +196,5 @@ def compute_optcovmat(population,w,p):
         C[i,i]+=w[n]*(population[i][n]-p[i])*(population[i][n]-p[i])    
     for j in range(dimvar):
         for k in range(dimvar):
-	    C[j,k]=C[j,k]/sum(w)    
+            C[j,k]=C[j,k]/sum(w)
     return C

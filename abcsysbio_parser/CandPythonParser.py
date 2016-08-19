@@ -35,10 +35,9 @@ class CandPythonParser(Parser):
         for i in range(0, len(self.listOfReactions)):
             for n in range(0, self.numLocalParameters[i]):
                 self.parameterId.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getId())
-		self.writer.parsedModel.parameterId.append("parameter"+repr(len(self.parameterId)-self.comp))
-        	name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()
+                self.writer.parsedModel.parameterId.append("parameter"+repr(len(self.parameterId)-self.comp))
+                name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()
                 new_name = 'parameter' + repr(len(self.parameterId) - self.comp)
                 node = self.sbmlModel.getReaction(i).getKineticLaw().getMath()
                 new_node = self.rename(node, name, new_name)
                 self.writer.parsedModel.kineticLaw[i] = formulaToString(new_node)
-    
