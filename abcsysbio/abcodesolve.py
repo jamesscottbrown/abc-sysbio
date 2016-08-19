@@ -65,7 +65,7 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
 
         data[1],parameters = func.rules(data[1],parameters, intTime2)
         
-        if ((timepoints[counter] - intTime2)<0.000000001):
+        if (timepoints[counter] - intTime2)<0.000000001:
             solutions_out[counter] = data[1]
             counter += 1
             if counter == len(timepoints):
@@ -88,7 +88,7 @@ def abcodeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01,
         current_concentrations, parameters = func.rules(current_concentrations, parameters, next_time)
         current_concentrations = data[1]
 
-        if ((t2 - next_time)<0.000000001):
+        if (t2 - next_time)<0.000000001:
             return [ current_concentrations, next_time, True ]
 
         time = next_time

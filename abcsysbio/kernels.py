@@ -198,7 +198,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
                 params[n] = tmp[ind]
                 ind += 1
 
-        if (kernel_type==4 or kernel_type==5):
+        if kernel_type==4 or kernel_type==5:
             mean=list()
             for n in kernel[0]:
                 mean.append(params[n])
@@ -267,7 +267,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 	kern = kern/auxilliary
 	return kern
 
-    elif (kernel_type==4  or kernel_type==5):
+    elif kernel_type==4  or kernel_type==5:
         p0 = list()
         p = list()
         D=kernel[2]
@@ -327,7 +327,7 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
 		mean.append(parameters[k][n])
             scale=this_kernel[2]
             ret.append(statistics.mvnormcdf(low,up,mean, scale))
-        elif (kernel_type==4 or kernel_type==5):
+        elif kernel_type==4 or kernel_type==5:
             up=list()
             low=list()
             mean=list()

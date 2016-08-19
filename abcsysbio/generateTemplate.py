@@ -283,9 +283,9 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
         sum_file.write("\n")
         
-        if(numGlobalParameters==0): string=" (all of them are local parameters)\n"
-        elif(numGlobalParameters==1): string=" (the first parameter is a global parameter)\n"
-        elif(numLocalParameters==0): string=" (all of them are global parameters)\n"
+        if numGlobalParameters==0: string= " (all of them are local parameters)\n"
+        elif numGlobalParameters==1: string= " (the first parameter is a global parameter)\n"
+        elif numLocalParameters==0: string= " (all of them are global parameters)\n"
         else: string=" (the first "+repr(numGlobalParameters)+" are global parameter)\n"
 
         sum_file.write("Parameter: "+repr(numParameters)+string)

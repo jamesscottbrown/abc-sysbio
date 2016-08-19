@@ -96,7 +96,7 @@ class input_output:
          
                 nparticles = len(results.weights)
                 for g in range(nparticles):
-                    if( results.models[g] == mod ):
+                    if results.models[g] == mod:
                         for k in range(len(results.parameters[g])):
                             print >>param_file, results.parameters[g][k],
                         print >>param_file, ""
@@ -184,7 +184,7 @@ class input_output:
                         # here we assume beta=1
                         for i in range(0,min(len(results.trajectories),1000) ):
                             # print "printing traj", i
-                            if( results.models[i] == mod):
+                            if results.models[i] == mod:
                             #if i < 500:
                                 arr = results.trajectories[i][0]
                                 nrow, ncol = numpy.shape( arr )

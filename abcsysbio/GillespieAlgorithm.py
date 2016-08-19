@@ -74,7 +74,7 @@ def GillespieInt(func, initValues, parameters, outputtimes):
         while flag:
                 current_concentrations, parameters=func.events(current_concentrations, parameters,time)
                 current_concentrations, parameters=func.rules(current_concentrations, parameters,time)
-                list_of_hazards = func.Hazards((current_concentrations),parameters)
+                list_of_hazards = func.Hazards(current_concentrations, parameters)
                 total_hazard = sum(list_of_hazards)
                 #Check that total hazard is not less than zero.
 
@@ -85,7 +85,7 @@ def GillespieInt(func, initValues, parameters, outputtimes):
                         new_time = (-1.0/total_hazard) * numpy.log(URN)
                         time += new_time
 
-                while (time >= outputtimes[counter]):
+                while time >= outputtimes[counter]:
                         concentrations[counter] = current_concentrations
                         counter += 1
                         if counter >= len(outputtimes):
@@ -117,7 +117,7 @@ def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, xmax)
 
 		#print current_concentrations, time
 
-		list_of_hazards = func.Hazards((current_concentrations),parameters)
+		list_of_hazards = func.Hazards(current_concentrations, parameters)
 		total_hazard = sum(list_of_hazards)
 
 		if sum( current_concentrations ) > xmax :
@@ -137,6 +137,6 @@ def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, xmax)
 		except KeyError:
 			switch["default"]()
 
-		if(time >= t2):
+		if time >= t2:
 			return [ current_concentrations, time, True ]
 	

@@ -185,7 +185,7 @@ class abcsmc:
         all_start_time = time.time()
         for pop in range(len(epsilon)):
             start_time = time.time()
-            if(pop==0 and self.sample_from_prior==True): 
+            if pop==0 and self.sample_from_prior==True:
                 results = self.iterate_one_population(epsilon[pop], prior=True)
             else:
                 results = self.iterate_one_population(epsilon[pop], prior=False)
@@ -199,7 +199,7 @@ class abcsmc:
                 print "\t sampling steps / acceptance rate :", self.sampled[pop], "/", self.rate[pop]
                 print "\t model marginals                  :", self.margins_prev
                 
-                if(len(self.dead_models) > 0):
+                if len(self.dead_models) > 0:
                     print "\t dead models                      :", self.dead_models
                 if self.timing:
                     print "\t timing:                          :", end_time - start_time
@@ -221,7 +221,7 @@ class abcsmc:
             if final: done = True
 
             start_time = time.time()
-            if(pop==0 and self.sample_from_prior==True): 
+            if pop==0 and self.sample_from_prior==True:
                 results = self.iterate_one_population(epsilon, prior=True)
             else:
                 results = self.iterate_one_population(epsilon, prior=False)
@@ -238,7 +238,7 @@ class abcsmc:
                 print "\t model marginals                  :", self.margins_prev
                 print "\t next epsilon                     :", epsilon
                 
-                if(len(self.dead_models) > 0):
+                if len(self.dead_models) > 0:
                     print "\t dead models                      :", self.dead_models
                 if self.timing:
                     print "\t timing:                          :", end_time - start_time
@@ -298,7 +298,7 @@ class abcsmc:
         naccepted = 0
         sampled = 0
 
-        while(naccepted < self.nparticles):
+        while naccepted < self.nparticles:
             if self.debug == 2:print "\t****batch"
             sampled_models = self.sampleTheModelFromPrior()
             sampled_params = self.sampleTheParameterFromPrior(sampled_models)
@@ -343,9 +343,9 @@ class abcsmc:
         naccepted = 0
         sampled = 0
 
-        while(naccepted < self.nparticles):
+        while naccepted < self.nparticles:
             if self.debug == 2:print "\t****batch"
-            if( prior == False):
+            if prior == False:
                 sampled_models = self.sampleTheModel()
                 sampled_params = self.sampleTheParameter(sampled_models)
             else:
@@ -378,7 +378,7 @@ class abcsmc:
         # Finished loop over particles
         if self.debug == 2:print "**** end of population naccepted/sampled:", naccepted,  sampled
 
-        if( prior == False):
+        if prior == False:
             self.computeParticleWeights()
         else:
             for i in range(self.nparticles):
@@ -508,7 +508,7 @@ class abcsmc:
             if self.debug == 2:print "\t\t\tmodel / mapping:", m , mapping
             n_to_simulate = len( mapping )
                     
-            if( n_to_simulate > 0 ):
+            if n_to_simulate > 0:
                 # simulate this chunk
                 this_model_parameters = []
                 for i in range(n_to_simulate):
@@ -590,7 +590,7 @@ class abcsmc:
             for i in range(self.nbatch):
                 ret[i] = statistics.w_choice( range(self.nmodel), self.margins_prev )
 
-            if( len(self.dead_models) < self.nmodel-1 ):
+            if len(self.dead_models) < self.nmodel-1:
             #if(0): 
                 # perturb models
                 for i in range(self.nbatch):
@@ -683,7 +683,7 @@ class abcsmc:
             # print "Calculating denom\t", selected_model, sampleParameters
             for j in range(self.nparticles):
 
-                if(int(this_model) == int(self.model_prev[j]) ):
+                if int(this_model) == int(self.model_prev[j]):
                     # print "\t", j, model_prev[j], weights_prev[j], parameters_prev[j]
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
@@ -722,7 +722,7 @@ def sample_particle(nparticle, selected_model, margins_prev, model_prev, weights
         if int(model_prev[i]) == int(selected_model) :
             F = F + weights_prev[i]
 
-            if(F > u):
+            if F > u:
                 break
 
     return i
@@ -749,11 +749,11 @@ def howToFitData(fitting_instruction,samplePoints):
 def getPdfModelKernel(m, m0, modelK, nmodel, dead_models):
     ndead = len(dead_models)
    
-    if(ndead == nmodel-1):
+    if ndead == nmodel-1:
         return 1.0
     else:
 
-        if(m == m0):
+        if m == m0:
             return modelK
         else:
             return (1-modelK)/(nmodel-ndead)
@@ -763,7 +763,7 @@ def evaluateDistance(distance,epsilon):
     accepted = False
     for i in range(len(epsilon)):
         #print "d:", distance[i], epsilon[i][t]
-        if(epsilon[i] >= distance[i] >= 0):
+        if epsilon[i] >= distance[i] >= 0:
             accepted = True
         else: 
             accepted = False

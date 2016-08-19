@@ -60,7 +60,7 @@ class GillespiePythonWriter(Writer):
         
         for i in range(0,self.parsedModel.numReactions):
             self.out_file.write("Hazard_"+repr(i))
-            if(not i==(self.parsedModel.numReactions-1)):
+            if not i==(self.parsedModel.numReactions-1):
                 self.out_file.write(", ")
     
         self.out_file.write(")\n\n")

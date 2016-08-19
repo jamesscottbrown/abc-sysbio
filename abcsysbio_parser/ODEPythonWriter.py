@@ -35,18 +35,18 @@ class ODEPythonWriter(Writer):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]):
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         self.out_file.write(self.parsedModel.parameterId[i])
                         self.out_file.write(",")
     
         self.out_file.write("),time,parameter=(")
         for i in range(0,len(self.parsedModel.parameterId)):
             dontPrint = False
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): 
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         dontPrint=True
             if not dontPrint:
                 self.out_file.write(repr(self.parsedModel.parameter[i]))
@@ -61,9 +61,9 @@ class ODEPythonWriter(Writer):
         counter=0
         for i in range(0,len(self.parsedModel.parameterId)):
             dontPrint = False
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): dontPrint=True
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]: dontPrint=True
             if not dontPrint:
                 self.out_file.write("\t"+self.parsedModel.parameterId[i]+"=parameter["+repr(counter)+"]\n")
                 counter += 1
@@ -82,10 +82,10 @@ class ODEPythonWriter(Writer):
         for i in range(0,self.parsedModel.numSpecies):
             ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write("\td_"+self.parsedModel.speciesId[i]+"=")
-            if (self.parsedModel.species[i].isSetCompartment() == True):
+            if self.parsedModel.species[i].isSetCompartment() == True:
                 self.out_file.write("(")
             for k in range(0,self.parsedModel.numReactions):
-                if(not self.parsedModel.stoichiometricMatrix[i][k]==0.0):
+                if not self.parsedModel.stoichiometricMatrix[i][k]==0.0:
                     self.out_file.write("(")
                     self.out_file.write(repr(self.parsedModel.stoichiometricMatrix[i][k]))
                     self.out_file.write(")*(")
@@ -93,11 +93,11 @@ class ODEPythonWriter(Writer):
                     self.out_file.write(string)
                     self.out_file.write(")+")
             self.out_file.write("0")
-            if (self.parsedModel.species[i].isSetCompartment() == True):
+            if self.parsedModel.species[i].isSetCompartment() == True:
                 self.out_file.write(")/")
                 mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
                 for j in range(0, len(self.parsedModel.listOfParameter)):
-                    if (self.parsedModel.listOfParameter[j].getId() == mySpeciesCompartment):
+                    if self.parsedModel.listOfParameter[j].getId() == mySpeciesCompartment:
                         self.out_file.write(self.parsedModel.parameterId[j])
                         break
             self.out_file.write("\n")
@@ -119,9 +119,9 @@ class ODEPythonWriter(Writer):
             self.out_file.write("d_"+self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]):
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         self.out_file.write("d_"+self.parsedModel.parameterId[i])
                         self.out_file.write(",")
     
@@ -135,17 +135,17 @@ class ODEPythonWriter(Writer):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]):
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         self.out_file.write(self.parsedModel.parameterId[i])
                         self.out_file.write(",")
         self.out_file.write("),(")
         for i in range(0,len(self.parsedModel.parameterId)):
             dontPrint = False
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): 
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         dontPrint=True
             if not dontPrint:
                 self.out_file.write(self.parsedModel.parameterId[i])
@@ -192,18 +192,18 @@ class ODEPythonWriter(Writer):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]):
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         self.out_file.write(self.parsedModel.parameterId[i])
                         self.out_file.write(",")
         self.out_file.write("),(")
     
         for i in range(0,len(self.parsedModel.parameterId)):
             dontPrint = False
-            if (self.parsedModel.listOfParameter[i].getConstant() == False):
+            if self.parsedModel.listOfParameter[i].getConstant() == False:
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if (self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]): 
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]:
                         dontPrint=True
             if not dontPrint:
                 self.out_file.write(self.parsedModel.parameterId[i])

@@ -18,7 +18,7 @@ def w_choice(item,weight):
 
 ################## compute the pdf of uniform distribution
 def getPdfUniform(scale1,scale2,parameter):
-    if ((parameter>scale2) or (parameter<scale1)):
+    if (parameter>scale2) or (parameter<scale1):
         return 0.0
     else:
         return 1/(scale2-scale1)

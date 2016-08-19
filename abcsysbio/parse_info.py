@@ -35,7 +35,7 @@ def parse_required_single_value( node, tagname, message, cast ):
         print message
         sys.exit()
 
-    return(ret)
+    return ret
 
 def parse_required_vector_value( node, tagname, message, cast ):
     try:
@@ -56,7 +56,7 @@ def parse_required_vector_value( node, tagname, message, cast ):
         print message
         sys.exit()
 
-    return(ret)
+    return ret
 
 def process_prior( tmp ):
     prior_tmp = [0,0,0]
@@ -125,7 +125,7 @@ def parse_fitting_information( node ):
 
             ret.append( ttmp )
 
-        return( ret )
+        return ret
 
 class algorithm_info:
     """
@@ -186,7 +186,7 @@ class algorithm_info:
         ### get epsilon
         if self.mode != 1:
             # automated epsilon takes priority
-            if( len( xmldoc.getElementsByTagName('autoepsilon') ) > 0 ):
+            if len(xmldoc.getElementsByTagName('autoepsilon')) > 0:
                 # found automated epsilon
                 epsref = xmldoc.getElementsByTagName('autoepsilon')[0]
                 self.final_epsilon = parse_required_vector_value( epsref, "finalepsilon", "Please provide a whitespace separated list of values for <autoepsilon><finalepsilon>" , float )

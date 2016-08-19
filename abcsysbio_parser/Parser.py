@@ -24,23 +24,23 @@ class Parser:
         heun=re.compile('Heun', re.I)
         milstein=re.compile('Milstein', re.I)
         
-        if(cuda.search(integrationType)):
-            if(gil.search(integrationType)):
+        if cuda.search(integrationType):
+            if gil.search(integrationType):
                 self.writer = GillespieCUDAWriter(sbmlFileName, modelName, inputPath, outputPath)
-            elif(ode.search(integrationType)):
+            elif ode.search(integrationType):
                 self.writer = OdeCUDAWriter(sbmlFileName, modelName, inputPath, outputPath)
-            elif(sde.search(integrationType)):
+            elif sde.search(integrationType):
                 self.writer = SdeCUDAWriter(sbmlFileName, modelName, inputPath, outputPath)
         
-        elif(c.search(integrationType)):
+        elif c.search(integrationType):
             self.writer = CWriter(sbmlFileName, modelName, inputPath, outputPath)
             
-        elif(py.search(integrationType)):
-            if(gil.search(integrationType)):
+        elif py.search(integrationType):
+            if gil.search(integrationType):
                 self.writer = GillespiePythonWriter(sbmlFileName, modelName, inputPath, outputPath)
-            elif(ode.search(integrationType)):
+            elif ode.search(integrationType):
                 self.writer = ODEPythonWriter(sbmlFileName, modelName, inputPath, outputPath)
-            elif(sde.search(integrationType)):
+            elif sde.search(integrationType):
                 self.writer = SDEPythonWriter(sbmlFileName, modelName, inputPath, outputPath)       
         
         reader = SBMLReader()
@@ -63,7 +63,7 @@ class Parser:
 
         self.comp = 0
         self.parse()
-        if((py.search(integrationType) or cuda.search(integrationType)) and sde.search(integrationType)):
+        if (py.search(integrationType) or cuda.search(integrationType)) and sde.search(integrationType):
             self.writer.write(method)
         else:
             self.writer.write()
@@ -131,14 +131,14 @@ class Parser:
                     self.reactant[j] = self.listOfReactions[i].getReactant(j)
                     
                     for k in range(0, len(self.writer.parsedModel.species)):
-                        if(self.reactant[j].getSpecies() == self.writer.parsedModel.species[k].getId()):
+                        if self.reactant[j].getSpecies() == self.writer.parsedModel.species[k].getId():
                             self.S1[k] = self.reactant[j].getStoichiometry()
                 
                 for l in range(0, numProducts[i]):
                     self.product[l] = self.listOfReactions[i].getProduct(l)
                     
                     for k in range(0, len(self.writer.parsedModel.species)):
-                        if(self.product[l].getSpecies() == self.writer.parsedModel.species[k].getId()):
+                        if self.product[l].getSpecies() == self.writer.parsedModel.species[k].getId():
                             self.S2[k] = self.product[l].getStoichiometry()
                 
                 for m in range(0, len(self.writer.parsedModel.species)):
@@ -229,7 +229,7 @@ class Parser:
     def rename(self, node, name, new_name):
             typ = node.getType()
             
-            if (typ == AST_NAME or typ == AST_NAME_TIME):
+            if typ == AST_NAME or typ == AST_NAME_TIME:
                 nme = node.getName()
                 if nme == name:
                     node.setName(new_name)

@@ -80,7 +80,7 @@ class GillespieCUDAWriter(Writer):
             self.out_file.write("__device__ float "+self.parsedModel.listOfFunctions[i].getId()+"(")
             for j in range(0, self.parsedModel.listOfFunctions[i].getNumArguments()):
                 self.out_file.write("float "+self.parsedModel.functionArgument[i][j])
-                if(j<( self.parsedModel.listOfFunctions[i].getNumArguments()-1)):
+                if j<(self.parsedModel.listOfFunctions[i].getNumArguments()-1):
                     self.out_file.write(",")
             self.out_file.write("){\n    return ")
             self.out_file.write(self.parsedModel.functionBody[i])
@@ -91,7 +91,7 @@ class GillespieCUDAWriter(Writer):
         for i in range(0,len(self.parsedModel.stoichiometricMatrix[0])):
             for j in range(0,len(self.parsedModel.stoichiometricMatrix)):
                 self.out_file.write("    "+repr(self.parsedModel.stoichiometricMatrix[j][i]))
-                if (not(i==(len(self.parsedModel.stoichiometricMatrix)-1) and (j==(len(self.parsedModel.stoichiometricMatrix[0])-1)))):
+                if not(i==(len(self.parsedModel.stoichiometricMatrix)-1) and (j==(len(self.parsedModel.stoichiometricMatrix[0])-1))):
                     self.out_file.write(",")
             self.out_file.write("\n")
     
@@ -121,10 +121,10 @@ class GillespieCUDAWriter(Writer):
                     #string=pq.sub('y['+repr(q)+']' ,string)
                     string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                 for q in range(0,len(self.parsedModel.parameterId)):
-                    if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
+                    if not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                         flag = False
                         for r in range(0,len(self.parsedModel.eventVariable)):
-                            if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
+                            if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                 flag = True
                         if not flag:
                             pq = re.compile(self.parsedModel.parameterId[q])
@@ -154,10 +154,10 @@ class GillespieCUDAWriter(Writer):
                     #string=pq.sub('y['+repr(q)+']' ,string)
                     string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
                 for q in range(0,len(self.parsedModel.parameterId)):
-                    if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
+                    if not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                         flag = False
                         for r in range(0,len(self.parsedModel.eventVariable)):
-                            if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
+                            if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                 flag = True
                         if not flag:
                             pq = re.compile(self.parsedModel.parameterId[q])
@@ -185,10 +185,10 @@ class GillespieCUDAWriter(Writer):
                     pq = re.compile(self.parsedModel.speciesId[q])
                     string=pq.sub("y["+repr(q)+"]" ,string)
                 for q in range(0,len(self.parsedModel.parameterId)):
-                    if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
+                    if not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                         flag = False
                         for r in range(0,len(self.parsedModel.eventVariable)):
-                            if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
+                            if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                 flag = True
                         if not flag:
                             pq = re.compile(self.parsedModel.parameterId[q])
@@ -209,10 +209,10 @@ class GillespieCUDAWriter(Writer):
                 #string=pq.sub('y['+repr(q)+']' ,string)
                 string = rep(string, self.parsedModel.speciesId[q],'y['+repr(q)+']')
             for q in range(0,len(self.parsedModel.parameterId)):
-                if (not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable)):
+                if not(self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                     flag = False
                     for r in range(0,len(self.parsedModel.eventVariable)):
-                        if (self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]):
+                        if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                             flag = True
                     if not flag:
                         pq = re.compile(self.parsedModel.parameterId[q])

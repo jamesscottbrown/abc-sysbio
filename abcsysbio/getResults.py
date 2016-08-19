@@ -285,7 +285,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
         if dim == 1:
             max1=2
             max2=2
-        elif (max1 > dim):
+        elif max1 > dim:
             max2=dim
         else: max2=max1
 
@@ -321,7 +321,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
                     ax = gca()
                     ay = gca()
 
-                    if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+                    if (xmax-xmin)<0.1 or (xmax-xmin)>=1000: xFormatter = FormatStrFormatter('%0.1e')
                     else: xFormatter = FormatStrFormatter('%0.2f')
                     ax.xaxis.set_major_formatter(xFormatter)    
 
@@ -364,7 +364,7 @@ def getAllHistograms(matrix,weights,population=1,PlotName='AllScatterPlots', mod
             ax = gca()
             ay = gca()
 
-            if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+            if (xmax-xmin)<0.1 or (xmax-xmin)>=1000: xFormatter = FormatStrFormatter('%0.1e')
             else: xFormatter = FormatStrFormatter('%0.2f')
             ax.xaxis.set_major_formatter(xFormatter)    
 
@@ -489,11 +489,11 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
 
                 ax = gca()
                 ay = gca()
-                if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+                if (xmax-xmin)<0.1 or (xmax-xmin)>=1000: xFormatter = FormatStrFormatter('%0.1e')
                 else: xFormatter = FormatStrFormatter('%0.2f')
                 ax.xaxis.set_major_formatter(xFormatter)
                 
-                if ((ymax-ymin)<0.1 or (ymax-ymin)>=1000): yFormatter = FormatStrFormatter('%0.1e')
+                if (ymax-ymin)<0.1 or (ymax-ymin)>=1000: yFormatter = FormatStrFormatter('%0.1e')
                 else: yFormatter = FormatStrFormatter('%0.2f')
                 ay.yaxis.set_major_formatter(yFormatter)
 
@@ -575,11 +575,11 @@ def getAllScatterPlots(matrix,weights,populations=(1,),PlotName='AllScatterPlots
                    
                     ax = gca()
                     ay = gca()
-                    if ((xmax-xmin)<0.1 or (xmax-xmin)>=1000): xFormatter = FormatStrFormatter('%0.1e')
+                    if (xmax-xmin)<0.1 or (xmax-xmin)>=1000: xFormatter = FormatStrFormatter('%0.1e')
                     else: xFormatter = FormatStrFormatter('%0.2f')
                     ax.xaxis.set_major_formatter(xFormatter)
 
-                    if ((ymax-ymin)<0.1 or (ymax-ymin)>=1000): yFormatter = FormatStrFormatter('%0.1e')
+                    if (ymax-ymin)<0.1 or (ymax-ymin)>=1000: yFormatter = FormatStrFormatter('%0.1e')
                     else: yFormatter = FormatStrFormatter('%0.2f')
                     ay.yaxis.set_major_formatter(yFormatter)
 
@@ -688,7 +688,7 @@ def getModelDistribution(matrix,epsilon,rate,PlotName='ModelDistribution'):
     if dim == 1:
         max1=2
         max2=2
-    elif (max1 > dim):
+    elif max1 > dim:
         max2=dim
     else: max2=max1
 

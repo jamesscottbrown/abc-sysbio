@@ -23,14 +23,14 @@ class CUDAParser(Parser):
     def getGlobalParameters(self):
         Parser.getGlobalParameters(self)
         for i in range(0, self.writer.parsedModel.numGlobalParameters):
-            if ((len(self.writer.parsedModel.parameterId) - self.comp) < 9):
+            if (len(self.writer.parsedModel.parameterId) - self.comp) < 9:
                 self.writer.parsedModel.parameterId.append("parameter0" + repr(i + 1))
             else:
                 self.writer.parsedModel.parameterId.append("parameter" + repr(i + 1))
     def getSpecies(self):
         Parser.getSpecies(self)
         for k in range(0, len(self.listOfSpecies)):
-            if ((len(self.writer.parsedModel.speciesId) - self.comp) < 9):
+            if (len(self.writer.parsedModel.speciesId) - self.comp) < 9:
                 self.writer.parsedModel.speciesId.append("species0" + repr(k + 1))
             else:
                 self.writer.parsedModel.speciesId.append("species" + repr(k + 1))
@@ -40,7 +40,7 @@ class CUDAParser(Parser):
         for i in range(0, len(self.listOfReactions)):
             for n in range(0, self.numLocalParameters[i]):
                 self.parameterId.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getId())
-		if ((len(self.writer.parsedModel.parameterId) - self.comp) < 10):
+		if (len(self.writer.parsedModel.parameterId) - self.comp) < 10:
                     self.writer.parsedModel.parameterId.append("parameter0" + repr(len(self.parameterId) - self.comp))
                 else:
                     self.writer.parsedModel.parameterId.append("parameter" + repr(len(self.parameterId) - self.comp))

@@ -52,14 +52,14 @@ def sdeint(func,InitValues,parameter, timepoints,dt=0.01):
             
         solutions[i],parameter=func.rules(solutions[i],parameter,times[i])
             
-        if(solutions[i][k]<0.0):
+        if solutions[i][k]<0.0:
             solutions[i][k]=0.0
             #print "\nSDE simulation failed. Try smaller timestep.\n"
             return solutions_out
         
-        if(n>=len(timepoints)):
+        if n>=len(timepoints):
             return zeros([len(timepoints),dim])
-        if((timepoints[n]-times[i])<0.000000001):
+        if (timepoints[n]-times[i])<0.000000001:
             solutions_out[n]=solutions[i]
             n += 1
 
@@ -88,12 +88,12 @@ def sdeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01):
         X[0], parameters = func.rules(X[0], parameters, next_time)
         
         for k in range(0,dim):
-            if(X[0][k]<0.0):
+            if X[0][k]<0.0:
                 X[0][k]=0.0
                 #print "\nSDE simulation failed. Try smaller timestep.\n"
                 return [ X[0], next_time, False ]
 
-        if ((t2 - next_time)<0.000000001):
+        if (t2 - next_time)<0.000000001:
             return [ X[0], next_time, True ]
 
         time = next_time
