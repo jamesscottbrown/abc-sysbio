@@ -194,7 +194,7 @@ class SdeCUDAWriter(Writer):
             if \
                             self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[i].getBoundaryCondition() == False:
                 self.out_file.write("    float d_y"+repr(i)+"= DT * (")
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write("(")
                 
                 reactionWritten = False
@@ -242,7 +242,7 @@ class SdeCUDAWriter(Writer):
                         self.out_file.write(string)
                         self.out_file.write(")")
                         
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write(")/")
                     mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
                     for j in range(0, len(self.parsedModel.listOfParameter)):
@@ -283,7 +283,7 @@ class SdeCUDAWriter(Writer):
             if \
                             self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[i].getBoundaryCondition() == False:
                 self.out_file.write("    d_y"+repr(i)+" += (")
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write("(")
                 
                 reactionWritten = False
@@ -335,7 +335,7 @@ class SdeCUDAWriter(Writer):
                         #self.out_file.write("*randNormal(rngRegs,sqrt(DT))")
                         
                         
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write(")/")
                     mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
                     for j in range(0, len(self.parsedModel.listOfParameter)):
@@ -506,7 +506,7 @@ class SdeCUDAWriter(Writer):
             if \
                             self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[i].getBoundaryCondition() == False:
                 self.out_file.write("    float d_y"+repr(i)+"= DT * (")
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write("(")
                 
                 reactionWritten = False
@@ -554,7 +554,7 @@ class SdeCUDAWriter(Writer):
                         self.out_file.write(string)
                         self.out_file.write(")")
                         
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write(")/")
                     mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
                     for j in range(0, len(self.parsedModel.listOfParameter)):
@@ -595,7 +595,7 @@ class SdeCUDAWriter(Writer):
             if \
                             self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[i].getBoundaryCondition() == False:
                 self.out_file.write("    d_y"+repr(i)+"+= (")
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write("(")
                     
                 reactionWritten = False
@@ -646,7 +646,7 @@ class SdeCUDAWriter(Writer):
                         self.out_file.write(randomVariables[k])
                         #self.out_file.write("*randNormal(rngRegs,sqrt(DT))")
                         
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write(")/")
                     mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
                     for j in range(0, len(self.parsedModel.listOfParameter)):

@@ -345,7 +345,7 @@ class abcsmc:
 
         while naccepted < self.nparticles:
             if self.debug == 2:print "\t****batch"
-            if prior == False:
+            if not prior:
                 sampled_models = self.sampleTheModel()
                 sampled_params = self.sampleTheParameter(sampled_models)
             else:
@@ -378,7 +378,7 @@ class abcsmc:
         # Finished loop over particles
         if self.debug == 2:print "**** end of population naccepted/sampled:", naccepted,  sampled
 
-        if prior == False:
+        if not prior:
             self.computeParticleWeights()
         else:
             for i in range(self.nparticles):

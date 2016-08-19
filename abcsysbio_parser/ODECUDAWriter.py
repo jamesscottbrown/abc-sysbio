@@ -197,7 +197,7 @@ class OdeCUDAWriter(Writer):
             if \
                             self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[i].getBoundaryCondition() == False:
                 self.out_file.write("        ydot["+repr(i)+"]=")
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write("(")
                     
                 reactionWritten = False
@@ -246,7 +246,7 @@ class OdeCUDAWriter(Writer):
                         self.out_file.write(")")
                         
                         
-                if self.parsedModel.species[i].isSetCompartment() == True:
+                if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write(")/")
                     mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
                     for j in range(0, len(self.parsedModel.listOfParameter)):
