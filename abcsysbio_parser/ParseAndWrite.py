@@ -61,7 +61,7 @@ def ParseAndWrite(source, integrationType, modelName = None, inputPath = "", out
     #check that you have model names,
     #if not the models will be named model1, model2, etc
     else:
-        if modelName==None:
+        if modelName is None:
             modelName=[]
             for x in range(0,len(source)):
                 modelName.append("model"+repr(x+1))
@@ -80,7 +80,7 @@ def ParseAndWrite(source, integrationType, modelName = None, inputPath = "", out
                     if heun.search(integrationType[model]) or milstein.search(integrationType[model]):
                         print "\nError: Only Euler is available in Cuda"
                     else:
-                        if method==None or method[model]== "":
+                        if method is None or method[model]== "":
                             parser = SdeAndGillespieCUDAParser(source[model], modelName[model], "CUDA SDE", 1, inputPath, outputPath)
                         else:
                             parser = SdeAndGillespieCUDAParser(source[model], modelName[model], "CUDA SDE", method[model], inputPath, outputPath)
@@ -91,7 +91,7 @@ def ParseAndWrite(source, integrationType, modelName = None, inputPath = "", out
                     
             elif c.search(integrationType[model]):
                 if sde.search(integrationType[model]):
-                    if not (method==None or method==1):
+                    if not (method is None or method==1):
                         print "\nError: Only the method 1 of SDE resolution can be used in C"
                     else:
                         parser = CandPythonParser(source[model],modelName[model], "C", None, inputPath, outputPath)
@@ -99,13 +99,13 @@ def ParseAndWrite(source, integrationType, modelName = None, inputPath = "", out
                     parser = CandPythonParser(source[model],modelName[model], "C", None, inputPath, outputPath)
             
             elif py.search(integrationType[model]):
-                if integrationType==None:
+                if integrationType is None:
                     print "\nError: an integration type is required for Python"
                 elif sde.search(integrationType[model]):
                     if heun.search(integrationType[model]) or milstein.search(integrationType[model]):
                         print "\nError: Only Euler is available in Python"
                     else:
-                        if method==None or method[model]== "":
+                        if method is None or method[model]== "":
 			    parser = CandPythonParser(source[model], modelName[model], "Python SDE", 1, inputPath, outputPath)
                         else:
                             parser = CandPythonParser(source[model], modelName[model], "Python SDE", method[model], inputPath, outputPath)
