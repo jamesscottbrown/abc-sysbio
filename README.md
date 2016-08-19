@@ -3,7 +3,7 @@ This is the distribution of the Python package ``abc-sysbio``.
 
 ``abc-sysbio`` implements likelihood free parameter inference and model selection in dynamical systems.
 
-It is designed to work with both stochastic and deterministic models written in python or Systems Biology Markup Language (SBML).
+It is designed to work with both stochastic and deterministic models written in [Python](https://www.python.org/) or [Systems Biology Markup Language](http://sbml.org) (SBML).
 
 ``abc-sysbio`` combines three algorithms: ABC rejection sampler, ABC SMC for parameter inference and ABC SMC for model selection.
 
