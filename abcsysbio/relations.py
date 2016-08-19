@@ -1,6 +1,7 @@
 from math import *
 import re
 
+
 def mathMLConditionParser(mathMLstring):
     """
     Replaces and and or with and_ and or_ in a MathML string.
@@ -13,12 +14,13 @@ def mathMLConditionParser(mathMLstring):
             A mathMLstring
 
     """
-    
+
     andString = re.compile("and")
     orString = re.compile("or")
     mathMLstring = andString.sub("and_", mathMLstring)
     mathMLstring = orString.sub("or_", mathMLstring)
     return mathMLstring
+
 
 def eq(a, b):
     """Check for equality between a and b.
@@ -36,6 +38,7 @@ def eq(a, b):
     else:
         return False
 
+
 def neq(a, b):
     """Check for inequality between a and b.
     Return boolean
@@ -51,6 +54,7 @@ def neq(a, b):
         return True
     else:
         return False
+
 
 def gt(a, b):
     """Check for inequality a > b
@@ -68,6 +72,7 @@ def gt(a, b):
     else:
         return False
 
+
 def lt(a, b):
     """Check for inequality a < b
     Return boolean
@@ -83,6 +88,7 @@ def lt(a, b):
         return True
     else:
         return False
+
 
 def geq(a, b):
     """Check for inequality a>=b
@@ -101,6 +107,7 @@ def geq(a, b):
     else:
         return False
 
+
 def leq(a, b):
     """Check for inequality a<=b
     Return boolean
@@ -116,6 +123,7 @@ def leq(a, b):
         return True
     else:
         return False
+
 
 def and_(a, b):
     """Logical AND a and b
@@ -133,6 +141,7 @@ def and_(a, b):
     else:
         return False
 
+
 def or_(a, b):
     """Logical OR a or b
     Return boolean
@@ -149,9 +158,10 @@ def or_(a, b):
     else:
         return False
 
-#NB piecewise functions have to be passed through MathMLConditionParser because
-#they may contain and and or statements (which need to be made into and_ and or_
-#statements)
+
+# NB piecewise functions have to be passed through MathMLConditionParser because
+# they may contain and and or statements (which need to be made into and_ and or_
+# statements)
 
 def piecewise(*args):
     """implements MathML piecewise function passed as args
@@ -159,16 +169,15 @@ def piecewise(*args):
     they may contain and and or statements (which need to be made into and_ and or_
     statements)
     """
-    
+
     result = None
 
     for i in range(1, len(args), 2):
         if args[i]:
-            result = args[i-1]
+            result = args[i - 1]
             break
-            
+
         else:
             result = args[-1]
 
     return result
-

@@ -6,21 +6,18 @@
 from generateTemplate import generateTemplate
 from checkInputArguments import checkInputABC
 
-__all__ = [ 'GillespieAlgorithm',
-            'sdeint',
-            'abcodesolve',
-            'checkInputABC',
-            'checkInputArguments',
-            'generateTemplate',
-            'relations.py',
-            'euclidian',
-            'getResults',
-            'input_output',
-            'abcsmc',
-            'input_output',
-            'kernels',
-            'parse_info',
-            'statistics' ]
-
-
-
+__all__ = ['GillespieAlgorithm',
+           'sdeint',
+           'abcodesolve',
+           'checkInputABC',
+           'checkInputArguments',
+           'generateTemplate',
+           'relations.py',
+           'euclidian',
+           'getResults',
+           'input_output',
+           'abcsmc',
+           'input_output',
+           'kernels',
+           'parse_info',
+           'statistics']

@@ -2,12 +2,13 @@ from Parser import Parser
 from libsbml import formulaToString
 import re
 
+
 class CUDAParser(Parser):
     def __init__(self, sbmlFileName, modelName, integrationType, method, inputPath="", outputPath=""):
         self.mathPython = []
         self.mathCuda = []
         Parser.__init__(self, sbmlFileName, modelName, integrationType, method, inputPath="", outputPath="")
-        
+
     def parse(self):
         Parser.parse(self)
         self.getGlobalParameters()
@@ -19,7 +20,7 @@ class CUDAParser(Parser):
         self.renameMathFunctions()
         self.renameEverything()
         self.writer.parsedModel.numGlobalParameters += 1
-        
+
     def getGlobalParameters(self):
         Parser.getGlobalParameters(self)
         for i in range(0, self.writer.parsedModel.numGlobalParameters):
@@ -27,6 +28,7 @@ class CUDAParser(Parser):
                 self.writer.parsedModel.parameterId.append("parameter0" + repr(i + 1))
             else:
                 self.writer.parsedModel.parameterId.append("parameter" + repr(i + 1))
+
     def getSpecies(self):
         Parser.getSpecies(self)
         for k in range(0, len(self.listOfSpecies)):
@@ -34,7 +36,7 @@ class CUDAParser(Parser):
                 self.writer.parsedModel.speciesId.append("species0" + repr(k + 1))
             else:
                 self.writer.parsedModel.speciesId.append("species" + repr(k + 1))
-            
+
     def analyseModelStructure(self):
         Parser.analyseModelStructure(self)
         for i in range(0, len(self.listOfReactions)):
@@ -65,7 +67,7 @@ class CUDAParser(Parser):
         self.mathPython.append('floor')
         self.mathPython.append('tan')
         self.mathPython.append('time')
-        
+
         self.mathCuda.append('log10')
         self.mathCuda.append('acos')
         self.mathCuda.append('asin')
@@ -79,41 +81,41 @@ class CUDAParser(Parser):
         self.mathCuda.append('ceil')
         self.mathCuda.append('floor')
         self.mathCuda.append('tan')
-    
+
     def renameEverything(self):
         Parser.renameEverything(self)
-        for nam in range(0, len(self.mathPython)): 
+        for nam in range(0, len(self.mathPython)):
             for k in range(0, len(self.writer.parsedModel.kineticLaw)):
                 if re.search(self.mathPython[nam], self.writer.parsedModel.kineticLaw[k]):
                     s = self.writer.parsedModel.kineticLaw[k]
                     s = re.sub(self.mathPython[nam], self.mathCuda[nam], s)
                     self.writer.parsedModel.kineticLaw[k] = s
-    
+
             for k in range(0, len(self.writer.parsedModel.ruleFormula)):
                 if re.search(self.mathPython[nam], self.writer.parsedModel.ruleFormula[k]):
                     s = self.writer.parsedModel.ruleFormula[k]
                     s = re.sub(self.mathPython[nam], self.mathCuda[nam], s)
                     self.writer.parsedModel.ruleFormula[k] = s
-    
+
             for k in range(0, len(self.writer.parsedModel.eventFormula)):
                 for cond in range(0, len(self.listOfAssignmentRules)):
                     if re.search(self.mathPython[nam], self.writer.parsedModel.eventFormula[k][cond]):
                         s = self.writer.parsedModel.eventFormula[k][cond]
                         s = re.sub(self.mathPython[nam], self.mathCuda[nam], s)
                         self.writer.parsedModel.eventFormula[k][cond] = s
-    
+
             for k in range(0, len(self.writer.parsedModel.eventCondition)):
                 if re.search(self.mathPython[nam], self.writer.parsedModel.eventCondition[k]):
                     s = self.writer.parsedModel.eventCondition[k]
                     s = re.sub(self.mathPython[nam], self.mathCuda[nam], s)
                     self.writer.parsedModel.eventCondition[k] = s
-    
+
             for k in range(0, len(self.writer.parsedModel.functionBody)):
                 if re.search(self.mathPython[nam], self.writer.parsedModel.functionBody[k]):
                     s = self.writer.parsedModel.functionBody[k]
                     s = re.sub(self.mathPython[nam], self.mathCuda[nam], s)
                     self.writer.parsedModel.functionBody[k] = s
-    
+
             for fun in range(0, len(self.writer.parsedModel.listOfFunctions)):
                 for k in range(0, len(self.writer.parsedModel.functionArgument[fun])):
                     if re.search(self.mathPython[nam], self.writer.parsedModel.functionArgument[fun][k]):

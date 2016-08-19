@@ -1,15 +1,14 @@
 import numpy
 
-try: from scipy.integrate.odepack import odeint
+try:
+    from scipy.integrate.odepack import odeint
 except ImportError:
 
-    def odeint(fun, conc, times, args, atol, rtol ):
+    def odeint(fun, conc, times, args, atol, rtol):
         return 0
-   
 
 
 def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol=None):
-  
     """Call scipy.integrate.odeint.
     Return values for each species whose trajectory is described by func at timepoints given by timepoints.
 
@@ -42,30 +41,31 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
             For a stiff model a small absolute error tolerance is required for a successful simulation.
 
     """
-   
-    #array for the data that the user wants
-    solutions_out=numpy.zeros([len(timepoints), len(InitValues)])
-    current_concentrations = tuple(InitValues)
-    #current_concentrations,parameters=func.rules(current_concentrations, parameters, timepoints[0])
-    current_concentrations,parameters=func.rules(current_concentrations, parameters,0)
-    solutions_out[0]=current_concentrations
 
-    counter = 0 # 1
+    # array for the data that the user wants
+    solutions_out = numpy.zeros([len(timepoints), len(InitValues)])
+    current_concentrations = tuple(InitValues)
+    # current_concentrations,parameters=func.rules(current_concentrations, parameters, timepoints[0])
+    current_concentrations, parameters = func.rules(current_concentrations, parameters, 0)
+    solutions_out[0] = current_concentrations
+
+    counter = 0  # 1
 
     flag = True
 
-    #intTime1 = timepoints[0]
+    # intTime1 = timepoints[0]
     intTime1 = 0
-  
+
     while flag:
 
-        intTime2 = min(intTime1+dt, timepoints[counter])
-      
-        data = odeint(func.modelfunction, current_concentrations, [intTime1, intTime2], args=(parameters,), atol=atol, rtol=rtol )
+        intTime2 = min(intTime1 + dt, timepoints[counter])
 
-        data[1],parameters = func.rules(data[1],parameters, intTime2)
-        
-        if (timepoints[counter] - intTime2)<0.000000001:
+        data = odeint(func.modelfunction, current_concentrations, [intTime1, intTime2], args=(parameters,), atol=atol,
+                      rtol=rtol)
+
+        data[1], parameters = func.rules(data[1], parameters, intTime2)
+
+        if (timepoints[counter] - intTime2) < 0.000000001:
             solutions_out[counter] = data[1]
             counter += 1
             if counter == len(timepoints):
@@ -75,31 +75,24 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
 
     return solutions_out
 
-def abcodeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01, atol=None, rtol=None):
 
+def abcodeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01, atol=None, rtol=None):
     time = t1
-    next_time = min(time+dt,t2)
-    current_concentrations,parameters=func.rules(current_concentrations, parameters, time)
+    next_time = min(time + dt, t2)
+    current_concentrations, parameters = func.rules(current_concentrations, parameters, time)
 
     while 1:
-        #print time, next_time, t2, current_concentrations
-        data = odeint(func.modelfunction, current_concentrations, [time, next_time], args=(parameters,), atol=atol, rtol=rtol )
+        # print time, next_time, t2, current_concentrations
+        data = odeint(func.modelfunction, current_concentrations, [time, next_time], args=(parameters,), atol=atol,
+                      rtol=rtol)
 
         current_concentrations, parameters = func.rules(current_concentrations, parameters, next_time)
         current_concentrations = data[1]
 
-        if (t2 - next_time)<0.000000001:
-            return [ current_concentrations, next_time, True ]
+        if (t2 - next_time) < 0.000000001:
+            return [current_concentrations, next_time, True]
 
         time = next_time
-        next_time = min(time+dt,t2)
+        next_time = min(time + dt, t2)
 
-    return [ current_concentrations, time, False ]
-
-
-
-
-
-    
-
-
+    return [current_concentrations, time, False]
