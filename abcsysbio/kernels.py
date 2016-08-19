@@ -332,15 +332,15 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel ):
             low=list()
             mean=list()
             for n in this_kernel[0]:
-        if this_prior[n][0]==2:
+                if this_prior[n][0]==2:
                     low.append(this_prior[n][1])
                     up.append(this_prior[n][2])
-        if this_prior[n][0]==1:
-            low.append(-float('inf'))
-            up.append(float('inf'))
-        if this_prior[n][0]==3:
-            low.append(0)
-            up.append(float('inf'))
+                if this_prior[n][0]==1:
+                    low.append(-float('inf'))
+                    up.append(float('inf'))
+                if this_prior[n][0]==3:
+                    low.append(0)
+                    up.append(float('inf'))
                 mean.append(parameters[k][n])
             cur_part=list()
             for n in range(nparam):
