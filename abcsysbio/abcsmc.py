@@ -763,7 +763,7 @@ def evaluateDistance(distance,epsilon):
     accepted = False
     for i in range(len(epsilon)):
         #print "d:", distance[i], epsilon[i][t]
-        if(distance[i]<=epsilon[i] and distance[i]>=0 ):
+        if(epsilon[i] >= distance[i] >= 0):
             accepted = True
         else: 
             accepted = False

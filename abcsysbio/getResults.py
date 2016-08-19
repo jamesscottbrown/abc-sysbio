@@ -32,7 +32,7 @@ def bin_data(d, w, nbins):
 
         i = 0
         for i in range(nbins):
-            if kd > bin_l[i] and kd <= bin_u[i]:
+            if bin_l[i] < kd <= bin_u[i]:
                 count[i] = count[i] + kw
                 break
 
