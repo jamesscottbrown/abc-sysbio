@@ -285,7 +285,8 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
             start = p * max1 ** 2
             end = p * max1 * max2 + max1 * max2
             for i in range(int(start), int(end)):
-                if i >= len(matrix[int(model) - 1][0]): break
+                if i >= len(matrix[int(model) - 1][0]):
+                    break
                 matplotlib.pyplot.subplot(max1, max2, i - start + 1)
                 subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
                 x = matrix[int(model) - 1][int(population) - 1][i]
@@ -491,7 +492,8 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                     yFormatter = FormatStrFormatter('%0.2f')
                 ay.yaxis.set_major_formatter(yFormatter)
 
-                if permutation[i][0] == permutation[i][1]: yFormatter = FormatStrFormatter('%i')
+                if permutation[i][0] == permutation[i][1]:
+                    yFormatter = FormatStrFormatter('%i')
 
                 axis([xmin, xmax, ymin, ymax])
                 xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -521,7 +523,8 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
             start = p * max1 ** 2
             end = p * max1 ** 2 + max1 ** 2
             for i in range(int(start), int(end)):
-                if i >= len(permutation): break
+                if i >= len(permutation):
+                    break
                 matplotlib.pyplot.subplot(max1, max1, i - start + 1)
                 subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
                 w = weights[int(model) - 1][int(populations[len(populations) - 1]) - 1][int(permutation[i][0]) - 1]
@@ -579,7 +582,8 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                         yFormatter = FormatStrFormatter('%0.2f')
                     ay.yaxis.set_major_formatter(yFormatter)
 
-                    if permutation[i][0] == permutation[i][1]: yFormatter = FormatStrFormatter('%i')
+                    if permutation[i][0] == permutation[i][1]:
+                        yFormatter = FormatStrFormatter('%i')
 
                     axis([xmin, xmax, ymin, ymax])
                     xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -691,7 +695,8 @@ def getModelDistribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
         start = p * max1 ** 2
         end = p * max1 * max2 + max1 * max2
         for i in range(int(start), int(end)):
-            if i >= len(matrix): break
+            if i >= len(matrix): 
+                break
             matplotlib.pyplot.subplot(max1, max2, i - start + 1)
             subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.8)
             left = arange(1, matrix.shape[1] + 1, 1)

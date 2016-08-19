@@ -195,9 +195,12 @@ def generateTemplate(source, filename, sumname, dataname=None):
         r3 = 0
         listOfRules = model.getListOfRules()
         for k in range(0, len(listOfRules)):
-            if model.getRule(k).isAlgebraic(): r1 += 1
-            if model.getRule(k).isAssignment(): r2 += 1
-            if model.getRule(k).isRate(): r3 += 1
+            if model.getRule(k).isAlgebraic():
+                r1 += 1
+            if model.getRule(k).isAssignment():
+                r2 += 1
+            if model.getRule(k).isRate():
+                r3 += 1
 
         comp = 0
         NumCompartments = model.getNumCompartments()
@@ -312,7 +315,8 @@ def generateTemplate(source, filename, sumname, dataname=None):
                 if not listOfParameter[k].getConstant():
                     for j in range(0, len(listOfRules)):
                         if listOfRules[j].isRate():
-                            if parameterId[k] == listOfRules[j].getVariable(): Print = False
+                            if parameterId[k] == listOfRules[j].getVariable():
+                                Print = False
 
             if Print:
                 counter += 1

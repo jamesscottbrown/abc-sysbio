@@ -66,8 +66,8 @@ class ODEPythonWriter(Writer):
             dontPrint = False
             if not self.parsedModel.listOfParameter[i].getConstant():
                 for k in range(0, len(self.parsedModel.listOfRules)):
-                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
-                            self.parsedModel.parameterId[i]: dontPrint = True
+                    if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == self.parsedModel.parameterId[i]: 
+                        dontPrint = True
             if not dontPrint:
                 self.out_file.write("\t" + self.parsedModel.parameterId[i] + "=parameter[" + repr(counter) + "]\n")
                 counter += 1

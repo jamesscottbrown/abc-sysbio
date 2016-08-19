@@ -186,7 +186,7 @@ class abcsmc:
         all_start_time = time.time()
         for pop in range(len(epsilon)):
             start_time = time.time()
-            if pop == 0 and self.sample_from_prior == True:
+            if pop == 0 and self.sample_from_prior:
                 results = self.iterate_one_population(epsilon[pop], prior=True)
             else:
                 results = self.iterate_one_population(epsilon[pop], prior=False)
@@ -220,10 +220,11 @@ class abcsmc:
         epsilon = [1e10 for i in final_epsilon]
 
         while not done:
-            if final: done = True
+            if final:
+                done = True
 
             start_time = time.time()
-            if pop == 0 and self.sample_from_prior == True:
+            if pop == 0 and self.sample_from_prior:
                 results = self.iterate_one_population(epsilon, prior=True)
             else:
                 results = self.iterate_one_population(epsilon, prior=False)
@@ -301,7 +302,8 @@ class abcsmc:
         sampled = 0
 
         while naccepted < self.nparticles:
-            if self.debug == 2: print "\t****batch"
+            if self.debug == 2:
+                print "\t****batch"
             sampled_models = self.sampleTheModelFromPrior()
             sampled_params = self.sampleTheParameterFromPrior(sampled_models)
 
@@ -315,7 +317,8 @@ class abcsmc:
                 if naccepted < self.nparticles and accepted_index[i] > 0:
 
                     self.model_curr[naccepted] = sampled_models[i]
-                    if self.debug == 2: print "\t****accepted", i, accepted_index[i], sampled_models[i]
+                    if self.debug == 2:
+                        print "\t****accepted", i, accepted_index[i], sampled_models[i]
 
                     for p in range(self.models[sampled_models[i]].nparameters):
                         self.parameters_curr[naccepted].append(sampled_params[i][p])
@@ -328,10 +331,12 @@ class abcsmc:
 
             print "#### current naccepted:", naccepted
 
-            if self.debug == 2: print "\t****end  batch naccepted/sampled:", naccepted, sampled
+            if self.debug == 2:
+                print "\t****end  batch naccepted/sampled:", naccepted, sampled
 
         # Finished loop over particles
-        if self.debug == 2: print "**** end of population naccepted/sampled:", naccepted, sampled
+        if self.debug == 2:
+            print "**** end of population naccepted/sampled:", naccepted, sampled
 
         results = abcsmc_results(naccepted, sampled, naccepted / float(sampled), self.trajectories, self.distances,
                                  0, self.model_curr, 0, self.parameters_curr, 0)
@@ -339,13 +344,15 @@ class abcsmc:
         io.write_data_simulation(0, results, 0, self.models, self.data)
 
     def iterate_one_population(self, next_epsilon, prior):
-        if self.debug == 2: print "\n\n****iterate_one_population: next_epsilon, prior", next_epsilon, prior
+        if self.debug == 2:
+            print "\n\n****iterate_one_population: next_epsilon, prior", next_epsilon, prior
 
         naccepted = 0
         sampled = 0
 
         while naccepted < self.nparticles:
-            if self.debug == 2: print "\t****batch"
+            if self.debug == 2:
+                print "\t****batch"
             if not prior:
                 sampled_models = self.sampleTheModel()
                 sampled_params = self.sampleTheParameter(sampled_models)
@@ -363,7 +370,8 @@ class abcsmc:
                 if naccepted < self.nparticles and accepted_index[i] > 0:
 
                     self.model_curr[naccepted] = sampled_models[i]
-                    if self.debug == 2: print "\t****accepted", i, accepted_index[i], sampled_models[i]
+                    if self.debug == 2:
+                        print "\t****accepted", i, accepted_index[i], sampled_models[i]
 
                     for p in range(self.models[sampled_models[i]].nparameters):
                         self.parameters_curr[naccepted].append(sampled_params[i][p])
@@ -375,10 +383,12 @@ class abcsmc:
                     naccepted += 1
             print "#### current naccepted:", naccepted
 
-            if self.debug == 2: print "\t****end  batch naccepted/sampled:", naccepted, sampled
+            if self.debug == 2:
+                print "\t****end  batch naccepted/sampled:", naccepted, sampled
 
         # Finished loop over particles
-        if self.debug == 2: print "**** end of population naccepted/sampled:", naccepted, sampled
+        if self.debug == 2:
+            print "**** end of population naccepted/sampled:", naccepted, sampled
 
         if not prior:
             self.computeParticleWeights()
@@ -493,7 +503,8 @@ class abcsmc:
 
     def simulate_and_compare_to_data(self, sampled_models, sampled_params, this_epsilon, do_comp=True):
         # Here do the simulations for each model together
-        if self.debug == 2: print '\t\t\t***simulate_and_compare_to_data'
+        if self.debug == 2:
+            print '\t\t\t***simulate_and_compare_to_data'
 
         ret = [0 for it in range(self.nbatch)]
         traj = [[] for it in range(self.nbatch)]
@@ -508,7 +519,8 @@ class abcsmc:
 
             # create a mapping to the original position
             mapping = numpy.arange(self.nbatch)[mods == m]
-            if self.debug == 2: print "\t\t\tmodel / mapping:", m, mapping
+            if self.debug == 2:
+                print "\t\t\tmodel / mapping:", m, mapping
             n_to_simulate = len(mapping)
 
             if n_to_simulate > 0:
@@ -519,7 +531,8 @@ class abcsmc:
 
                 # print "this_model_parameters", this_model_parameters
                 sims = self.models[m].simulate(this_model_parameters, self.data.timepoints, n_to_simulate, self.beta)
-                if self.debug == 2: print '\t\t\tsimulation dimensions:', sims.shape
+                if self.debug == 2:
+                    print '\t\t\tsimulation dimensions:', sims.shape
 
                 for i in range(n_to_simulate):
                     # store the trajectories and distances in a list of length beta
@@ -542,7 +555,8 @@ class abcsmc:
                         if dist:
                             ret[mapping[i]] += 1
 
-                        if self.debug == 2: print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, \
+                        if self.debug == 2:
+                            print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, \
                         mapping[i], ret[mapping[i]]
 
                     traj[mapping[i]] = copy.deepcopy(this_traj)
@@ -613,7 +627,8 @@ class abcsmc:
         return ret[:]
 
     def sampleTheParameter(self, sampled_models):
-        if self.debug == 2: print "\t\t\t***sampleTheParameter"
+        if self.debug == 2: 
+            print "\t\t\t***sampleTheParameter"
         ret = []
 
         for i in range(self.nbatch):
@@ -636,16 +651,20 @@ class abcsmc:
                 prior_prob = self.perturbfn(reti, self.models[sampled_models[i]].prior, self.kernels[sampled_models[i]],
                                             self.kernel_type, self.special_cases[sampled_models[i]])
 
-                if self.debug == 2: print "\t\t\tsampled p prob:", prior_prob
-                if self.debug == 2: print "\t\t\tnew:", reti
-                if self.debug == 2: print "\t\t\told:", self.parameters_prev[p]
+                if self.debug == 2: 
+                    print "\t\t\tsampled p prob:", prior_prob
+                if self.debug == 2: 
+                    print "\t\t\tnew:", reti
+                if self.debug == 2: 
+                    print "\t\t\told:", self.parameters_prev[p]
 
             ret.append(reti)
 
         return [x[:] for x in ret]
 
     def computeParticleWeights(self):
-        if self.debug == 2: print "\t***computeParticleWeights"
+        if self.debug == 2: 
+            print "\t***computeParticleWeights"
 
         for k in range(self.nparticles):
             this_model = self.model_curr[k]
@@ -699,8 +718,8 @@ class abcsmc:
                                                                      self.kernels[this_model], self.kernel_aux[j],
                                                                      self.kernel_type)
 
-                if self.debug == 2: print "\tnumer/denom_m/denom/m(t-1) : ", numer, denom_m, denom, self.margins_prev[
-                    this_model]
+                if self.debug == 2:
+                    print "\tnumer/denom_m/denom/m(t-1) : ", numer, denom_m, denom, self.margins_prev[this_model]
 
             self.weights_curr[k] = numer / (denom_m * denom / self.margins_prev[this_model])
 

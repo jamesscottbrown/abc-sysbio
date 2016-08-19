@@ -91,9 +91,9 @@ def mvstdnormcdf(lower, upper, corrcoef, **kwds):
     correl = zeros(n * (n - 1) / 2.0)  # dtype necessary?
 
     if (lower.ndim != 1) or (upper.ndim != 1):
-        raise ValueError, 'can handle only 1D bounds'
+        raise ValueError('can handle only 1D bounds')
     if len(upper) != n:
-        raise ValueError, 'bounds have different lengths'
+        raise ValueError('bounds have different lengths')
     if n == 2 and corrcoef.size == 1:
         correl = corrcoef
         # print 'case scalar rho', n
@@ -106,9 +106,9 @@ def mvstdnormcdf(lower, upper, corrcoef, **kwds):
             for jj in range(ii):
                 correl[jj + ((ii - 2) * (ii - 1)) / 2] = corrcoef[ii, jj]
     else:
-        raise ValueError, 'corrcoef has incorrect dimension'
+        raise ValueError('corrcoef has incorrect dimension')
 
-    if not 'maxpts' in kwds:
+    if 'maxpts' not in kwds:
         if n > 2:
             kwds['maxpts'] = 10000 * n
 

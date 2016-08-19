@@ -26,7 +26,8 @@ class input_output:
             self.folder += '_restart'
 
     def plot_data(self, data):
-        if self.havedata: plotData(data, self.folder + '/_data')
+        if self.havedata:
+            plotData(data, self.folder + '/_data')
 
     ################write rates, distances, trajectories
     def write_data(self, population, results, timing, models, data):
@@ -276,7 +277,8 @@ class input_output:
     ################create output folders
     def create_output_folders(self, modelnames, numOutput, pickling, simulation):
 
-        if simulation: pickling = False
+        if simulation:
+            pickling = False
 
         try:
             os.mkdir(self.folder)

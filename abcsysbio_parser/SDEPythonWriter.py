@@ -126,7 +126,6 @@ class SDEPythonWriter(Writer):
                 self.out_file.write(self.parsedModel.ruleFormula[i])
                 self.out_file.write("\n")
 
-
                 ##################################################
                 # noise terms
                 ##################################################
@@ -138,7 +137,8 @@ class SDEPythonWriter(Writer):
         for k in range(0, self.parsedModel.numReactions):
             countEntries = 0
             for i in range(0, self.parsedModel.numSpecies):
-                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: countEntries += 1
+                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0:
+                    countEntries += 1
 
             # define specific randomVariable
             if countEntries > 1:

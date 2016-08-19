@@ -269,7 +269,8 @@ class SdeCUDAWriter(Writer):
         for k in range(0, self.parsedModel.numReactions):
             countEntries = 0
             for i in range(0, self.parsedModel.numSpecies):
-                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: countEntries += 1
+                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: 
+                    countEntries += 1
 
             # define specific randomVariable
             if countEntries > 1:
@@ -280,8 +281,7 @@ class SdeCUDAWriter(Writer):
 
         # write noise terms
         for i in range(0, self.parsedModel.numSpecies):
-            if \
-                                    self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[
+            if self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[
                         i].getBoundaryCondition() == False:
                 self.out_file.write("    d_y" + repr(i) + " += (")
                 if self.parsedModel.species[i].isSetCompartment():
@@ -366,7 +366,6 @@ class SdeCUDAWriter(Writer):
         self.out_file.write("}\n")
 
         ################# same file
-
 
         p = re.compile('\s')
         # The user-defined functions used in the model must be written in the file
@@ -495,11 +494,9 @@ class SdeCUDAWriter(Writer):
                 self.out_file.write(";\n")
         # self.out_file.write("\n\n")
 
-
         # Write the derivatives
         for i in range(0, self.parsedModel.numSpecies):
-            if \
-                                    self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[
+            if self.parsedModel.species[i].getConstant() == False and self.parsedModel.species[
                         i].getBoundaryCondition() == False:
                 self.out_file.write("    float d_y" + repr(i) + "= DT * (")
                 if self.parsedModel.species[i].isSetCompartment():
@@ -577,7 +574,8 @@ class SdeCUDAWriter(Writer):
         for k in range(0, self.parsedModel.numReactions):
             countEntries = 0
             for i in range(0, numSpecies):
-                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: countEntries += 1
+                if self.parsedModel.stoichiometricMatrix[i][k] != 0.0: 
+                    countEntries += 1
 
             # define specific randomVariable
             if countEntries > 1:

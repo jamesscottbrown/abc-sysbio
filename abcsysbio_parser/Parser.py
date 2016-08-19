@@ -220,8 +220,8 @@ class Parser:
                     node = self.writer.parsedModel.listOfRules[k].getMath()
                     new_node = self.rename(node, name, new_name)
                     self.writer.parsedModel.ruleFormula[k] = formulaToString(new_node)
-                    if self.writer.parsedModel.ruleVariable[k] == name: self.writer.parsedModel.ruleVariable[
-                        k] = new_name
+                    if self.writer.parsedModel.ruleVariable[k] == name: 
+                        self.writer.parsedModel.ruleVariable[k] = new_name
 
                 for k in range(0, len(self.writer.parsedModel.listOfEvents)):
                     node = self.writer.parsedModel.listOfEvents[k].getTrigger().getMath()
@@ -234,7 +234,7 @@ class Parser:
                         new_node = self.rename(node, name, new_name)
                         self.writer.parsedModel.eventFormula[k][cond] = formulaToString(new_node)
                         if self.writer.parsedModel.eventVariable[k][cond] == name:
-                        self.writer.parsedModel.eventVariable[k][cond] = new_name
+                            self.writer.parsedModel.eventVariable[k][cond] = new_name
 
     def rename(self, node, name, new_name):
         typ = node.getType()

@@ -53,7 +53,6 @@ def getKernel(kernel_type, kernel, population, weights):
         kernel[2] = tmp
     # kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the variance.
 
-
     elif kernel_type == 3:
         # multi-variate normal kernel whose covariance is based on all the previous population
         if pop_size == 1:
@@ -149,7 +148,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
 
             delta = 0
             positive = False
-            if lflag == False and uflag == False:
+            if lflag is False and uflag is False:
                 # proceed as normal
                 delta = rnd.uniform(low=kernel[2][ind][0], high=kernel[2][ind][1])
             else:
