@@ -301,7 +301,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
                     for j in range(0, len(listOfRules)):
                         if listOfRules[j].isRate():
                             if parameterId[k]==listOfRules[j].getVariable(): Print = False
-            else: Print == True
+
             if Print:
                 counter += 1
                 sum_file.write("P"+repr(counter)+":\t"+parameterId[k]+"\t"+parameterId2[k]+"\t("+repr(parameter[k])+")\n")
