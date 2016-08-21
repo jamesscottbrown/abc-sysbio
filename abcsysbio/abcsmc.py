@@ -578,91 +578,122 @@ class abcsmc:
         return models
 
     def sampleTheParameterFromPrior(self, sampled_models):
-        ret = []
+        """
+        For each model whose index is in sampled_models, draw a sample of the corresponding parameters.
+
+        Parameters
+        ----------
+        sampled_models : a list of model indexes, of length self.nbatch
+
+        Returns
+        -------
+        a list of length self.nbatch, each entry of which is a list of parameter samples (whose length is model.nparameters
+            for the corresponding model)
+
+        """
+        samples = []
 
         for i in range(self.nbatch):
-            # print "sampleTheParameterFromPrior", i, sampled_models[i], self.models[ sampled_models[i] ].name, self.models[ sampled_models[i] ].nparameters
+            model = self.models[sampled_models[i]]
+            sample = [0] * model.nparameters
 
-            reti = [0 for it in range(self.models[sampled_models[i]].nparameters)]
+            for param in range(model.nparameters):
+                if model.prior[param][0] == 0:
+                    sample[param] = model.prior[param][1]
 
-            for n in range(self.models[sampled_models[i]].nparameters):
-                if self.models[sampled_models[i]].prior[n][0] == 0:
-                    reti[n] = self.models[sampled_models[i]].prior[n][1]
+                if model.prior[param][0] == 1:
+                    sample[param] = rnd.normal(loc=model.prior[param][1], scale=numpy.sqrt(model.prior[param][2]))
 
-                if self.models[sampled_models[i]].prior[n][0] == 1:
-                    reti[n] = rnd.normal(loc=self.models[sampled_models[i]].prior[n][1],
-                                         scale=numpy.sqrt(self.models[sampled_models[i]].prior[n][2]))
+                if model.prior[param][0] == 2:
+                    sample[param] = rnd.uniform(low=model.prior[param][1], high=model.prior[param][2])
 
-                if self.models[sampled_models[i]].prior[n][0] == 2:
-                    reti[n] = rnd.uniform(low=self.models[sampled_models[i]].prior[n][1],
-                                          high=self.models[sampled_models[i]].prior[n][2])
+                if model.prior[param][0] == 3:
+                    sample[param] = rnd.lognormal(mean=model.prior[param][1], sigma=numpy.sqrt(model.prior[param][2]))
 
-                if self.models[sampled_models[i]].prior[n][0] == 3:
-                    reti[n] = rnd.lognormal(mean=self.models[sampled_models[i]].prior[n][1],
-                                            sigma=numpy.sqrt(self.models[sampled_models[i]].prior[n][2]))
+            samples.append(sample[:])
 
-            ret.append(reti[:])
-
-        return [x[:] for x in ret]
+        return samples
 
     def sampleTheModel(self):
-        ret = [0 for it in range(self.nbatch)]
+        """
+        Returns a list of model numbers, of length self.nbatch, obtained by sampling from a categorical distribution
+        with probabilities self.modelprior, and then perturbing with a uniform model perturbation kernel.
+        """
+
+        models = [0] * self.nbatch
 
         if self.nmodel > 1:
+            # Sample models from prior distribution
             for i in range(self.nbatch):
-                ret[i] = statistics.w_choice(range(self.nmodel), self.margins_prev)
+                models[i] = statistics.w_choice(range(self.nmodel), self.margins_prev)
 
+            # perturb models
             if len(self.dead_models) < self.nmodel - 1:
-                # if(0):
-                # perturb models
+
                 for i in range(self.nbatch):
                     u = rnd.uniform(low=0, high=1)
+
                     if u > self.modelKernel:
                         # sample randomly from other (non dead) models
-                        not_available = self.dead_models[:]
-                        not_available.append(ret[i])
-                        ss = set(not_available)
-                        s = set(range(0, self.nmodel))
-                        # print "perturbing model ", set( range(self.nmodel) ), ss, s-ss, list(s-ss), numpy.array( list(s-ss) )
-                        ar = numpy.array(list(s - ss))
-                        rnd.shuffle(ar)
-                        perturbed_model = ar[0]
-                        # print "perturbation ", ret[i], "->", perturbed_model
-                        ret[i] = perturbed_model
-        return ret[:]
+                        not_available = set(self.dead_models[:])
+                        not_available.add(models[i])
+
+                        available_indexes = numpy.array(list(set(range(0, self.nmodel)) - not_available))
+                        rnd.shuffle(available_indexes)
+                        perturbed_model = available_indexes[0]
+
+                        models[i] = perturbed_model
+        return models[:]
 
     def sampleTheParameter(self, sampled_models):
+        """
+        For each model index in sampled_models, sample a set of parameters by sampling a particle from
+        the corresponding model (with probability biased by the particle weights); if this gives parameters with
+        probability <=0 the process is repeated.
+
+        Parameters
+        ----------
+        sampled_models : a list of model indexes, of length self.nbatch
+
+
+        Returns
+        -------
+        a list of length self.nbatch, each entry of which is a list of parameter samples (whose length is model.nparameters
+            for the corresponding model)
+
+        """
         if self.debug == 2:
             print "\t\t\t***sampleTheParameter"
-        ret = []
+        samples = []
 
         for i in range(self.nbatch):
-            np = self.models[sampled_models[i]].nparameters
-            reti = [0 for it in range(np)]
+            model = self.models[sampled_models[i]]
+            model_num = sampled_models[i]
+
+            num_params = model.nparameters
+            sample = [0] * num_params
 
             prior_prob = -1
             while prior_prob <= 0:
 
                 # sample putative particle from previous population
-                p = sample_particle_from_model(self.nparticles, sampled_models[i], self.margins_prev, self.model_prev,
+                particle = sample_particle_from_model(self.nparticles, model_num, self.margins_prev, self.model_prev,
                                                self.weights_prev)
 
-                for nn in range(np):
-                    reti[nn] = self.parameters_prev[p][nn]
+                for nn in range(num_params):
+                    sample[nn] = self.parameters_prev[particle][nn]
 
-                prior_prob = self.perturbfn(reti, self.models[sampled_models[i]].prior, self.kernels[sampled_models[i]],
-                                            self.kernel_type, self.special_cases[sampled_models[i]])
+                prior_prob = self.perturbfn(sample, model.prior, self.kernels[model_num],
+                                            self.kernel_type, self.special_cases[model_num])
 
                 if self.debug == 2:
                     print "\t\t\tsampled p prob:", prior_prob
-                if self.debug == 2:
-                    print "\t\t\tnew:", reti
-                if self.debug == 2:
-                    print "\t\t\told:", self.parameters_prev[p]
+                    print "\t\t\tnew:", sample
+                    print "\t\t\told:", self.parameters_prev[particle]
 
-            ret.append(reti)
+            samples.append(sample)
 
-        return [x[:] for x in ret]
+        return samples
 
     def compute_particle_weights(self):
         """
