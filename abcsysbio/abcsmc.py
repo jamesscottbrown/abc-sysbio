@@ -565,12 +565,17 @@ class abcsmc:
         return ret[:], distances, traj
 
     def sampleTheModelFromPrior(self):
-        ret = [0 for it in range(self.nbatch)]
+        """
+        Returns a list of model numbers, of length self.nbatch, drawn from a categorical distribution with probabilities
+         self.modelprior
+
+        """
+        models = [0] * self.nbatch
         if self.nmodel > 1:
             for i in range(self.nbatch):
-                ret[i] = statistics.w_choice(range(self.nmodel), self.modelprior)
+                models[i] = statistics.w_choice(range(self.nmodel), self.modelprior)
 
-        return ret[:]
+        return models
 
     def sampleTheParameterFromPrior(self, sampled_models):
         ret = []
