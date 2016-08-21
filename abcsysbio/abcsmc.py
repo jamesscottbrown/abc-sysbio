@@ -415,12 +415,12 @@ class abcsmc:
         for i in range(self.nparticles):
             self.parameters_prev.append(self.parameters_curr[i][:])
 
-        self.model_curr = [0 for j in range(0, self.nparticles)]
-        self.weights_curr = [0 for j in range(0, self.nparticles)]
-        self.parameters_curr = [[] for j in range(0, self.nparticles)]
-        self.margins_curr = [0 for j in range(0, self.nmodel)]
+        self.model_curr = [0] * self.nparticles
+        self.weights_curr = [0] * self.nparticles
+        self.parameters_curr = [[]] * self.nparticles
+        self.margins_curr = [0] * self.nmodel
 
-        self.b = [0 for i in range(0, self.nparticles)]
+        self.b = [0] * self.nparticles
 
         #
         # Check for dead models
