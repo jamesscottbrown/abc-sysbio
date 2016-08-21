@@ -778,7 +778,7 @@ def sample_particle_from_model(nparticle, selected_model, margins_prev, model_pr
     return i
 
 
-def howToFitData(fitting_instruction, simulation_points):
+def howToFitData(fitting_instruction, samplePoints):
     """
     Given the results of a simulation, evaluate given functions of the state variables of the model.
 
@@ -790,7 +790,7 @@ def howToFitData(fitting_instruction, simulation_points):
     fitting_instruction : list of functions, one per dimension of the data to be fitted. Each is a string representation
         of an expression of the state variables of the model; dimension n  is represented by 'samplePoints[:,n];.
 
-    simulation_points : a numpy.ndarray of simulation results, with shape (number_timepoints, model_dimension)
+    samplePoints : a numpy.ndarray of simulation results, with shape (number_timepoints, model_dimension)
 
     Returns
     -------
@@ -799,11 +799,11 @@ def howToFitData(fitting_instruction, simulation_points):
     """
 
     if fitting_instruction is not None:
-        transformed_points = numpy.zeros([len(simulation_points), len(fitting_instruction)])
+        transformed_points = numpy.zeros([len(samplePoints), len(fitting_instruction)])
         for i in range(len(fitting_instruction)):
             transformed_points[:, i] = eval(fitting_instruction[i])
     else:
-        transformed_points = simulation_points
+        transformed_points = samplePoints
 
     return transformed_points[:]
 
