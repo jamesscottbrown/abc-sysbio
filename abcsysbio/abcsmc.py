@@ -577,6 +577,37 @@ class abcsmc:
 
         return models
 
+    def sampleTheModel(self):
+        """
+        Returns a list of model numbers, of length self.nbatch, obtained by sampling from a categorical distribution
+        with probabilities self.modelprior, and then perturbing with a uniform model perturbation kernel.
+        """
+
+        models = [0] * self.nbatch
+
+        if self.nmodel > 1:
+            # Sample models from prior distribution
+            for i in range(self.nbatch):
+                models[i] = statistics.w_choice(range(self.nmodel), self.margins_prev)
+
+            # perturb models
+            if len(self.dead_models) < self.nmodel - 1:
+
+                for i in range(self.nbatch):
+                    u = rnd.uniform(low=0, high=1)
+
+                    if u > self.modelKernel:
+                        # sample randomly from other (non dead) models
+                        not_available = set(self.dead_models[:])
+                        not_available.add(models[i])
+
+                        available_indexes = numpy.array(list(set(range(0, self.nmodel)) - not_available))
+                        rnd.shuffle(available_indexes)
+                        perturbed_model = available_indexes[0]
+
+                        models[i] = perturbed_model
+        return models[:]
+
     def sampleTheParameterFromPrior(self, sampled_models):
         """
         For each model whose index is in sampled_models, draw a sample of the corresponding parameters.
@@ -613,37 +644,6 @@ class abcsmc:
             samples.append(sample[:])
 
         return samples
-
-    def sampleTheModel(self):
-        """
-        Returns a list of model numbers, of length self.nbatch, obtained by sampling from a categorical distribution
-        with probabilities self.modelprior, and then perturbing with a uniform model perturbation kernel.
-        """
-
-        models = [0] * self.nbatch
-
-        if self.nmodel > 1:
-            # Sample models from prior distribution
-            for i in range(self.nbatch):
-                models[i] = statistics.w_choice(range(self.nmodel), self.margins_prev)
-
-            # perturb models
-            if len(self.dead_models) < self.nmodel - 1:
-
-                for i in range(self.nbatch):
-                    u = rnd.uniform(low=0, high=1)
-
-                    if u > self.modelKernel:
-                        # sample randomly from other (non dead) models
-                        not_available = set(self.dead_models[:])
-                        not_available.add(models[i])
-
-                        available_indexes = numpy.array(list(set(range(0, self.nmodel)) - not_available))
-                        rnd.shuffle(available_indexes)
-                        perturbed_model = available_indexes[0]
-
-                        models[i] = perturbed_model
-        return models[:]
 
     def sampleTheParameter(self, sampled_models):
         """
