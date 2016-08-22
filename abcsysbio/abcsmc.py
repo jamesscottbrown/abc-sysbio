@@ -59,8 +59,8 @@ fit:
 """
 
 
-## distances are stored as [nparticle][nbeta][d1, d2, d3 .... ]
-## trajectories are stored as [nparticle][nbeta][ species ][ times ]
+# distances are stored as [nparticle][nbeta][d1, d2, d3 .... ]
+# trajectories are stored as [nparticle][nbeta][ species ][ times ]
 
 class abcsmc_results:
     def __init__(self,
@@ -87,7 +87,7 @@ class abcsmc_results:
 
 
 class abcsmc:
-    # instantiation
+
     def __init__(self,
                  models,
                  nparticles,
@@ -250,11 +250,25 @@ class abcsmc:
         if self.timing:
             print "#### final time:", time.time() - all_start_time
 
-        return
-
     def compute_next_epsilon(self, results, this_epsilon, target_epsilon, alpha):
+        """
+
+        Automatically chooses a new epsilon value, based on the results from the previously used epsilon.
+
+        Parameters
+        ----------
+        results :
+        this_epsilon : list of current epsilon values, one per statistic
+        target_epsilon : list of minimum ('target') epsilon values, one per statistic
+        alpha :
+
+        Returns
+        -------
+        finished - Boolean indicating if this is the last population to run
+        ret_epsilon - new value of epsilon
+        """
+
         nepsilon = len(target_epsilon)
-        # print "compute_next_epsilon : this_epsilon, target_epsilon, nepsilon:", this_epsilon, target_epsilon, nepsilon
 
         distance_values = []
         for i in range(self.nparticles):
@@ -264,79 +278,68 @@ class abcsmc:
         # Important to remember that the initial sort on distance is done on the first distance value
         distance_values = numpy.sort(distance_values, axis=0)
         ntar = int(alpha * self.nparticles)
-        # print distance_values
-
-        # this_epsilon is the current value
-        # new epsilon is the calculated epsilon
-        # ret_epsilon is the epsilon that we will return
-        # target_epsilon is the target
-        # finished indicates if this is the last population to run
 
         new_epsilon = [round(distance_values[ntar, ne], 4) for ne in range(nepsilon)]
-        ret_epsilon = [0 for i in range(nepsilon)]
+        ret_epsilon = [0] * nepsilon
 
         # Set the next epsilon as the new calculated epsilon
         for ne in range(nepsilon):
             ret_epsilon[ne] = new_epsilon[ne]
 
-        # See if we are finished by reaching the target epsilon
-        finished = 1
+        # if any entry of ret_epsilon is below the target, replace with the target; if all are below the target we are done
+        finished = True
         for ne in range(nepsilon):
-            # for any statistics that are at the level of, or below the target, set the returned value to be equal to the target
             if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne] - target_epsilon[ne]) < 1e-3:
                 ret_epsilon[ne] = target_epsilon[ne]
-                finished *= 1
             else:
-                finished *= 0
+                finished = False
 
-        # At this point we have a new epsilon to return and we should know if we are finished
         print "new/ret epsilon:", new_epsilon, ret_epsilon, finished
 
         return finished, ret_epsilon
 
     def run_simulations(self, io):
 
-        naccepted = 0
+        num_accepted = 0
         sampled = 0
 
-        while naccepted < self.nparticles:
+        while num_accepted < self.nparticles:
             if self.debug == 2:
                 print "\t****batch"
             sampled_models = self.sampleTheModelFromPrior()
             sampled_params = self.sampleTheParameterFromPrior(sampled_models)
 
             accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models, sampled_params,
-                                                                                this_epsilon=0, do_comp=False)
+                                                                                epsilon=0, do_comp=False)
 
             for i in range(self.nbatch):
-                if naccepted < self.nparticles:
+                if num_accepted < self.nparticles:
                     sampled += 1
 
-                if naccepted < self.nparticles and accepted_index[i] > 0:
+                if num_accepted < self.nparticles and accepted_index[i] > 0:
 
-                    self.model_curr[naccepted] = sampled_models[i]
+                    self.model_curr[num_accepted] = sampled_models[i]
                     if self.debug == 2:
                         print "\t****accepted", i, accepted_index[i], sampled_models[i]
 
                     for p in range(self.models[sampled_models[i]].nparameters):
-                        self.parameters_curr[naccepted].append(sampled_params[i][p])
+                        self.parameters_curr[num_accepted].append(sampled_params[i][p])
 
-                    self.b[naccepted] = accepted_index[i]
+                    self.b[num_accepted] = accepted_index[i]
                     self.trajectories.append(copy.deepcopy(traj[i]))
                     self.distances.append(copy.deepcopy(distances[i]))
 
-                    naccepted += 1
+                    num_accepted += 1
 
-            print "#### current naccepted:", naccepted
+            print "#### current num_accepted:", num_accepted
 
             if self.debug == 2:
-                print "\t****end  batch naccepted/sampled:", naccepted, sampled
+                print "\t****end  batch num_accepted/sampled:", num_accepted, sampled
 
-        # Finished loop over particles
         if self.debug == 2:
-            print "**** end of population naccepted/sampled:", naccepted, sampled
+            print "**** end of population num_accepted/sampled:", num_accepted, sampled
 
-        results = abcsmc_results(naccepted, sampled, naccepted / float(sampled), self.trajectories, self.distances,
+        results = abcsmc_results(num_accepted, sampled, num_accepted / float(sampled), self.trajectories, self.distances,
                                  0, self.model_curr, 0, self.parameters_curr, 0)
 
         io.write_data_simulation(0, results, 0, self.models, self.data)
@@ -403,9 +406,7 @@ class abcsmc:
                 print i, self.weights_curr[i], self.model_curr[i], self.parameters_curr[i]
             print self.margins_curr
 
-        #
         # Prepare for next population
-        # 
         self.margins_prev = self.margins_curr[:]
         self.weights_prev = self.weights_curr[:]
         self.model_prev = self.model_curr[:]
@@ -420,17 +421,13 @@ class abcsmc:
 
         self.b = [0] * self.nparticles
 
-        #
         # Check for dead models
-        #
         self.dead_models = []
         for j in range(self.nmodel):
             if self.margins_prev[j] < 1e-6:
                 self.dead_models.append(j)
 
-        #
         # Compute kernels
-        #
         for mod in range(self.nmodel):
             this_model_index = numpy.arange(self.nparticles)[numpy.array(self.model_prev) == mod]
             this_population = numpy.zeros([len(this_model_index), self.models[mod].nparameters])
@@ -453,9 +450,7 @@ class abcsmc:
                     tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[mod], this_population, this_weights)
                     self.kernels[mod] = tmp_kernel[:]
 
-        #
         # Kernel auxilliary information
-        #
         self.kernel_aux = kernels.getAuxilliaryInfo(self.kernel_type, self.model_prev, self.parameters_prev,
                                                     self.models, self.kernels)[:]
 
@@ -479,17 +474,25 @@ class abcsmc:
 
         return results
 
-    # end of iterate_one_population
-
     def fill_values(self, particle_data):
-        # particle data comprises of [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
+        """
+        Save particle data from pickled array into the corresponding attributes of this abc_smc object.
+
+        Parameters
+        ----------
+        particle_data : particle data, in form [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
+
+        """
+        # particle data comprises of
         self.model_prev = particle_data[0][:]
+
         self.weights_prev = particle_data[1][:]
-        self.margins_prev = particle_data[3][:]
 
         self.parameters_prev = []
         for it in range(len(particle_data[2])):
             self.parameters_prev.append(particle_data[2][it][:])
+
+        self.margins_prev = particle_data[3][:]
 
         self.kernels = []
         for i in range(self.nmodel):
@@ -499,68 +502,84 @@ class abcsmc:
 
         self.sample_from_prior = False
 
-    def simulate_and_compare_to_data(self, sampled_models, sampled_params, this_epsilon, do_comp=True):
-        # Here do the simulations for each model together
+    def simulate_and_compare_to_data(self, sampled_models, sampled_params, epsilon, do_comp=True):
+        """
+        Perform simulations
+
+        Parameters
+        ----------
+        sampled_models : list of sampled model numbers
+        sampled_params : a list, each element of which is a list of sampled parameters
+        epsilon : value of epsilon
+        do_comp : if False, do not actually calculate distance between simulation results and experimental data, and
+            instead assume this is 0.
+
+        Returns
+        -------
+        accepted
+        distances
+        traj
+
+        """
+
         if self.debug == 2:
             print '\t\t\t***simulate_and_compare_to_data'
 
-        ret = [0 for it in range(self.nbatch)]
-        traj = [[] for it in range(self.nbatch)]
-        distances = [[] for it in range(self.nbatch)]
+        accepted = [0] * self.nbatch
+        traj = [[] for it in range(0,self.nbatch)]
+        distances = [[] for it in range(0,self.nbatch)]
 
-        n_to_simulate = [0 for it in range(self.nmodel)]
-        mods = numpy.array(sampled_models)
+        models = numpy.array(sampled_models)
 
-        for m in range(self.nmodel):
-            # Get the indices for this model and extract
-            # the relevant parameters 
+        for model in range(self.nmodel):
 
-            # create a mapping to the original position
-            mapping = numpy.arange(self.nbatch)[mods == m]
+            # create a list of indexes for the simulations corresponding to this model
+            mapping = numpy.arange(self.nbatch)[models == model]
             if self.debug == 2:
-                print "\t\t\tmodel / mapping:", m, mapping
-            n_to_simulate = len(mapping)
+                print "\t\t\tmodel / mapping:", model, mapping
 
-            if n_to_simulate > 0:
-                # simulate this chunk
-                this_model_parameters = []
-                for i in range(n_to_simulate):
-                    this_model_parameters.append(sampled_params[mapping[i]])
+            num_simulations = len(mapping)
+            if num_simulations == 0:
+                break
 
-                # print "this_model_parameters", this_model_parameters
-                sims = self.models[m].simulate(this_model_parameters, self.data.timepoints, n_to_simulate, self.beta)
-                if self.debug == 2:
-                    print '\t\t\tsimulation dimensions:', sims.shape
+            this_model_parameters = []
+            for i in range(num_simulations):
+                this_model_parameters.append(sampled_params[mapping[i]])
 
-                for i in range(n_to_simulate):
-                    # store the trajectories and distances in a list of length beta
-                    this_dist = []
-                    this_traj = []
+            sims = self.models[model].simulate(this_model_parameters, self.data.timepoints, num_simulations, self.beta)
+            if self.debug == 2:
+                print '\t\t\tsimulation dimensions:', sims.shape
 
-                    for k in range(self.beta):
-                        samplePoints = sims[i, k, :, :]
-                        points = howToFitData(self.models[m].fit, samplePoints)
-                        if do_comp:
-                            distance = self.distancefn(points, self.data.values, this_model_parameters[i], m)
-                            dist = evaluateDistance(distance, this_epsilon)
-                        else:
-                            distance = 0
-                            dist = True
+            for i in range(num_simulations):
+                # store the trajectories and distances in a list of length beta
+                this_dist = []
+                this_traj = []
+                simulation_number = mapping[i]
 
-                        this_dist.append(distance)
-                        this_traj.append(points)
+                for k in range(self.beta):
+                    samplePoints = sims[i, k, :, :]
+                    points = howToFitData(self.models[model].fit, samplePoints)
+                    if do_comp:
+                        distance = self.distancefn(points, self.data.values, this_model_parameters[i], model)
+                        dist = evaluateDistance(distance, epsilon)
+                    else:
+                        distance = 0
+                        dist = True
 
-                        if dist:
-                            ret[mapping[i]] += 1
+                    this_dist.append(distance)
+                    this_traj.append(points)
 
-                        if self.debug == 2:
-                            print '\t\t\tdistance/this_epsilon/mapping/b:', distance, this_epsilon, \
-                        mapping[i], ret[mapping[i]]
+                    if dist:
+                        accepted[simulation_number] += 1
 
-                    traj[mapping[i]] = copy.deepcopy(this_traj)
-                    distances[mapping[i]] = copy.deepcopy(this_dist)
+                    if self.debug == 2:
+                        print '\t\t\tdistance/this_epsilon/mapping/b:', distance, epsilon, \
+                    simulation_number, accepted[simulation_number]
 
-        return ret[:], distances, traj
+                traj[simulation_number] = copy.deepcopy(this_traj)
+                distances[simulation_number] = copy.deepcopy(this_dist)
+
+        return accepted, distances, traj
 
     def sampleTheModelFromPrior(self):
         """
@@ -707,31 +726,27 @@ class abcsmc:
             print "\t***computeParticleWeights"
 
         for k in range(self.nparticles):
-            this_model = self.model_curr[k]
+            model_num = self.model_curr[k]
+            model = self.models[model_num]
+
             this_param = self.parameters_curr[k]
 
-            model_prior = self.modelprior[this_model]
+            model_prior = self.modelprior[model_num]
 
             particle_prior = 1
             for n in range(0, len(self.parameters_curr[k])):
                 x = 1.0
-                if self.models[this_model].prior[n][0] == 0:
+                if model.prior[n][0] == 0:
                     x = 1
 
-                if self.models[this_model].prior[n][0] == 1:
-                    x = statistics.getPdfGauss(self.models[this_model].prior[n][1],
-                                               numpy.sqrt(self.models[this_model].prior[n][2]),
-                                               this_param[n])
+                if model.prior[n][0] == 1:
+                    x = statistics.getPdfGauss(model.prior[n][1], numpy.sqrt(model.prior[n][2]), this_param[n])
 
-                if self.models[this_model].prior[n][0] == 2:
-                    x = statistics.getPdfUniform(self.models[this_model].prior[n][1],
-                                                 self.models[this_model].prior[n][2],
-                                                 this_param[n])
+                if model.prior[n][0] == 2:
+                    x = statistics.getPdfUniform(model.prior[n][1], model.prior[n][2], this_param[n])
 
-                if self.models[this_model].prior[n][0] == 3:
-                    x = statistics.getPdfLognormal(self.models[this_model].prior[n][1],
-                                                   numpy.sqrt(self.models[this_model].prior[n][2]),
-                                                   this_param[n])
+                if model.prior[n][0] == 3:
+                    x = statistics.getPdfLognormal(model.prior[n][1], numpy.sqrt(model.prior[n][2]), this_param[n])
                 particle_prior = particle_prior * x
 
             # self.b[k] is an indicator variable recording whether the simulation corresponding to particle k was accepted
@@ -739,25 +754,23 @@ class abcsmc:
 
             S1 = 0
             for i in range(self.nmodel):
-                S1 += self.margins_prev[i] * getPdfModelKernel(this_model, i, self.modelKernel, self.nmodel,
+                S1 += self.margins_prev[i] * getPdfModelKernel(model_num, i, self.modelKernel, self.nmodel,
                                                                     self.dead_models)
             S2 = 0
             for j in range(self.nparticles):
-                if int(this_model) == int(self.model_prev[j]):
+                if int(model_num) == int(self.model_prev[j]):
 
                     if self.debug == 2:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
-                        self.kernelpdffn(this_param, self.parameters_prev[j], self.models[this_model].prior,
-                                         self.kernels[this_model], self.kernel_aux[j], self.kernel_type)
-                    S2 += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j],
-                                                                     self.models[this_model].prior,
-                                                                     self.kernels[this_model], self.kernel_aux[j],
-                                                                     self.kernel_type)
+                        self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
+                                         self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
+                    S2 += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
+                                        self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
 
                 if self.debug == 2:
-                    print "\tnumer/S1/S2/m(t-1) : ", numerator, S1, S2, self.margins_prev[this_model]
+                    print "\tnumer/S1/S2/m(t-1) : ", numerator, S1, S2, self.margins_prev[model_num]
 
-            self.weights_curr[k] = self.margins_prev[this_model] * numerator / (S1 * S2)
+            self.weights_curr[k] = self.margins_prev[model_num] * numerator / (S1 * S2)
 
     def normalizeWeights(self):
         """
