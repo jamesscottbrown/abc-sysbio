@@ -110,17 +110,17 @@ class abcsmc:
 
         self.nparticles = nparticles
 
-        self.model_prev = [0 for i in range(nparticles)]
-        self.weights_prev = [0 for i in range(nparticles)]
-        self.parameters_prev = [[] for i in range(nparticles)]
-        self.margins_prev = [0 for i in range(self.nmodel)]
+        self.model_prev = [0] * nparticles
+        self.weights_prev = [0] * nparticles
+        self.parameters_prev = [[]] * nparticles
+        self.margins_prev = [0] * self.nmodel
 
-        self.model_curr = [0 for i in range(nparticles)]
-        self.weights_curr = [0 for i in range(nparticles)]
-        self.parameters_curr = [[] for i in range(nparticles)]
-        self.margins_curr = [0 for i in range(self.nmodel)]
+        self.model_curr = [0] * nparticles
+        self.weights_curr = [0] * nparticles
+        self.parameters_curr = [[]] * nparticles
+        self.margins_curr = [0] * self.nmodel
 
-        self.b = [0 for i in range(0, nparticles)]
+        self.b = [0] * nparticles
         self.distances = []
         self.trajectories = []
 
@@ -138,7 +138,7 @@ class abcsmc:
 
         self.modelprior = modelprior[:]
         self.modelKernel = modelKernel
-        self.kernel_aux = [0 for i in range(0, nparticles)]
+        self.kernel_aux = [0] * nparticles
 
         self.kernels = list()
         # self.kernels is a list of length the number of models
@@ -164,7 +164,7 @@ class abcsmc:
             self.kernels.append([ind, kernel_option[i], 0])
 
             # get
-        self.special_cases = [0 for m in range(self.nmodel)]
+        self.special_cases = [0] * self.nmodel
         if self.kernel_type == 1:
 
             for m in range(self.nmodel):
@@ -209,15 +209,13 @@ class abcsmc:
         if self.timing:
             print "#### final time:", time.time() - all_start_time
 
-        return
-
     def run_automated_schedule(self, final_epsilon, alpha, io):
         all_start_time = time.time()
 
         done = False
         final = False
         pop = 0
-        epsilon = [1e10 for i in final_epsilon]
+        epsilon = [1e10] * len(final_epsilon)
 
         while not done:
             if final:
