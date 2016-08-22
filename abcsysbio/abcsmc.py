@@ -232,7 +232,7 @@ class abcsmc:
                              self.kernels)
             io.write_data(pop, results, end_time - start_time, self.models, self.data)
 
-            final, epsilon = self.compute_next_epsilon(results, epsilon, final_epsilon, alpha)
+            final, epsilon = self.compute_next_epsilon(results, final_epsilon, alpha)
 
             if self.debug == 1:
                 print "### population ", pop + 1
@@ -250,7 +250,7 @@ class abcsmc:
         if self.timing:
             print "#### final time:", time.time() - all_start_time
 
-    def compute_next_epsilon(self, results, this_epsilon, target_epsilon, alpha):
+    def compute_next_epsilon(self, results, target_epsilon, alpha):
         """
 
         Automatically chooses a new epsilon value, based on the results from the previously used epsilon.
@@ -258,7 +258,6 @@ class abcsmc:
         Parameters
         ----------
         results :
-        this_epsilon : list of current epsilon values, one per statistic
         target_epsilon : list of minimum ('target') epsilon values, one per statistic
         alpha :
 
