@@ -112,12 +112,12 @@ class abcsmc:
 
         self.model_prev = [0] * nparticles
         self.weights_prev = [0] * nparticles
-        self.parameters_prev = [[] for j in range(0,self.nparticles)]
+        self.parameters_prev = [[] for j in range(self.nparticles)]
         self.margins_prev = [0] * self.nmodel
 
         self.model_curr = [0] * nparticles
         self.weights_curr = [0] * nparticles
-        self.parameters_curr = [[] for j in range(0,self.nparticles)]
+        self.parameters_curr = [[] for j in range(self.nparticles)]
         self.margins_curr = [0] * self.nmodel
 
         self.b = [0] * nparticles
@@ -416,7 +416,7 @@ class abcsmc:
 
         self.model_curr = [0] * self.nparticles
         self.weights_curr = [0] * self.nparticles
-        self.parameters_curr = [[] for j in range(0,self.nparticles)]
+        self.parameters_curr = [[] for j in range(self.nparticles)]
         self.margins_curr = [0] * self.nmodel
 
         self.b = [0] * self.nparticles
@@ -526,8 +526,8 @@ class abcsmc:
             print '\t\t\t***simulate_and_compare_to_data'
 
         accepted = [0] * self.nbatch
-        traj = [[] for it in range(0,self.nbatch)]
-        distances = [[] for it in range(0,self.nbatch)]
+        traj = [[] for it in range(self.nbatch)]
+        distances = [[] for it in range(self.nbatch)]
 
         models = numpy.array(sampled_models)
 
