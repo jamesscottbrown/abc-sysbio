@@ -161,7 +161,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
     return True, ""
 
 
-def checkInputSimulation(info_new, fname):
+def checkInputSimulation(info_new):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to simulate the model.

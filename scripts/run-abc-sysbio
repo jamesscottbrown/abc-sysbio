@@ -201,13 +201,13 @@ if __name__ == '__main__':
         if not simulate:
             modelCorrect, message = checkInputArguments.checkInputABC(info_new, fname, custom_distance, design)
         else:
-            modelCorrect, message = checkInputArguments.checkInputSimulation(info_new, fname)
+            modelCorrect, message = checkInputArguments.checkInputSimulation(info_new)
     else:
         info_new.source = None
         if not simulate:
             modelCorrect, message = checkInputArguments.checkInputABC(info_new, fname, custom_distance, design)
         else:
-            modelCorrect, message = checkInputArguments.checkInputSimulation(info_new, fname)
+            modelCorrect, message = checkInputArguments.checkInputSimulation(info_new)
 
     if not modelCorrect:
         print message
