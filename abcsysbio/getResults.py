@@ -7,8 +7,6 @@ from pylab import *
 
 from matplotlib.backends.backend_pdf import PdfPages
 
-# need to get howToFitData
-# import abcsysbio.abcSMC_model
 import abcsmc
 from abcsmc import howToFitData
 
@@ -140,19 +138,12 @@ def plotTimeSeries2(model, pars, data, beta, filename, traj2, population, plotda
 
     """
 
-    # do the simulations
-    #    nsim = len(pars)
-    #    sims = model.simulate( pars, data.timepoints, nsim, beta = beta )s
-
     nsim = len(pars)
     matplotlib.pyplot.subplot(111)
     clf()
     for i in range(nsim):
         for j in range(beta):
-            #  points = sims[i,j,:,:]
-            #  points_sim = abcsmc.howToFitData(model.fit,points)
             points_sim = traj2[i][j]
-
             matplotlib.pyplot.plot(data.timepoints, points_sim)
 
     if plotdata:
@@ -192,7 +183,6 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
 
     """
 
-    # do the simulations
     nsim = len(pars)
     sims = model.simulate(pars, data.timepoints, nsim, beta=beta)
 
@@ -202,9 +192,6 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
         for j in range(beta):
             points = sims[i, j, :, :]
             points_sim = abcsmc.howToFitData(model.fit, points)
-            # print data.timepoints
-            # print points_sim
-
             matplotlib.pyplot.plot(data.timepoints, points_sim)
 
     if plotdata:
@@ -295,8 +282,6 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
                 if not (len(x) == 0):
                     cla()
 
-                    histogramX = []
-                    histogramY = []
                     histogramX, histogramY = bin_data(x, w, int(bins))
 
                     maxX = max(histogramX)
@@ -328,7 +313,7 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
             matplotlib.pyplot.subplot(111)
 
     else:
-        # print "******************* DOING MULTI"
+
         s_num = 1
         p_num = 1
         for i in range(npar):
@@ -338,8 +323,6 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
             w = weights[int(model) - 1][int(population) - 1][i]
 
             cla()
-            histogramX = []
-            histogramY = []
             bins = 20
             histogramX, histogramY = bin_data(x, w, int(bins))
 
@@ -449,17 +432,6 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                         cla()
                         if not (len(x) == 0):
                             i2 += 1
-                            # hist=Histogram.WeightedHistogram(x,w,int(binB))
-                            # length=hist.__len__()
-                            # histogramX=[]
-                            # histogramY=[]
-
-                            # for k in range(0, length):
-                            #    histogramX.append(hist.__getitem__(k)[0])
-                            #    histogramY.append(hist.__getitem__(k)[1])
-
-                            histogramX = []
-                            histogramY = []
                             histogramX, histogramY = bin_data(x, w, int(binB))
 
                             maxX = max(histogramX)
@@ -537,16 +509,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                             cla()
                             if not (len(x) == 0):
                                 i2 += 1
-                                # hist=Histogram.WeightedHistogram(x,w,int(binB))
-                                # length=hist.__len__()
-                                # histogramX=[]
-                                # histogramY=[]
-                                # for k in range(0, length):
-                                #    histogramX.append(hist.__getitem__(k)[0])
-                                #    histogramY.append(hist.__getitem__(k)[1])
 
-                                histogramX = []
-                                histogramY = []
                                 histogramX, histogramY = bin_data(x, w, int(binB))
 
                                 maxX = max(histogramX)
@@ -555,9 +518,6 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                                 matplotlib.pyplot.bar(histogramX, histogramY, color=myColors[j], width=range_x / binB,
                                                       align='center')
                                 xlabel('parameter ' + repr(i2), size='xx-small')
-
-                    # matplotlib.pyplot.hist(matrix[int(model)-1][j][int(permutation[i][0])-1],bins=20,facecolor='white')
-                    #        xlabel('parameter '+repr(int(permutation[i][0])),size='xx-small')
 
                     else:
                         if not (len(x) == 0):
@@ -708,8 +668,6 @@ def getModelDistribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
             axis([math.floor(xmin), math.ceil(xmax), 0, ymax + ymax * 0.1])
             yticks(size='xx-small')
             xticks(left, size='xx-small')
-            # yticks(arange(0,ymax+2,ymax*0.4),size='xx-small')
-
             title("(" + repr(i + 1) + ") " + str(epsilon[i]) + "\n" + str(rate[i]), size='xx-small')
             savefig(PlotName + '_' + repr(p + 1))
         matplotlib.pylab.clf()

@@ -3,7 +3,7 @@ import sys
 
 
 def euclidianDistance(data1, data2, parameters, model):
-    """Returns the euclidian distance between two data sets.
+    """Returns the Euclidian distance between two data sets.
     Data sets must have the same dimensions.
 
     ***** args *****
