@@ -24,113 +24,151 @@ re_none = re.compile('None')
 
 
 def parse_required_single_value(node, tagname, message, cast):
+    """
+    Given a tag, try to find the child element with given tagname, and cast it contents to a given type.
+    If this fails, exit.
+
+    Parameters
+    ----------
+    node : xml.dom.minimdom.Document instance
+    tagname : string containing name of tag (e.g. 'modelnumber')
+    message : message to print on failure
+    cast : type to cast value to
+
+    Returns
+    -------
+    value of type cast
+
+    """
     try:
         data = node.getElementsByTagName(tagname)[0].firstChild.data
-    except:
-        print message
-        sys.exit()
-
-    ret = 0
-    try:
         ret = cast(data)
     except:
-        print message
-        sys.exit()
+        sys.exit(message)
 
     return ret
 
 
-def parse_required_vector_value(node, tagname, message, cast):
-    try:
-        data = node.getElementsByTagName(tagname)[0].firstChild.data
-    except:
-        print message
-        sys.exit()
+def parse_required_vector_value(node, tag_name, message, cast):
+    """
+     Given a tag, try to find the child element with given tagname, and split its contents into a list, and cast each
+     element to a given type. If this fails, exit.
 
-    tmp = str(data).split()
-    ret = []
+    Parameters
+    ----------
+     node : xml.dom.* object
+     tag_name : string containing name of tag (e.g. 'modelnumber')
+     message : message to print on failure
+     cast : type to cast value to
+
+    Returns
+    -------
+    list of values of type cast
+
+    """
     try:
+        data = node.getElementsByTagName(tag_name)[0].firstChild.data
+        tmp = str(data).split()
         ret = [cast(i) for i in tmp]
     except:
-        print message
-        sys.exit()
+        sys.exit(message)
 
     if len(ret) == 0:
-        print message
-        sys.exit()
+        sys.exit(message)
 
     return ret
 
 
-def process_prior(tmp):
-    prior_tmp = [0, 0, 0]
+def process_prior(tmp, model_num):
+    """
+    Check that prior has been specified correctly.
+
+    Parameters
+    ----------
+    tmp : list of strings specifying a prior (e.g. ['uniform', '0', '10'] or ['uniform', '1.0'])
+    model_num : number of model (used in error messages)
+
+    Returns
+    -------
+    List in which first entry is int indicator prior type, and remaining entries are parameters.
+
+    """
+    prior_params = [0, 0, 0]
 
     if re_prior_const.match(tmp[0]):
-        prior_tmp[0] = 0
+        prior_params[0] = 0
         try:
-            prior_tmp[1] = float(tmp[1])
+            prior_params[1] = float(tmp[1])
         except:
-            print "\nValue of the prior for model ", self.name[self.nmodels - 1], "has the wrong format:", tmp[1]
-            sys.exit()
+            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_normal.match(tmp[0]):
-        prior_tmp[0] = 1
+        prior_params[0] = 1
         try:
-            prior_tmp[1] = float(tmp[1])
-            prior_tmp[2] = float(tmp[2])
+            prior_params[1] = float(tmp[1])
+            prior_params[2] = float(tmp[2])
         except:
-            print "\nValue of the prior for model ", self.name[self.nmodels - 1], "has the wrong format:", tmp[1]
-            sys.exit()
+            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_uni.match(tmp[0]):
-        prior_tmp[0] = 2
+        prior_params[0] = 2
         try:
-            prior_tmp[1] = float(tmp[1])
-            prior_tmp[2] = float(tmp[2])
+            prior_params[1] = float(tmp[1])
+            prior_params[2] = float(tmp[2])
         except:
-            print "\nValue of the prior for model ", self.name[self.nmodels - 1], "has the wrong format:", tmp[1]
-            sys.exit()
+            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_logn.match(tmp[0]):
-        prior_tmp[0] = 3
+        prior_params[0] = 3
         try:
-            prior_tmp[1] = float(tmp[1])
-            prior_tmp[2] = float(tmp[2])
+            prior_params[1] = float(tmp[1])
+            prior_params[2] = float(tmp[2])
         except:
-            print "\nValue of the prior for model ", self.name[self.nmodels - 1], "has the wrong format:", tmp[1]
-            sys.exit()
+            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
     else:
-        print "\nSupplied parameter prior ", tmp[0], " unsupported"
-        sys.exit()
+        sys.exit("\nSupplied parameter prior %s unsupported" % tmp[0])
 
-    return prior_tmp
+    return prior_params
 
 
 def parse_fitting_information(node):
-    fitref = node.getElementsByTagName('fit')[0]
-    tmp = str(fitref.firstChild.data).split()
-    ret = []
+    """
+    Given an element whose child is a <fit> tag, construct the 'fit' strings used in HowToFitData.
 
-    if len(tmp) == 1 and re_none.match(tmp[0]):
+    Parameters
+    ----------
+    node : some kind of xml.dom.* object
+
+    Returns
+    -------
+    a list, each element of which is a string representing what function of the simulation results is intended to be
+    fitted to the corresponding experimental measurement
+    """
+
+    fit_tag = node.getElementsByTagName('fit')[0]
+    raw_fiting_strings = str(fit_tag.firstChild.data).split()
+
+    if len(raw_fiting_strings) == 1 and re_none.match(raw_fiting_strings[0]):
         return None
     else:
-        for i in tmp:
+        fitting_strings = []
+        for i in raw_fiting_strings:
             # replace species with samplePoints            
-            ttmp = re.sub('species', 'samplePoints', i)
+            fitting_string = re.sub('species', 'samplePoints', i)
 
             # find all instances of samplePoints[ ] and extract the list of species numbers
-            sp_strs = re.findall("samplePoints([0-9]+)", ttmp)
-            sp_nums = [int(j) for j in sp_strs]
+            sp_strings = re.findall("samplePoints([0-9]+)", fitting_string)
+            sp_nums = [int(j) for j in sp_strings]
             sp_nums.sort()
             sp_nums.reverse()
 
             # loop over the species numbers and replace
             for n in sp_nums:
-                ttmp = re.sub('ts' + str(n), 'ts[:,' + str(n - 1) + ']', ttmp)
+                fitting_string = re.sub('ts' + str(n), 'ts[:,' + str(n - 1) + ']', fitting_string)
 
-            ret.append(ttmp)
+            fitting_strings.append(fitting_string)
 
-        return ret
+        return fitting_strings
 
 
 class algorithm_info:
@@ -142,7 +180,7 @@ class algorithm_info:
     def __init__(self, filename, mode):
         xmldoc = minidom.parse(filename)
         self.mode = mode
-        ### mode is 0  inference, 1 simulate, 2 design
+        # mode is 0  inference, 1 simulate, 2 design
 
         self.modelnumber = 0
         self.restart = False
@@ -173,63 +211,55 @@ class algorithm_info:
         self.rtol = 1e-5
         self.atol = 1e-5
 
-        ##################################################
-        ## Required arguments
-
-        ### get number of models
+        # Required arguments
         self.modelnumber = parse_required_single_value(xmldoc, "modelnumber",
                                                        "Please provide an integer value for <modelnumber>", int)
 
-        ### get number of particles
         self.particles = parse_required_single_value(xmldoc, "particles",
                                                      "Please provide an integer value for <particles>", int)
 
-        ### get beta value
         self.beta = parse_required_single_value(xmldoc, "beta", "Please provide an integer value for <beta>", int)
 
-        ### get dt
         self.dt = parse_required_single_value(xmldoc, "dt", "Please provide an float value for <dt>", float)
 
-        ### get epsilon
+        # Get epsilon values, unless in simulate mode
         if self.mode != 1:
+
             # automated epsilon takes priority
-            if len(xmldoc.getElementsByTagName('autoepsilon')) > 0:
-                # found automated epsilon
-                epsref = xmldoc.getElementsByTagName('autoepsilon')[0]
-                self.final_epsilon = parse_required_vector_value(epsref, "finalepsilon",
+            autoepsilon_tags = xmldoc.getElementsByTagName('autoepsilon')
+            if len(autoepsilon_tags) > 0:
+                self.final_epsilon = parse_required_vector_value(autoepsilon_tags[0], "finalepsilon",
                                                                  "Please provide a whitespace separated list of values for <autoepsilon><finalepsilon>",
                                                                  float)
-                try:
-                    self.alpha = parse_required_single_value(epsref, "alpha",
-                                                             "Please provide a float value for <autoepsilon><alpha>",
-                                                             float)
-                except:
-                    null = 0
+                self.alpha = parse_required_single_value(autoepsilon_tags[0], "alpha",
+                                                         "Please provide a float value for <autoepsilon><alpha>",
+                                                         float)
             else:
-                # first do a scan to get the number of epsilon series and the number of epsilon in the series
-                neps1 = 0
-                neps2 = 0
-                epsref = xmldoc.getElementsByTagName('epsilon')[0]
-                for e in epsref.childNodes:
-                    if e.nodeType == e.ELEMENT_NODE:
-                        neps1 += 1
-                        neps2 = len(str(e.firstChild.data).split())
+                # do a first pass to find the number of epsilon values we need to store
+                num_schedules = 0
+                num_epsilons_per_schedule = 0
+                epsilon_tag = xmldoc.getElementsByTagName('epsilon')[0]
 
-                # create matrix
-                self.epsilon = numpy.zeros([neps1, neps2])
-                i1 = 0
-                for e in epsref.childNodes:
+                for e in epsilon_tag.childNodes:
+                    if e.nodeType == e.ELEMENT_NODE:
+                        num_schedules += 1
+                        num_epsilons_per_schedule = len(str(e.firstChild.data).split())
+
+                # do a second pass to store these values
+                self.epsilon = numpy.zeros([num_schedules, num_epsilons_per_schedule])
+                schedule = 0
+                for e in epsilon_tag.childNodes:
                     if e.nodeType == e.ELEMENT_NODE:
                         tmp = str(e.firstChild.data).split()
 
-                        for i in range(neps2):
-                            self.epsilon[i1, i] = float(tmp[i])
+                        for population in range(num_epsilons_per_schedule):
+                            self.epsilon[schedule, population] = float(tmp[population])
 
-                        i1 += 1
+                        schedule += 1
 
-                        ### get data attributes
+        # Get data attributes
         dataref = xmldoc.getElementsByTagName('data')[0]
-        # times
+
         self.times = parse_required_vector_value(dataref, "times",
                                                  "Please provide a whitespace separated list of values for <data><times>",
                                                  float)
@@ -238,36 +268,36 @@ class algorithm_info:
         # variables
         if self.mode == 0:
             # first do a scan to get the number of timeseries
-            nvar = 0
-            varref = dataref.getElementsByTagName('variables')[0]
-            for v in varref.childNodes:
+            num_vars = 0
+            var_tag = dataref.getElementsByTagName('variables')[0]
+            for v in var_tag.childNodes:
                 if v.nodeType == v.ELEMENT_NODE:
-                    nvar += 1
+                    num_vars += 1
 
             # create matrix and mask
-            data_unmasked = numpy.zeros([self.ntimes, nvar])
-            data_mask = numpy.zeros([self.ntimes, nvar], dtype=numpy.int32)
-            nvar = 0
-            for v in varref.childNodes:
+            data_unmasked = numpy.zeros([self.ntimes, num_vars])
+            data_mask = numpy.zeros([self.ntimes, num_vars], dtype=numpy.int32)
+            num_vars = 0
+            for v in var_tag.childNodes:
                 if v.nodeType == v.ELEMENT_NODE:
                     tmp = str(v.firstChild.data).split()
 
-                    for i in range(self.ntimes):
+                    for population in range(self.ntimes):
                         # Search for NA
-                        if re.match("\s*NA\s*", tmp[i]) is not None:
-                            data_mask[i, nvar] = 1
-                            tmp[i] = 0
+                        if re.match("\s*NA\s*", tmp[population]) is not None:
+                            data_mask[population, num_vars] = 1
+                            tmp[population] = 0
 
-                        data_unmasked[i, nvar] = float(tmp[i])
+                        data_unmasked[population, num_vars] = float(tmp[population])
 
-                    nvar += 1
+                    num_vars += 1
 
-                    # create masked data
+            # create masked data
             self.data = numpy.ma.array(data_unmasked, mask=data_mask)
 
-        ### get model attributes
-        modelref = xmldoc.getElementsByTagName('models')[0]
-        for m in modelref.childNodes:
+        # get model attributes
+        model_tag = xmldoc.getElementsByTagName('models')[0]
+        for m in model_tag.childNodes:
             if m.nodeType == m.ELEMENT_NODE:
                 self.nmodels += 1
                 self.prior.append([])
@@ -288,68 +318,58 @@ class algorithm_info:
                 except:
                     self.logp.append(False)
 
-                # initref = m.getElementsByTagName('initialvalues')[0]
-                # tmp = str( initref.firstChild.data ).split()
-                # self.init.append( [ float(i) for i in tmp ] )
-                # self.nspecies.append( len( self.init[self.nmodels-1] ) )
-
-                nparameter = 0
-                paramref = m.getElementsByTagName('parameters')[0]
-                for p in paramref.childNodes:
+                num_params = 0
+                param_tag = m.getElementsByTagName('parameters')[0]
+                for p in param_tag.childNodes:
                     if p.nodeType == p.ELEMENT_NODE:
-                        nparameter += 1
-                        prior_tmp = [0, 0, 0]
+                        num_params += 1
                         tmp = str(p.firstChild.data).split()
-                        self.prior[self.nmodels - 1].append(process_prior(tmp))
+                        self.prior[self.nmodels - 1].append(process_prior(tmp, self.nmodels))
 
-                ninit = 0
-                initref = m.getElementsByTagName('initial')[0]
-                for inn in initref.childNodes:
+                num_initial_conditions = 0
+                initial_tag = m.getElementsByTagName('initial')[0]
+                for inn in initial_tag.childNodes:
                     if inn.nodeType == inn.ELEMENT_NODE:
-                        ninit += 1
-                        prior_tmp = [0, 0, 0]
+                        num_initial_conditions += 1
                         tmp = str(inn.firstChild.data).split()
-                        self.x0prior[self.nmodels - 1].append(process_prior(tmp))
+                        self.x0prior[self.nmodels - 1].append(process_prior(tmp, self.nmodels))
 
-                if nparameter == 0:
-                    print "\nNo parameters specified in model ", self.name[self.nmodels - 1]
-                    sys.exit()
-                if ninit == 0:
-                    print "\nNo initial conditions specified in model ", self.name[self.nmodels - 1]
-                    sys.exit()
-                self.nparameters.append(nparameter)
-                self.nspecies.append(ninit)
+                if num_params == 0:
+                    sys.exit("\nNo parameters specified in model %s" % self.name[self.nmodels - 1])
+                if num_initial_conditions == 0:
+                    sys.exit("\nNo initial conditions specified in model %s" % self.name[self.nmodels - 1])
+                self.nparameters.append(num_params)
+                self.nspecies.append(num_initial_conditions)
 
         if self.nmodels == 0:
-            print "\nNo models specified"
-            sys.exit()
+            sys.exit("\nNo models specified")
 
         ##################################################
-        ## Optional arguments
+        # Optional arguments
 
-        ### get atol
+        # get atol
         try:
             data = xmldoc.getElementsByTagName('atol')[0].firstChild.data
             self.atol = float(data)
         except:
-            null = 0
+            pass
 
-        ### get rtol
+        # get rtol
         try:
             data = xmldoc.getElementsByTagName('rtol')[0].firstChild.data
             self.rtol = float(data)
         except:
-            null = 0
+            pass
 
-            ### get restart
+        # get restart
         try:
             tmp = str(xmldoc.getElementsByTagName('restart')[0].firstChild.data).strip()
             if re_true.match(tmp):
                 self.restart = True
         except:
-            null = 0
+            pass
 
-        ### get model kernel
+        # get model kernel
         try:
             data = xmldoc.getElementsByTagName('modelkernel')[0].firstChild.data
             try:
@@ -361,9 +381,9 @@ class algorithm_info:
                 print "\n#################\n<modelkernel> must be <= 1.0  so I am going to ignore your argument"
                 self.modelkernel = 0.7
         except:
-            null = 0
+            pass
 
-        ### get kernel
+        # get kernel
         try:
             data = str(xmldoc.getElementsByTagName('kernel')[0].firstChild.data).strip()
             if re_kernel_uniform.match(data):
@@ -379,17 +399,17 @@ class algorithm_info:
             else:
                 print "\n#################\n<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or multivariateNormalOCM  so I am going to ignore your argument"
         except:
-            null = 0
+            pass
 
-        ### get model priors
-        self.modelprior = [1 / float(self.nmodels) for i in range(self.nmodels)]
+        # get model priors
+        self.modelprior = [1 / float(self.nmodels)] * self.nmodels
         try:
             data = xmldoc.getElementsByTagName("modelprior")[0].firstChild.data
             tmp = str(data).split()
-            # print tmp
+
             ret = []
             try:
-                ret = [float(i) for i in tmp]
+                ret = [float(population) for population in tmp]
             except:
                 print "\n#################\n<modelprior> must be a vector of floats so I am going to ignore your argument"
 
@@ -398,9 +418,13 @@ class algorithm_info:
             else:
                 self.modelprior = ret[:]
         except:
-            null = 0
+            pass
 
     def print_info(self):
+        """
+        Pretty-print the attributes of this algorithm_info object.
+        """
+
         print "\nALGORITHM INFO"
         print "modelnumber:", self.modelnumber
         print "restart:", self.restart
@@ -446,6 +470,3 @@ class algorithm_info:
             print "\t", "prior:", self.prior[i]
             print "\t", "logp:", self.logp[i]
             print "\n"
-
-###x = algorithm_info('input.xml')
-###x.print_info()
