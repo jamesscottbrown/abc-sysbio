@@ -2,172 +2,54 @@ from math import *
 import re
 
 
-def mathMLConditionParser(mathMLstring):
+def mathMLConditionParser(string):
     """
-    Replaces and and or with and_ and or_ in a MathML string.
-    Returns the string with and and or replaced by and_ and or_
-
-    ***** args *****
-
-    mathMLstring:
-
-            A mathMLstring
-
+    Replaces and and or with and_ and or_ in a string and returns the result.
     """
 
-    andString = re.compile("and")
-    orString = re.compile("or")
-    mathMLstring = andString.sub("and_", mathMLstring)
-    mathMLstring = orString.sub("or_", mathMLstring)
-    return mathMLstring
+    string = re.compile("and").sub("and_", string)
+    string = re.compile("or").sub("or_", string)
+    return string
 
 
 def eq(a, b):
-    """Check for equality between a and b.
-    Return boolean.
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a test for equality will work
-
-    """
-    if a == b:
-        return True
-    else:
-        return False
+    return a == b
 
 
 def neq(a, b):
-    """Check for inequality between a and b.
-    Return boolean
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a test for inequality will work
-
-    """
-    if a != b:
-        return True
-    else:
-        return False
+    return a != b
 
 
 def gt(a, b):
-    """Check for inequality a > b
-    Return boolean
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a test for inequality will work
-
-    """
-    if a > b:
-        return True
-    else:
-        return False
+    return a > b
 
 
 def lt(a, b):
-    """Check for inequality a < b
-    Return boolean
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a test for inequality will work
-
-    """
-    if a < b:
-        return True
-    else:
-        return False
+    return a < b
 
 
 def geq(a, b):
-    """Check for inequality a>=b
-    Return boolean
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a test for inequality will work
-
-    """
-
-    if a >= b:
-        return True
-    else:
-        return False
+    return a >= b
 
 
 def leq(a, b):
-    """Check for inequality a<=b
-    Return boolean
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a test for inequality will work
-
-    """
-    if a <= b:
-        return True
-    else:
-        return False
+    return a <= b
 
 
 def and_(a, b):
-    """Logical AND a and b
-    Return boolean
-
-    **** args ****
-
-    a, b:
-
-        python objects on which a python logical test will work.
-
-    """
-    if a & b:
-        return True
-    else:
-        return False
+    return bool(a) & bool(b)
 
 
 def or_(a, b):
-    """Logical OR a or b
-    Return boolean
+    return bool(a) or bool(b)
 
-    **** args ****
-
-    a, b:
-
-        python objects on which a python logical test will work.
-
-    """
-    if a or b:
-        return True
-    else:
-        return False
-
-
-# NB piecewise functions have to be passed through MathMLConditionParser because
-# they may contain and and or statements (which need to be made into and_ and or_
-# statements)
 
 def piecewise(*args):
-    """implements MathML piecewise function passed as args
-    NB piecewise functions have to be passed through MathMLConditionParser because
-    they may contain and and or statements (which need to be made into and_ and or_
-    statements)
+    """
+    Implements MathML piecewise function passed as args.
+
+    N.B. piecewise functions have to be passed through MathMLConditionParser because they may contain and and or
+    statements (which need to be made into and_ and or_ statements).
     """
 
     result = None
