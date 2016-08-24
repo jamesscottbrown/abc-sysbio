@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from PriorType import PriorType
 
 class input_output:
-    def __init__(self, folder, restart, diagnostic, plotDataSeries, havedata=True):
+    def __init__(self, folder, restart, diagnostic, plot_data_series, havedata=True):
         self.folder = folder
         self.diagnostic = diagnostic
-        self.plotDataSeries = plotDataSeries
+        self.plotDataSeries = plot_data_series
         self.havedata = havedata
 
         # Hold all data here for plotting purposes.
@@ -132,9 +132,9 @@ class input_output:
                 weights_mod.append([])
 
                 if counts[mod] > 0:
-                    PlotName = self.folder + '/results_' + models[mod].name + '/Population_' + repr(
+                    plot_name = self.folder + '/results_' + models[mod].name + '/Population_' + repr(
                         population + 1) + '/ScatterPlots_Population' + repr(population + 1)
-                    PlotName2 = self.folder + '/results_' + models[mod].name + '/Population_' + repr(
+                    plot_name2 = self.folder + '/results_' + models[mod].name + '/Population_' + repr(
                         population + 1) + '/weightedHistograms_Population' + repr(population + 1)
 
                     for eps in range(npop):
@@ -158,8 +158,8 @@ class input_output:
                                 non_const += 1
 
                     getAllScatterPlots(population_mod, weights_mod, populations=numpy.arange(1, population + 2),
-                                       PlotName=PlotName, model=mod + 1)
-                    getAllHistograms(population_mod, weights_mod, population=population + 1, PlotName=PlotName2,
+                                       PlotName=plot_name, model=mod + 1)
+                    getAllHistograms(population_mod, weights_mod, population=population + 1, PlotName=plot_name2,
                                      model=mod + 1)
 
             if self.plotDataSeries:

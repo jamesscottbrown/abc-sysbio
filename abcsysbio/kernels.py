@@ -82,13 +82,13 @@ def getKernel(kernel_type, kernel, population, weights):
 
     if kernel_type == KernelType.multivariate_normal_nn:
         k = int(kernel[1])
-        D = {}
+        d = {}
         pop = list()
         if pop_size == 1:
             pop_cur = list()
             for param in range(npar):
                 pop_cur.append(population[0, param])
-                D[str(pop_cur)] = 2 * numpy.eye(len(kernel[0]))
+                d[str(pop_cur)] = 2 * numpy.eye(len(kernel[0]))
         else:
             # to compute the neighbours, restrain the population to the non constant parameters
             for param in kernel[0]:
@@ -114,17 +114,17 @@ def getKernel(kernel_type, kernel, population, weights):
                     subwei.append(weights[kset[j]])
 
                 # compute the covariance and write it into the dictionnary
-                D[str(pop_cur)] = 2 * statistics.compute_cov(subpop, subwei)
-        kernel[2] = D
+                d[str(pop_cur)] = 2 * statistics.compute_cov(subpop, subwei)
+        kernel[2] = d
 
     if kernel_type == KernelType.multivariate_normal_ocm:
         pop = list()
-        D = {}
+        d = {}
         if pop_size == 1:
             pop_cur = list()
             for param in range(npar):
                 pop_cur.append(population[0, param])
-                D[str(pop_cur)] = 2 * numpy.eye(len(kernel[0]))
+                d[str(pop_cur)] = 2 * numpy.eye(len(kernel[0]))
         else:
             for param in kernel[0]:
                 pop.append(population[:, param])
@@ -132,8 +132,8 @@ def getKernel(kernel_type, kernel, population, weights):
                 pop_cur = list()
                 for param in range(npar):
                     pop_cur.append(population[n, param])
-                D[str(pop_cur)] = statistics.compute_optcovmat(pop, weights, pop_cur)
-        kernel[2] = D
+                d[str(pop_cur)] = statistics.compute_optcovmat(pop, weights, pop_cur)
+        kernel[2] = d
 
     return kernel
 
@@ -275,11 +275,11 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
     elif kernel_type == KernelType.multivariate_normal_nn or kernel_type == KernelType.multivariate_normal_ocm:
         p0 = list()
         p = list()
-        D = kernel[2]
+        d = kernel[2]
         for param_index in kernel[0]:
             p0.append(params0[param_index])
             p.append(params[param_index])
-        kern = statistics.getPdfMultinormal(p0, D[str(params0)], p)
+        kern = statistics.getPdfMultinormal(p0, d[str(params0)], p)
         kern = kern / auxilliary
     return kern
 
@@ -370,8 +370,8 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
             cur_part = list()
             for param_index in range(nparam):
                 cur_part.append(parameters[k][param_index])
-            D = this_kernel[2]
-            scale = D[str(cur_part)]
+            d = this_kernel[2]
+            scale = d[str(cur_part)]
             ret.append(statistics.mvnormcdf(low, up, mean, scale))
         else:
             ret = [0] * nparticles

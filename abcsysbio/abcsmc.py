@@ -98,7 +98,7 @@ class abcsmc:
                  data,
                  beta,
                  nbatch,
-                 modelKernel,
+                 model_kernel,
                  debug,
                  timing,
                  distancefn=euclidian.euclidianDistance,
@@ -140,7 +140,7 @@ class abcsmc:
         self.timing = timing
 
         self.modelprior = modelprior[:]
-        self.modelKernel = modelKernel
+        self.modelKernel = model_kernel
         self.kernel_aux = [0] * nparticles
 
         self.kernels = list()
@@ -558,8 +558,8 @@ class abcsmc:
                 simulation_number = mapping[i]
 
                 for k in range(self.beta):
-                    samplePoints = sims[i, k, :, :]
-                    points = howToFitData(self.models[model].fit, samplePoints)
+                    sample_points = sims[i, k, :, :]
+                    points = howToFitData(self.models[model].fit, sample_points)
                     if do_comp:
                         distance = self.distancefn(points, self.data.values, this_model_parameters[i], model)
                         dist = evaluateDistance(distance, epsilon)
@@ -721,7 +721,7 @@ class abcsmc:
         $S_2 = \sum_{k \in M_t^i = M_{t-1}} w^k_{t-1} K_{t, M^i}(\theta_t^i | \theta_{t-1}^k)$
 
         (See p.4 of SOM to 'Bayesian design of synthetic biological systems', except that here we have moved model
-        marginal out of S2 into a separate term)
+        marginal out of s2 into a separate term)
         """
         if self.debug == 2:
             print "\t***computeParticleWeights"
@@ -753,11 +753,11 @@ class abcsmc:
             # self.b[k] is an indicator variable recording whether the simulation corresponding to particle k was accepted
             numerator = self.b[k] * model_prior * particle_prior
 
-            S1 = 0
+            s1 = 0
             for i in range(self.nmodel):
-                S1 += self.margins_prev[i] * getPdfModelKernel(model_num, i, self.modelKernel, self.nmodel,
+                s1 += self.margins_prev[i] * getPdfModelKernel(model_num, i, self.modelKernel, self.nmodel,
                                                                     self.dead_models)
-            S2 = 0
+            s2 = 0
             for j in range(self.nparticles):
                 if int(model_num) == int(self.model_prev[j]):
 
@@ -765,13 +765,13 @@ class abcsmc:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
                         self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
                                          self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
-                    S2 += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
+                    s2 += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
                                         self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
 
                 if self.debug == 2:
-                    print "\tnumer/S1/S2/m(t-1) : ", numerator, S1, S2, self.margins_prev[model_num]
+                    print "\tnumer/s1/s2/m(t-1) : ", numerator, s1, s2, self.margins_prev[model_num]
 
-            self.weights_curr[k] = self.margins_prev[model_num] * numerator / (S1 * S2)
+            self.weights_curr[k] = self.margins_prev[model_num] * numerator / (s1 * s2)
 
     def normalizeWeights(self):
         """
@@ -811,12 +811,12 @@ def sample_particle_from_model(nparticle, selected_model, margins_prev, model_pr
     the index of the selected particle
     """
     u = rnd.uniform(low=0, high=margins_prev[selected_model])
-    F = 0
+    f = 0
 
     for i in range(0, nparticle):
         if int(model_prev[i]) == int(selected_model):
-            F = F + weights_prev[i]
-            if F > u:
+            f = f + weights_prev[i]
+            if f > u:
                 break
     return i
 
@@ -851,7 +851,7 @@ def howToFitData(fitting_instruction, samplePoints):
     return transformed_points[:]
 
 
-def getPdfModelKernel(new_model, old_model, modelK, num_models, dead_models):
+def getPdfModelKernel(new_model, old_model, model_k, num_models, dead_models):
     """
     Returns the probability of model number m0 being perturbed into model number m (assuming neither is dead).
 
@@ -863,7 +863,7 @@ def getPdfModelKernel(new_model, old_model, modelK, num_models, dead_models):
     ----------
     new_model : index of next model
     old_model : index of previous model
-    modelK : model (non)-perturbation probability
+    model_k : model (non)-perturbation probability
     num_models : total number of models
     dead_models : number of models which are 'dead'
     """
@@ -874,9 +874,9 @@ def getPdfModelKernel(new_model, old_model, modelK, num_models, dead_models):
         return 1.0
     else:
         if new_model == old_model:
-            return modelK
+            return model_k
         else:
-            return (1 - modelK) / (num_models - num_dead_models)
+            return (1 - model_k) / (num_models - num_dead_models)
 
 
 def evaluateDistance(distance, epsilon):

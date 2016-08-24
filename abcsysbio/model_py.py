@@ -49,7 +49,7 @@ class model:
                 else:
                     par = numpy.power(10, p[i][0:self.kparameters])
 
-                dat = abcodesolve.abcodeint(func=self.module, InitValues=p[i][self.kparameters:self.nparameters],
+                dat = abcodesolve.abcodeint(func=self.module, init_values=p[i][self.kparameters:self.nparameters],
                                             timepoints=t, parameters=par, dt=self.dt, atol=self.atol, rtol=self.rtol)
                 for k in range(len(t)):
                     for l in range(self.nspecies):
@@ -88,7 +88,7 @@ class model:
                     par = numpy.power(10, p[i][0:self.kparameters])
 
                 dat = GillespieAlgorithm.GillespieInt(func=self.module,
-                                                      initValues=p[i][self.kparameters:self.nparameters],
+                                                      init_values=p[i][self.kparameters:self.nparameters],
                                                       parameters=par, outputtimes=t)
                 for k in range(len(t)):
                     for l in range(self.nspecies):

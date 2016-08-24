@@ -266,9 +266,9 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
         else:
             max2 = max1
 
-        numOfPlots = math.ceil(dim / max2)
+        num_plots = math.ceil(dim / max2)
 
-        for p in range(0, int(numOfPlots)):
+        for p in range(0, int(num_plots)):
             start = p * max1 ** 2
             end = p * max1 * max2 + max1 * max2
             for i in range(int(start), int(end)):
@@ -282,13 +282,13 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
                 if not (len(x) == 0):
                     cla()
 
-                    histogramX, histogramY = bin_data(x, w, int(bins))
+                    histogram_x, histogram_y = bin_data(x, w, int(bins))
 
-                    maxX = max(histogramX)
-                    minX = min(histogramX)
-                    range_x = maxX - minX
+                    max_x = max(histogram_x)
+                    min_x = min(histogram_x)
+                    range_x = max_x - min_x
 
-                    matplotlib.pyplot.bar(histogramX, histogramY, color='#1E90FF', width=range_x / bins, align='center')
+                    matplotlib.pyplot.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins, align='center')
                     xlabel('parameter ' + repr(i + 1), size='xx-small')
 
                     xmin, xmax = xlim()
@@ -298,12 +298,12 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
                     ay = gca()
 
                     if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
-                        xFormatter = FormatStrFormatter('%0.1e')
+                        x_formatter = FormatStrFormatter('%0.1e')
                     else:
-                        xFormatter = FormatStrFormatter('%0.2f')
-                    ax.xaxis.set_major_formatter(xFormatter)
+                        x_formatter = FormatStrFormatter('%0.2f')
+                    ax.xaxis.set_major_formatter(x_formatter)
 
-                    yFormatter = FormatStrFormatter('%i')
+                    y_formatter = FormatStrFormatter('%i')
                     axis([xmin, xmax, ymin, ymax])
                     yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
                     xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -324,13 +324,13 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
 
             cla()
             bins = 20
-            histogramX, histogramY = bin_data(x, w, int(bins))
+            histogram_x, histogram_y = bin_data(x, w, int(bins))
 
-            maxX = max(histogramX)
-            minX = min(histogramX)
-            range_x = maxX - minX
+            max_x = max(histogram_x)
+            min_x = min(histogram_x)
+            range_x = max_x - min_x
 
-            matplotlib.pyplot.bar(histogramX, histogramY, color='#1E90FF', width=range_x / bins, align='center')
+            matplotlib.pyplot.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins, align='center')
             xlabel('parameter ' + repr(i + 1), size='xx-small')
 
             xmin, xmax = xlim()
@@ -340,12 +340,12 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
             ay = gca()
 
             if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
-                xFormatter = FormatStrFormatter('%0.1e')
+                x_formatter = FormatStrFormatter('%0.1e')
             else:
-                xFormatter = FormatStrFormatter('%0.2f')
-            ax.xaxis.set_major_formatter(xFormatter)
+                x_formatter = FormatStrFormatter('%0.2f')
+            ax.xaxis.set_major_formatter(x_formatter)
 
-            yFormatter = FormatStrFormatter('%i')
+            y_formatter = FormatStrFormatter('%i')
             axis([xmin, xmax, ymin, ymax])
             yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
             xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -396,14 +396,14 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
     matplotlib.pylab.clf()
     dim = len(matrix[int(model) - 1][0])
 
-    myColors = ['#000000', '#003399', '#3333FF', '#6666FF', '#990000', '#CC0033', '#FF6600', '#FFCC00', '#FFFF33',
+    my_colors = ['#000000', '#003399', '#3333FF', '#6666FF', '#990000', '#CC0033', '#FF6600', '#FFCC00', '#FFFF33',
                 '#33CC00', '#339900', '#336600']
 
-    if len(populations) > len(myColors):
-        q = int(math.ceil(len(populations) / len(myColors)))
+    if len(populations) > len(my_colors):
+        q = int(math.ceil(len(populations) / len(my_colors)))
 
         for slopes in range(0, q):
-            myColors.extend(myColors)
+            my_colors.extend(my_colors)
 
     max1 = 4.0
     if dim <= max1:
@@ -415,7 +415,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                 permutation[k][1] = j
                 k += 1
 
-        binB = 20.0
+        bin_b = 20.0
         i2 = 0
         for i in range(0, len(permutation)):
             matplotlib.pyplot.subplot(dim, dim, i + 1)
@@ -432,18 +432,18 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                         cla()
                         if not (len(x) == 0):
                             i2 += 1
-                            histogramX, histogramY = bin_data(x, w, int(binB))
+                            histogram_x, histogram_y = bin_data(x, w, int(bin_b))
 
-                            maxX = max(histogramX)
-                            minX = min(histogramX)
-                            range_x = maxX - minX
-                            matplotlib.pyplot.bar(histogramX, histogramY, width=range_x / binB, color=myColors[j],
+                            max_x = max(histogram_x)
+                            min_x = min(histogram_x)
+                            range_x = max_x - min_x
+                            matplotlib.pyplot.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[j],
                                                   align='center')
                             xlabel('parameter ' + repr(i2), size='xx-small')
 
                 else:
                     if not (len(x) == 0):
-                        scatter(x, y, s=10, marker='o', c=myColors[j], edgecolor=myColors[j])
+                        scatter(x, y, s=10, marker='o', c=my_colors[j], edgecolor=my_colors[j])
                         ylabel('parameter ' + repr(int(permutation[i][1])), size='xx-small')
                 xlabel('parameter ' + repr(int(permutation[i][0])), size='xx-small')
 
@@ -453,19 +453,19 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                 ax = gca()
                 ay = gca()
                 if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
-                    xFormatter = FormatStrFormatter('%0.1e')
+                    x_formatter = FormatStrFormatter('%0.1e')
                 else:
-                    xFormatter = FormatStrFormatter('%0.2f')
-                ax.xaxis.set_major_formatter(xFormatter)
+                    x_formatter = FormatStrFormatter('%0.2f')
+                ax.xaxis.set_major_formatter(x_formatter)
 
                 if (ymax - ymin) < 0.1 or (ymax - ymin) >= 1000:
-                    yFormatter = FormatStrFormatter('%0.1e')
+                    y_formatter = FormatStrFormatter('%0.1e')
                 else:
-                    yFormatter = FormatStrFormatter('%0.2f')
-                ay.yaxis.set_major_formatter(yFormatter)
+                    y_formatter = FormatStrFormatter('%0.2f')
+                ay.yaxis.set_major_formatter(y_formatter)
 
                 if permutation[i][0] == permutation[i][1]:
-                    yFormatter = FormatStrFormatter('%i')
+                    y_formatter = FormatStrFormatter('%i')
 
                 axis([xmin, xmax, ymin, ymax])
                 xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -485,12 +485,12 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                 permutation[k][1] = j
                 k += 1
 
-        binB = 20.0
+        bin_b = 20.0
 
         dim = math.ceil(len(permutation) / max1)
-        numOfPlots = math.ceil(dim / max1)
+        num_plots = math.ceil(dim / max1)
 
-        for p in range(0, int(numOfPlots)):
+        for p in range(0, int(num_plots)):
 
             start = p * max1 ** 2
             end = p * max1 ** 2 + max1 ** 2
@@ -510,18 +510,18 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                             if not (len(x) == 0):
                                 i2 += 1
 
-                                histogramX, histogramY = bin_data(x, w, int(binB))
+                                histogram_x, histogram_y = bin_data(x, w, int(bin_b))
 
-                                maxX = max(histogramX)
-                                minX = min(histogramX)
-                                range_x = maxX - minX
-                                matplotlib.pyplot.bar(histogramX, histogramY, color=myColors[j], width=range_x / binB,
+                                max_x = max(histogram_x)
+                                min_x = min(histogram_x)
+                                range_x = max_x - min_x
+                                matplotlib.pyplot.bar(histogram_x, histogram_y, color=my_colors[j], width=range_x / bin_b,
                                                       align='center')
                                 xlabel('parameter ' + repr(i2), size='xx-small')
 
                     else:
                         if not (len(x) == 0):
-                            scatter(x, y, s=10, marker='o', c=myColors[j], edgecolor=myColors[j])
+                            scatter(x, y, s=10, marker='o', c=my_colors[j], edgecolor=my_colors[j])
                             ylabel('parameter ' + repr(int(permutation[i][1])), size='xx-small')
                             xlabel('parameter ' + repr(int(permutation[i][0])), size='xx-small')
 
@@ -531,19 +531,19 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                     ax = gca()
                     ay = gca()
                     if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
-                        xFormatter = FormatStrFormatter('%0.1e')
+                        x_formatter = FormatStrFormatter('%0.1e')
                     else:
-                        xFormatter = FormatStrFormatter('%0.2f')
-                    ax.xaxis.set_major_formatter(xFormatter)
+                        x_formatter = FormatStrFormatter('%0.2f')
+                    ax.xaxis.set_major_formatter(x_formatter)
 
                     if (ymax - ymin) < 0.1 or (ymax - ymin) >= 1000:
-                        yFormatter = FormatStrFormatter('%0.1e')
+                        y_formatter = FormatStrFormatter('%0.1e')
                     else:
-                        yFormatter = FormatStrFormatter('%0.2f')
-                    ay.yaxis.set_major_formatter(yFormatter)
+                        y_formatter = FormatStrFormatter('%0.2f')
+                    ay.yaxis.set_major_formatter(y_formatter)
 
                     if permutation[i][0] == permutation[i][1]:
-                        yFormatter = FormatStrFormatter('%i')
+                        y_formatter = FormatStrFormatter('%i')
 
                     axis([xmin, xmax, ymin, ymax])
                     xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -648,9 +648,9 @@ def getModelDistribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
     else:
         max2 = max1
 
-    numOfPlots = math.ceil(dim / max2)
+    num_plots = math.ceil(dim / max2)
 
-    for p in range(0, int(numOfPlots)):
+    for p in range(0, int(num_plots)):
 
         start = p * max1 ** 2
         end = p * max1 * max2 + max1 * max2

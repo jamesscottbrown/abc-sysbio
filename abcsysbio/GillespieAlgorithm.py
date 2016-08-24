@@ -30,7 +30,7 @@ def select_hazard(total_hazard, list_of_hazards):
     return i
 
 
-def GillespieInt(func, initValues, parameters, outputtimes):
+def GillespieInt(func, init_values, parameters, outputtimes):
     """Simulate the function func from the initial values initValues using the parameters given by parameters.
     Return values at the times in outputtimes.
 
@@ -57,8 +57,8 @@ def GillespieInt(func, initValues, parameters, outputtimes):
     # Set initial time
     time = 0  # outputtimes[0] # change this to t=0
     # set initial concentrations
-    concentrations = numpy.zeros([len(outputtimes), len(initValues)])
-    current_concentrations = tuple(initValues)
+    concentrations = numpy.zeros([len(outputtimes), len(init_values)])
+    current_concentrations = tuple(init_values)
     current_concentrations, parameters = func.events(current_concentrations, parameters, time)
     current_concentrations, parameters = func.rules(current_concentrations, parameters, time)
 
@@ -80,8 +80,7 @@ def GillespieInt(func, initValues, parameters, outputtimes):
         if total_hazard <= 0.0:
             time = outputtimes[-1]
         else:
-            URN = numpy.random.uniform()
-            new_time = (-1.0 / total_hazard) * numpy.log(URN)
+            new_time = (-1.0 / total_hazard) * numpy.log(numpy.random.uniform())
             time += new_time
 
         while time >= outputtimes[counter]:
@@ -126,8 +125,7 @@ def GillespieInt_onestep(func, current_concentrations, t1, t2, parameters, xmax)
         if total_hazard <= 0.0:
             return [current_concentrations, time, False]
 
-        URN = numpy.random.uniform()
-        new_time = (-1.0 / total_hazard) * numpy.log(URN)
+        new_time = (-1.0 / total_hazard) * numpy.log(numpy.random.uniform())
         time += new_time
 
         hazard_chosen = select_hazard(total_hazard, list_of_hazards)

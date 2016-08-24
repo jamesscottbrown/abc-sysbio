@@ -8,7 +8,7 @@ except ImportError:
         return 0
 
 
-def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol=None):
+def abcodeint(func, init_values, timepoints, parameters, dt=0.01, atol=None, rtol=None):
     """Call scipy.integrate.odeint.
     Return values for each species whose trajectory is described by func at timepoints given by timepoints.
 
@@ -43,8 +43,8 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
     """
 
     # array for the data that the user wants
-    solutions_out = numpy.zeros([len(timepoints), len(InitValues)])
-    current_concentrations = tuple(InitValues)
+    solutions_out = numpy.zeros([len(timepoints), len(init_values)])
+    current_concentrations = tuple(init_values)
     # current_concentrations,parameters=func.rules(current_concentrations, parameters, timepoints[0])
     current_concentrations, parameters = func.rules(current_concentrations, parameters, 0)
     solutions_out[0] = current_concentrations
@@ -54,24 +54,24 @@ def abcodeint(func, InitValues, timepoints, parameters, dt=0.01, atol=None, rtol
     flag = True
 
     # intTime1 = timepoints[0]
-    intTime1 = 0
+    int_time1 = 0
 
     while flag:
 
-        intTime2 = min(intTime1 + dt, timepoints[counter])
+        int_time2 = min(int_time1 + dt, timepoints[counter])
 
-        data = odeint(func.modelfunction, current_concentrations, [intTime1, intTime2], args=(parameters,), atol=atol,
+        data = odeint(func.modelfunction, current_concentrations, [int_time1, int_time2], args=(parameters,), atol=atol,
                       rtol=rtol)
 
-        data[1], parameters = func.rules(data[1], parameters, intTime2)
+        data[1], parameters = func.rules(data[1], parameters, int_time2)
 
-        if (timepoints[counter] - intTime2) < 0.000000001:
+        if (timepoints[counter] - int_time2) < 0.000000001:
             solutions_out[counter] = data[1]
             counter += 1
             if counter == len(timepoints):
                 flag = False
         current_concentrations = data[1]
-        intTime1 = intTime2
+        int_time1 = int_time2
 
     return solutions_out
 

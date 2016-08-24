@@ -182,19 +182,19 @@ def generateTemplate(source, filename, sumname, dataname=None):
         document = reader.readSBML(source[i])
         model = document.getModel()
 
-        numSpecies = model.getNumSpecies()
-        numGlobalParameters = model.getNumParameters()
+        num_species = model.getNumSpecies()
+        num_global_parameters = model.getNumParameters()
 
         parameter = []
-        parameterId = []
-        parameterId2 = []
-        listOfParameter = []
+        parameter_id = []
+        parameter_id2 = []
+        list_of_parameters = []
 
         r1 = 0
         r2 = 0
         r3 = 0
-        listOfRules = model.getListOfRules()
-        for k in range(0, len(listOfRules)):
+        list_of_rules = model.getListOfRules()
+        for k in range(0, len(list_of_rules)):
             if model.getRule(k).isAlgebraic():
                 r1 += 1
             if model.getRule(k).isAssignment():
@@ -203,37 +203,37 @@ def generateTemplate(source, filename, sumname, dataname=None):
                 r3 += 1
 
         comp = 0
-        NumCompartments = model.getNumCompartments()
-        for k in range(0, NumCompartments):
+        num_compartments = model.getNumCompartments()
+        for k in range(0, num_compartments):
             if model.getCompartment(k).isSetVolume():
                 comp += 1
-                numGlobalParameters += 1
+                num_global_parameters += 1
                 parameter.append(model.getListOfCompartments()[k].getVolume())
-                parameterId.append(model.getListOfCompartments()[k].getId())
-                parameterId2.append('compartment' + repr(k + 1))
-                listOfParameter.append(model.getListOfCompartments()[k])
+                parameter_id.append(model.getListOfCompartments()[k].getId())
+                parameter_id2.append('compartment' + repr(k + 1))
+                list_of_parameters.append(model.getListOfCompartments()[k])
 
-        for k in range(0, numGlobalParameters - comp):
+        for k in range(0, num_global_parameters - comp):
             param = model.getParameter(k)
             parameter.append(param.getValue())
-            parameterId.append(param.getId())
-            parameterId2.append('parameter' + repr(k + 1))
-            listOfParameter.append(param)
+            parameter_id.append(param.getId())
+            parameter_id2.append('parameter' + repr(k + 1))
+            list_of_parameters.append(param)
 
-        numLocalParameters = 0
-        NumReactions = model.getNumReactions()
-        for k in range(0, NumReactions):
+        num_local_parameters = 0
+        num_reactions = model.getNumReactions()
+        for k in range(0, num_reactions):
             local = model.getReaction(k).getKineticLaw().getNumParameters()
-            numLocalParameters = numLocalParameters + local
+            num_local_parameters = num_local_parameters + local
 
             for j in range(0, local):
                 parameter.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j).getValue())
-                parameterId.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j).getId())
-                x = len(parameterId) - comp
-                parameterId2.append('parameter' + repr(x))
-                listOfParameter.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j))
+                parameter_id.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j).getId())
+                x = len(parameter_id) - comp
+                parameter_id2.append('parameter' + repr(x))
+                list_of_parameters.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j))
 
-        numParameters = numLocalParameters + numGlobalParameters
+        num_parameters = num_local_parameters + num_global_parameters
 
         species = model.getListOfSpecies()
         ##for k in range(0, len(species)):
@@ -244,8 +244,8 @@ def generateTemplate(source, filename, sumname, dataname=None):
                 ##parameterId2.append('species'+repr(k+1))
                 ##numSpecies=numSpecies-1
 
-        sum_file.write("number of compartments: " + repr(NumCompartments) + "\n")
-        sum_file.write("number of reactions: " + repr(NumReactions) + "\n")
+        sum_file.write("number of compartments: " + repr(num_compartments) + "\n")
+        sum_file.write("number of reactions: " + repr(num_reactions) + "\n")
         sum_file.write("number of rules: " + repr(model.getNumRules()) + "\n")
         if model.getNumRules() > 0:
             sum_file.write("\t Algebraic rules: " + repr(r1) + "\n")
@@ -254,8 +254,8 @@ def generateTemplate(source, filename, sumname, dataname=None):
         sum_file.write("number of functions: " + repr(model.getNumFunctionDefinitions()) + "\n")
         sum_file.write("number of events: " + repr(model.getNumEvents()) + "\n\n")
 
-        paramAsSpecies = 0
-        sum_file.write("Species with initial values: " + repr(numSpecies) + "\n")
+        param_as_species = 0
+        sum_file.write("Species with initial values: " + repr(num_species) + "\n")
 
         out_file.write("# Priors on initial conditions and parameters:\n")
         out_file.write("# one of \n")
@@ -275,52 +275,52 @@ def generateTemplate(source, filename, sumname, dataname=None):
                 " <ic" + repr(x) + "> constant " + repr(getSpeciesValue(species[k])) + " </ic" + repr(x) + ">\n")
             sum_file.write("S" + repr(x) + ":\t" + species[k].getId() + "\tspecies" + repr(k + 1) + "\t(" + repr(
                 getSpeciesValue(species[k])) + ")\n")
-        for k in range(0, len(listOfParameter)):
-            if not listOfParameter[k].getConstant():
-                for j in range(0, len(listOfRules)):
-                    if listOfRules[j].isRate():
-                        if parameterId[k] == listOfRules[j].getVariable():
+        for k in range(0, len(list_of_parameters)):
+            if not list_of_parameters[k].getConstant():
+                for j in range(0, len(list_of_rules)):
+                    if list_of_rules[j].isRate():
+                        if parameter_id[k] == list_of_rules[j].getVariable():
                             x += 1
-                            paramAsSpecies += 1
+                            param_as_species += 1
                             # out_file.write(repr(listOfParameter[k].getValue())+", ")
                             out_file.write(
-                                " <ic" + repr(x) + "> constant " + repr(listOfParameter[k].getValue()) + " </ic" + repr(
+                                " <ic" + repr(x) + "> constant " + repr(list_of_parameters[k].getValue()) + " </ic" + repr(
                                     x) + ">\n")
-                            sum_file.write("S" + repr(x) + ":\t" + listOfParameter[k].getId() + "\tparameter" + repr(
-                                k + 1 - comp) + "\t(" + repr(listOfParameter[
+                            sum_file.write("S" + repr(x) + ":\t" + list_of_parameters[k].getId() + "\tparameter" + repr(
+                                k + 1 - comp) + "\t(" + repr(list_of_parameters[
                                                                  k].getValue()) + ") (parameter included in a rate rule and therefore treated as species)\n")
 
         out_file.write("</initial>\n\n")
 
         sum_file.write("\n")
 
-        if numGlobalParameters == 0:
+        if num_global_parameters == 0:
             string = " (all of them are local parameters)\n"
-        elif numGlobalParameters == 1:
+        elif num_global_parameters == 1:
             string = " (the first parameter is a global parameter)\n"
-        elif numLocalParameters == 0:
+        elif num_local_parameters == 0:
             string = " (all of them are global parameters)\n"
         else:
-            string = " (the first " + repr(numGlobalParameters) + " are global parameter)\n"
+            string = " (the first " + repr(num_global_parameters) + " are global parameter)\n"
 
-        sum_file.write("Parameter: " + repr(numParameters) + string)
-        sum_file.write("(" + repr(paramAsSpecies) + " parameter is treated as species)\n")
+        sum_file.write("Parameter: " + repr(num_parameters) + string)
+        sum_file.write("(" + repr(param_as_species) + " parameter is treated as species)\n")
 
         out_file.write("<parameters>\n")
 
         counter = 0
-        for k in range(0, numParameters - paramAsSpecies):
-            Print = True
-            if k < len(listOfParameter):
-                if not listOfParameter[k].getConstant():
-                    for j in range(0, len(listOfRules)):
-                        if listOfRules[j].isRate():
-                            if parameterId[k] == listOfRules[j].getVariable():
-                                Print = False
+        for k in range(0, num_parameters - param_as_species):
+            do_print = True
+            if k < len(list_of_parameters):
+                if not list_of_parameters[k].getConstant():
+                    for j in range(0, len(list_of_rules)):
+                        if list_of_rules[j].isRate():
+                            if parameter_id[k] == list_of_rules[j].getVariable():
+                                do_print = False
 
-            if Print:
+            if do_print:
                 counter += 1
-                sum_file.write("P" + repr(counter) + ":\t" + parameterId[k] + "\t" + parameterId2[k] + "\t(" + repr(
+                sum_file.write("P" + repr(counter) + ":\t" + parameter_id[k] + "\t" + parameter_id2[k] + "\t(" + repr(
                     parameter[k]) + ")\n")
                 out_file.write("<parameter" + repr(counter) + ">")
                 out_file.write(" constant ")
