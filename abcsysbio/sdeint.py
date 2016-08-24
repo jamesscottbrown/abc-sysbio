@@ -50,9 +50,10 @@ def sdeint(func, init_values, parameter, timepoints, dt=0.01):
         solutions[i], parameter = func.rules(solutions[i], parameter, times[i])
 
         # if any concentration has gone negative, terminate the simulation
-        if solutions[i][k] < 0.0:
-            solutions[i][k] = 0.0
-            return solutions_out
+        for k in range(0, dim):
+            if solutions[i][k] < 0.0:
+                solutions[i][k] = 0.0
+                return solutions_out
 
         if n >= len(timepoints):
             return zeros([len(timepoints), dim])
