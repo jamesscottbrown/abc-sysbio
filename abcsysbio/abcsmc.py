@@ -484,7 +484,6 @@ class abcsmc:
         particle_data : particle data, in form [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
 
         """
-        # particle data comprises of
         self.model_prev = particle_data[0][:]
 
         self.weights_prev = particle_data[1][:]
@@ -851,7 +850,7 @@ def howToFitData(fitting_instruction, samplePoints):
     return transformed_points[:]
 
 
-def getPdfModelKernel(new_model, old_model, modelK, num_models, num_dead_models):
+def getPdfModelKernel(new_model, old_model, modelK, num_models, dead_models):
     """
     Returns the probability of model number m0 being perturbed into model number m (assuming neither is dead).
 
@@ -865,18 +864,18 @@ def getPdfModelKernel(new_model, old_model, modelK, num_models, num_dead_models)
     old_model : index of previous model
     modelK : model (non)-perturbation probability
     num_models : total number of models
-    num_dead_models : number of models which are 'dead'
+    dead_models : number of models which are 'dead'
     """
 
-    ndead = len(num_dead_models)
+    num_dead_models = len(dead_models)
 
-    if ndead == num_models - 1:
+    if num_dead_models == num_models - 1:
         return 1.0
     else:
         if new_model == old_model:
             return modelK
         else:
-            return (1 - modelK) / (num_models - ndead)
+            return (1 - modelK) / (num_models - num_dead_models)
 
 
 def evaluateDistance(distance, epsilon):
