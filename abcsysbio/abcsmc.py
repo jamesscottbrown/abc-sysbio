@@ -8,6 +8,7 @@ from abcsysbio import kernels
 from abcsysbio import statistics
 
 from KernelType import KernelType
+from PriorType import PriorType
 
 """
 priors: 
@@ -160,7 +161,7 @@ class abcsmc:
         for i in range(self.nmodel):
             ind = list()
             for j in range(self.models[i].nparameters):
-                if not (self.models[i].prior[j][0] == 0):
+                if not (self.models[i].prior[j][0] == PriorType.constant):
                     ind.append(j)
             # kernel info will get set after first population
             self.kernels.append([ind, kernel_option[i], 0])
@@ -172,7 +173,7 @@ class abcsmc:
             for m in range(self.nmodel):
                 all_uniform = True
                 for j in range(self.models[m].nparameters):
-                    if not (self.models[m].prior[j][0] == 0 or self.models[m].prior[j][0] == 2):
+                    if not (self.models[m].prior[j][0] == PriorType.constant or self.models[m].prior[j][0] == PriorType.uniform):
                         all_uniform = False
                 if all_uniform:
                     self.special_cases[m] = 1
@@ -646,16 +647,16 @@ class abcsmc:
             sample = [0] * model.nparameters
 
             for param in range(model.nparameters):
-                if model.prior[param][0] == 0:
+                if model.prior[param][0] == PriorType.constant:
                     sample[param] = model.prior[param][1]
 
-                if model.prior[param][0] == 1:
+                if model.prior[param][0] == PriorType.normal:
                     sample[param] = rnd.normal(loc=model.prior[param][1], scale=numpy.sqrt(model.prior[param][2]))
 
-                if model.prior[param][0] == 2:
+                if model.prior[param][0] == PriorType.uniform:
                     sample[param] = rnd.uniform(low=model.prior[param][1], high=model.prior[param][2])
 
-                if model.prior[param][0] == 3:
+                if model.prior[param][0] == PriorType.lognormal:
                     sample[param] = rnd.lognormal(mean=model.prior[param][1], sigma=numpy.sqrt(model.prior[param][2]))
 
             samples.append(sample[:])
@@ -736,16 +737,16 @@ class abcsmc:
             particle_prior = 1
             for n in range(0, len(self.parameters_curr[k])):
                 x = 1.0
-                if model.prior[n][0] == 0:
+                if model.prior[n][0] == PriorType.constant:
                     x = 1
 
-                if model.prior[n][0] == 1:
+                if model.prior[n][0] == PriorType.normal:
                     x = statistics.getPdfGauss(model.prior[n][1], numpy.sqrt(model.prior[n][2]), this_param[n])
 
-                if model.prior[n][0] == 2:
+                if model.prior[n][0] == PriorType.uniform:
                     x = statistics.getPdfUniform(model.prior[n][1], model.prior[n][2], this_param[n])
 
-                if model.prior[n][0] == 3:
+                if model.prior[n][0] == PriorType.lognormal:
                     x = statistics.getPdfLognormal(model.prior[n][1], numpy.sqrt(model.prior[n][2]), this_param[n])
                 particle_prior = particle_prior * x
 

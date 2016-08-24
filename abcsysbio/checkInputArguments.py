@@ -1,6 +1,6 @@
 import pickle
 import re
-
+from PriorType import PriorType
 
 def checkInputABC(info_new, fname, custom_distance, design):
     """
@@ -120,8 +120,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
             return False, "\nThe integration type for model " + model_name[mod] + " does not exist!\n"
 
         for ic in range(len(x0priors[mod])):
-            if not (x0priors[mod][ic][0] == 0 or x0priors[mod][ic][0] == 1 or x0priors[mod][ic][0] == 2 or
-                            x0priors[mod][ic][0] == 3):
+            if x0priors[mod][ic][0] not in [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]:
                 return False, "\nThe prior distribution of initial condition " + repr(ic + 1) + " in model " + \
                        model_name[mod] + " does not exist!\n"
 
@@ -130,17 +129,16 @@ def checkInputABC(info_new, fname, custom_distance, design):
                 return False, "\nThe prior distribution of parameter " + repr(param + 1) + " in model " + model_name[
                     mod] + " is wrong defined!\n"
 
-            if not (priors[mod][param][0] == 0 or priors[mod][param][0] == 1 or priors[mod][param][0] == 2 or
-                            priors[mod][param][0] == 3):
+            if priors[mod][param][0] not in [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]:
                 return False, "\nThe prior distribution of parameter " + repr(param + 1) + " in model " + model_name[
                     mod] + " does not exist!\n"
 
-            if priors[mod][param][0] == 2:
+            if priors[mod][param][0] == PriorType.uniform:
                 if not priors[mod][param][1] < priors[mod][param][2]:
                     return False, "\nThe range of the uniform prior distribution of parameter " + repr(
                         param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"
 
-            if priors[mod][param][0] == 3:
+            if priors[mod][param][0] == PriorType.lognormal:
                 if not (priors[mod][param][1] >= 0 or priors[mod][param][2] >= 0):
                     return False, "\nThe mean or scale of the lognormal prior distribution of parameter " + repr(
                         param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"

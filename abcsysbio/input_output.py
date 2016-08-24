@@ -9,7 +9,7 @@ from getResults import plotData
 
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-
+from PriorType import PriorType
 
 class input_output:
     def __init__(self, folder, restart, diagnostic, plotDataSeries, havedata=True):
@@ -143,7 +143,7 @@ class input_output:
 
                         non_const = 0
                         for param in range(models[mod].nparameters):
-                            if not (models[mod].prior[param][0] == 0):
+                            if not (models[mod].prior[param][0] == PriorType.constant):
                                 population_mod[mod][eps].append([])
                                 weights_mod[mod][eps].append([])
 

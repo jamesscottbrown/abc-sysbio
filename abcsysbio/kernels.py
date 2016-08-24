@@ -3,6 +3,7 @@ from numpy import random as rnd
 from scipy.stats import norm
 from abcsysbio import statistics
 from KernelType import KernelType
+from PriorType import PriorType
 
 # kernel is a list of length 3 such that :
 # kernel[0] contains the index of the non-constant paramameters
@@ -225,7 +226,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
             #    x=statistics.getPdfGauss(priors[n][1], numpy.sqrt(priors[n][2]), params[n])
             # if we do not care about the value of prior_prob, then here: x=1.0
 
-            if priors[n][0] == 2:
+            if priors[n][0] == PriorType.uniform:
                 x = statistics.getPdfUniform(priors[n][1], priors[n][2], params[n])
 
                 # if priors[n][0]==3:
@@ -317,17 +318,17 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
             if not (len(this_kernel[2]) == 1):
                 for param_index in this_kernel[0]:
                     # if prior is uniform
-                    if this_prior[param_index][0] == 2:
+                    if this_prior[param_index][0] == PriorType.uniform:
                         mean = parameters[k][param_index]
                         scale = numpy.sqrt(this_kernel[2][kernel_index])
                         ret[k][param_index] = norm.cdf(this_prior[param_index][2], mean, scale) - norm.cdf(this_prior[param_index][1], mean, scale)
 
                     # if prior is normal, no truncation required
-                    if this_prior[param_index][0] == 1:
+                    if this_prior[param_index][0] == PriorType.normal:
                         ret[k][param_index] = 1
 
                     # if prior is lognormal, trucation for the negative values
-                    if this_prior[param_index][0] == 3:
+                    if this_prior[param_index][0] == PriorType.lognormal:
                         mean = parameters[k][param_index]
                         scale = numpy.sqrt(this_kernel[2][kernel_index])
                         ret[k][param_index] = 1 - norm.cdf(0, mean, scale)
@@ -338,13 +339,13 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
             low = list()
             mean = list()
             for param_index in this_kernel[0]:
-                if this_prior[param_index][0] == 2:
+                if this_prior[param_index][0] == PriorType.uniform:
                     low.append(this_prior[param_index][1])
                     up.append(this_prior[param_index][2])
-                if this_prior[param_index][0] == 1:
+                if this_prior[param_index][0] == PriorType.normal:
                     low.append(-float('inf'))
                     up.append(float('inf'))
-                if this_prior[param_index][0] == 3:
+                if this_prior[param_index][0] == PriorType.lognormal:
                     low.append(0)
                     up.append(float('inf'))
                 mean.append(parameters[k][param_index])
@@ -356,13 +357,13 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
             low = list()
             mean = list()
             for param_index in this_kernel[0]:
-                if this_prior[param_index][0] == 2:
+                if this_prior[param_index][0] == PriorType.uniform:
                     low.append(this_prior[param_index][1])
                     up.append(this_prior[param_index][2])
-                if this_prior[param_index][0] == 1:
+                if this_prior[param_index][0] == PriorType.normal:
                     low.append(-float('inf'))
                     up.append(float('inf'))
-                if this_prior[param_index][0] == 3:
+                if this_prior[param_index][0] == PriorType.lognormal:
                     low.append(0)
                     up.append(float('inf'))
                 mean.append(parameters[k][param_index])

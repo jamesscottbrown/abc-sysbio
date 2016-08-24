@@ -4,6 +4,7 @@ import re, sys, numpy
 
 from xml.dom import minidom
 from KernelType import KernelType
+from PriorType import PriorType
 
 # implemented priors
 re_prior_const = re.compile('constant')
@@ -96,14 +97,14 @@ def process_prior(tmp, model_num):
     prior_params = [0, 0, 0]
 
     if re_prior_const.match(tmp[0]):
-        prior_params[0] = 0
+        prior_params[0] = PriorType.constant
         try:
             prior_params[1] = float(tmp[1])
         except:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_normal.match(tmp[0]):
-        prior_params[0] = 1
+        prior_params[0] = PriorType.normal
         try:
             prior_params[1] = float(tmp[1])
             prior_params[2] = float(tmp[2])
@@ -111,7 +112,7 @@ def process_prior(tmp, model_num):
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_uni.match(tmp[0]):
-        prior_params[0] = 2
+        prior_params[0] = PriorType.uniform
         try:
             prior_params[1] = float(tmp[1])
             prior_params[2] = float(tmp[2])
@@ -119,7 +120,7 @@ def process_prior(tmp, model_num):
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_logn.match(tmp[0]):
-        prior_params[0] = 3
+        prior_params[0] = PriorType.lognormal
         try:
             prior_params[1] = float(tmp[1])
             prior_params[2] = float(tmp[2])
