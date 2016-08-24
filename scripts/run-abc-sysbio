@@ -35,7 +35,6 @@ if __name__ == '__main__':
     parser.add_argument('--infile', '-i', help="declaration of the input file. This input file has to be provided to run the program")
     parser.add_argument('--localcode', '-lc', help='do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file', action='store_true')
 
-
     # Algorithmic options
     parser.add_argument('--setseed', '-sd', help="seed the random number generator in numpy with an integer eg -sd=2, --setseed=2")
     parser.add_argument('--timing', '-tm', help="print timing information", action='store_true')
@@ -64,10 +63,6 @@ if __name__ == '__main__':
     parser.add_argument('--custk', action='store_true', help="Custom kernel")
 
     args = parser.parse_args()
-
-
-
-    # TODO: add custd/custk
 
     diagnostic = True
     pickling = True
