@@ -2,7 +2,7 @@ from numpy import *
 import math
 
 
-def sdeint(func, InitValues, parameter, timepoints, dt=0.01):
+def sdeint(func, init_values, parameter, timepoints, dt=0.01):
     """
     ***** args *****
     
@@ -30,30 +30,28 @@ def sdeint(func, InitValues, parameter, timepoints, dt=0.01):
     
     """
 
-    maxT = timepoints[len(timepoints) - 1]
-    times = arange(0.0, maxT + dt, dt)
+    max_t = timepoints[len(timepoints) - 1]
+    times = arange(0.0, max_t + dt, dt)
     length = len(times)
 
-    dim = len(InitValues)
+    dim = len(init_values)
     solutions = zeros([length, dim])
     solutions_out = zeros([len(timepoints), dim])
-    # InitValues, parameter = func.rules(InitValues, parameter, times[0])
-    InitValues, parameter = func.rules(InitValues, parameter, 0)  # change this to t=0
-    solutions[0] = InitValues
-    # solutions_out[0]=InitValues
+    init_values, parameter = func.rules(init_values, parameter, 0)  # change this to t=0
+    solutions[0] = init_values
 
     n = 0
     for i in range(1, length):
-        new, W = func.modelfunction(solutions[i - 1], dt, parameter, time=times[i])
+        new, w = func.modelfunction(solutions[i - 1], dt, parameter, time=times[i])
 
         for k in range(0, dim):
-            solutions[i][k] = solutions[i - 1][k] + new[k] * dt + W[k]
+            solutions[i][k] = solutions[i - 1][k] + new[k] * dt + w[k]
 
         solutions[i], parameter = func.rules(solutions[i], parameter, times[i])
 
+        # if any concentration has gone negative, terminate the simulation
         if solutions[i][k] < 0.0:
             solutions[i][k] = 0.0
-            # print "\nSDE simulation failed. Try smaller timestep.\n"
             return solutions_out
 
         if n >= len(timepoints):
@@ -67,35 +65,30 @@ def sdeint(func, InitValues, parameter, timepoints, dt=0.01):
 
 def sdeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01):
     dim = len(current_concentrations)
-    X = zeros([1, dim])
+    x = zeros([1, dim])
 
     time = t1
     next_time = min(time + dt, t2)
 
-    X[0], parameters = func.rules(current_concentrations, parameters, t=time)
+    x[0], parameters = func.rules(current_concentrations, parameters, t=time)
 
     while 1:
-        dX, W = func.modelfunction(X[0], next_time - time, parameters, time=next_time)
-
-        # print 's', current_concentrations
-        # print 'new', dX[0]
-        # print 'W', W[0]
+        dx, w = func.modelfunction(x[0], next_time - time, parameters, time=next_time)
 
         for k in range(0, dim):
-            X[0][k] += dX[k] * (next_time - time) + W[k]
+            x[0][k] += dx[k] * (next_time - time) + w[k]
 
-        X[0], parameters = func.rules(X[0], parameters, next_time)
+        x[0], parameters = func.rules(x[0], parameters, next_time)
 
         for k in range(0, dim):
-            if X[0][k] < 0.0:
-                X[0][k] = 0.0
-                # print "\nSDE simulation failed. Try smaller timestep.\n"
-                return [X[0], next_time, False]
+            if x[0][k] < 0.0:
+                x[0][k] = 0.0
+                return [x[0], next_time, False]
 
         if (t2 - next_time) < 0.000000001:
-            return [X[0], next_time, True]
+            return [x[0], next_time, True]
 
         time = next_time
         next_time = min(time + dt, t2)
 
-    return [X[0], time, False]
+    return [x[0], time, False]
