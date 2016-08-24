@@ -1,16 +1,8 @@
-# module defining all things kernel
-
-# kernel_type = 1 : component-wise uniform kernels
-# kernel_type = 2 : component-wise normal kernels
-# kernel_type = 3 : multi-variate normal kernels
-# kernel_type = 4 : multi-variate normal kernels using the nearest neighbours of the particles
-# kernel_type = 4 : multi-variate normal kernels using an "optimal covariance matrix" 
-
 import numpy
 from numpy import random as rnd
 from scipy.stats import norm
 from abcsysbio import statistics
-
+from KernelType import KernelType
 
 # kernel is a list of length 3 such that :
 # kernel[0] contains the index of the non-constant paramameters
@@ -24,7 +16,7 @@ def getKernel(kernel_type, kernel, population, weights):
     pop_size = population.shape[0]
     npar = population.shape[1]
 
-    if kernel_type == 1:
+    if kernel_type == KernelType.component_wise_uniform:
         # component-wise uniform kernels
         tmp = list()
         if pop_size == 1:
@@ -40,7 +32,7 @@ def getKernel(kernel_type, kernel, population, weights):
         kernel[2] = tmp
     # kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the inf and sup bound of the uniform kernel.
 
-    elif kernel_type == 2:
+    elif kernel_type == KernelType.component_wise_normal:
         # component-wise normal kernels
         tmp = list()
         if pop_size == 1:
@@ -53,7 +45,7 @@ def getKernel(kernel_type, kernel, population, weights):
         kernel[2] = tmp
     # kernel[2] is a list of length the number of non-constant parameters. Each element of the list contains the variance.
 
-    elif kernel_type == 3:
+    elif kernel_type == KernelType.multivariate_normal:
         # multi-variate normal kernel whose covariance is based on all the previous population
         if pop_size == 1:
             print "WARNING: getKernel : only one particle so adaptation is not possible"
@@ -66,7 +58,7 @@ def getKernel(kernel_type, kernel, population, weights):
         kernel[2] = 2 * cov
         # kernel[2] is the covaraince matrix of the multivariate normal kernel of size len(kernel[0])*len(kernel[0])
 
-    if kernel_type == 4:
+    if kernel_type == KernelType.multivariate_normal_nn:
         # multi-variate normal kernel whose covariance is based on the K nearest neighbours of the particle
         k = int(kernel[1])
         D = {}
@@ -102,7 +94,7 @@ def getKernel(kernel_type, kernel, population, weights):
         kernel[2] = D
         # kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
 
-    if kernel_type == 5:
+    if kernel_type == KernelType.multivariate_normal_ocm:
         # multi-variate normal kernel whose covariance is the OCM
         pop = list()
         D = {}
@@ -169,7 +161,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
         return 1.0
 
     else:
-        if kernel_type == 1:
+        if kernel_type == KernelType.component_wise_uniform:
             ind = 0
             # n refers to the index of the parameter (integer between 0 and np-1)
             # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
@@ -177,7 +169,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
                 params[n] = params[n] + rnd.uniform(low=kernel[2][ind][0], high=kernel[2][ind][1])
                 ind += 1
 
-        if kernel_type == 2:
+        if kernel_type == KernelType.component_wise_normal:
             ind = 0
             # n refers to the index of the parameter (integer between 0 and np-1)
             # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
@@ -185,7 +177,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
                 params[n] = rnd.normal(params[n], numpy.sqrt(kernel[2][ind]))
                 ind += 1
 
-        if kernel_type == 3:
+        if kernel_type == KernelType.multivariate_normal:
             mean = list()
             for n in kernel[0]:
                 mean.append(params[n])
@@ -195,7 +187,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
                 params[n] = tmp[ind]
                 ind += 1
 
-        if kernel_type == 4 or kernel_type == 5:
+        if kernel_type == KernelType.multivariate_normal_nn or kernel_type == KernelType.multivariate_normal_ocm:
             mean = list()
             for n in kernel[0]:
                 mean.append(params[n])
@@ -229,7 +221,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
 # Here params and params0 refer to one particle each.
 # Auxilliary is a vector size of nparameters
 def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type):
-    if kernel_type == 1:
+    if kernel_type == KernelType.component_wise_uniform:
         prob = 1
         # n refers to the index of the parameter (integer between 0 and np-1)
         # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
@@ -240,7 +232,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
             ind += 1
         return prob
 
-    elif kernel_type == 2:
+    elif kernel_type == KernelType.component_wise_normal:
         # n refers to the index of the parameter (integer between 0 and np-1)
         # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
         prob = 1
@@ -254,7 +246,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
             ind += 1
         return prob
 
-    elif kernel_type == 3:
+    elif kernel_type == KernelType.multivariate_normal:
         p0 = list()
         p = list()
         for n in kernel[0]:
@@ -264,7 +256,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
         kern = kern / auxilliary
         return kern
 
-    elif kernel_type == 4 or kernel_type == 5:
+    elif kernel_type == KernelType.multivariate_normal_nn or kernel_type == KernelType.multivariate_normal_ocm:
         p0 = list()
         p = list()
         D = kernel[2]
@@ -286,7 +278,7 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
         this_prior = model_objs[models[k]].prior
         this_kernel = kernel[models[k]]
         nparam = model_objs[models[k]].nparameters
-        if kernel_type == 2:
+        if kernel_type == KernelType.component_wise_normal:
             ret.append([1.0 for n in range(nparam)])
             # n refers to the index of the parameter (integer between 0 and np-1)
             # ind is an integer between 0 and len(kernel[0])-1 which enables to determine the kernel to use
@@ -307,7 +299,7 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
                         scale = numpy.sqrt(this_kernel[2][ind])
                         ret[k][n] = 1 - norm.cdf(0, mean, scale)
                     ind += 1
-        elif kernel_type == 3:
+        elif kernel_type == KernelType.multivariate_normal:
             up = list()
             low = list()
             mean = list()
@@ -324,7 +316,7 @@ def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
                 mean.append(parameters[k][n])
             scale = this_kernel[2]
             ret.append(statistics.mvnormcdf(low, up, mean, scale))
-        elif kernel_type == 4 or kernel_type == 5:
+        elif kernel_type == KernelType.multivariate_normal_nn or kernel_type == KernelType.multivariate_normal_ocm:
             up = list()
             low = list()
             mean = list()

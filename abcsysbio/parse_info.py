@@ -3,6 +3,7 @@
 import re, sys, numpy
 
 from xml.dom import minidom
+from KernelType import KernelType
 
 # implemented priors
 re_prior_const = re.compile('constant')
@@ -167,7 +168,7 @@ class algorithm_info:
         self.logp = []
 
         self.modelkernel = 0.7
-        self.kernel = 1
+        self.kernel = KernelType.component_wise_uniform
         self.modelprior = []
         self.rtol = 1e-5
         self.atol = 1e-5
@@ -366,15 +367,15 @@ class algorithm_info:
         try:
             data = str(xmldoc.getElementsByTagName('kernel')[0].firstChild.data).strip()
             if re_kernel_uniform.match(data):
-                self.kernel = 1
+                self.kernel = KernelType.component_wise_uniform
             elif re_kernel_normal.match(data):
-                self.kernel = 2
+                self.kernel = KernelType.component_wise_normal
             elif re_kernel_mvnormal.match(data):
-                self.kernel = 3
+                self.kernel = KernelType.multivariate_normal
             elif re_kernel_mvnormalKN.match(data):
-                self.kernel = 4
+                self.kernel = KernelType.multivariate_normal_nn
             elif re_kernel_mvnormalOCM.match(data):
-                self.kernel = 5
+                self.kernel = KernelType.multivariate_normal_ocm
             else:
                 print "\n#################\n<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or multivariateNormalOCM  so I am going to ignore your argument"
         except:

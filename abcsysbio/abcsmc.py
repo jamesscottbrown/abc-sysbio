@@ -7,6 +7,8 @@ from abcsysbio import euclidian
 from abcsysbio import kernels
 from abcsysbio import statistics
 
+from KernelType import KernelType
+
 """
 priors: 
               a 3D list.
@@ -99,7 +101,7 @@ class abcsmc:
                  debug,
                  timing,
                  distancefn=euclidian.euclidianDistance,
-                 kernel_type=1,
+                 kernel_type=KernelType.component_wise_uniform,
                  kernelfn=kernels.getKernel,
                  kernelpdffn=kernels.getPdfParameterKernel,
                  perturbfn=kernels.perturbParticle):
@@ -148,7 +150,7 @@ class abcsmc:
         # self.kernels[i][2] is filled in during the kernelfn step and contains values/matrix etc depending ont he kernel
         kernel_option = list()
         for i in range(self.nmodel):
-            if self.kernel_type == 4:
+            if self.kernel_type == KernelType.multivariate_normal_nn:
                 # Option for K nearest neigbours - user should be able to specify
                 kernel_option.append(int(nparticles / 4))
             else:
@@ -165,7 +167,7 @@ class abcsmc:
 
             # get
         self.special_cases = [0] * self.nmodel
-        if self.kernel_type == 1:
+        if self.kernel_type == KernelType.component_wise_uniform:
 
             for m in range(self.nmodel):
                 all_uniform = True
