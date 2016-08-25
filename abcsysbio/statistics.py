@@ -350,8 +350,7 @@ def kNearestNeighEuc(ind, s, k):
 
 def compute_cov(x, weights):
     """
-        Compute the weighted covariance matrix for a set of measurements, by first calculating the weighted mean.
-
+    Compute the weighted covariance matrix for a set of measurements, by first calculating the weighted mean.
 
     Parameters
     ----------
@@ -364,7 +363,6 @@ def compute_cov(x, weights):
     """
     num_dimensions = len(x)
     num_samples = len(x[0])
-    c = zeros([num_dimensions, num_dimensions], float)
 
     # Calculate weighted mean of the samples
     m = list()
@@ -374,26 +372,7 @@ def compute_cov(x, weights):
             m[d] += weights[sample] * x[d][sample]
         m[d] = m[d] / sum(weights)
 
-    # Fill in upper half of c
-    for sample in range(num_samples):
-        for d1 in range(num_dimensions):
-            for d2 in range(d1):
-                c[d1, d2] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d2][sample] - m[d2])
-
-    # Fill in lowe half by symmetry
-    c = c + transpose(c)
-
-    # Fill in diagonal
-    for sample in range(num_samples):
-        for d1 in range(num_dimensions):
-            c[d1, d1] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d1][sample] - m[d1])
-
-    # Divide every element by the total weight
-    for d1 in range(num_dimensions):
-        for d2 in range(num_dimensions):
-            c[d1, d2] = c[d1, d2] / sum(weights)
-
-    return c
+    return compute_optcovmat(x, weights, m)
 
 
 def compute_optcovmat(x, weights, m):
@@ -429,7 +408,7 @@ def compute_optcovmat(x, weights, m):
             c[d1, d1] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d1][sample] - m[d1])
 
     # Divide every element by the total weight
-    for d2 in range(num_dimensions):
-        for k in range(num_dimensions):
-            c[d2, k] = c[d2, k] / sum(weights)
+    for d1 in range(num_dimensions):
+        for d2 in range(num_dimensions):
+            c[d1, d2] = c[d2, d2] / sum(weights)
     return c
