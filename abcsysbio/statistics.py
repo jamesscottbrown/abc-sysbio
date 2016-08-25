@@ -426,8 +426,9 @@ def compute_optcovmat(x, weights, m):
     c = c + transpose(c)
 
     # Fill in diagonal
-    for d1 in range(num_dimensions):
-        c[d1, d1] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d1][sample] - m[d1])
+    for sample in range(num_samples):
+        for d1 in range(num_dimensions):
+            c[d1, d1] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d1][sample] - m[d1])
 
     # Divide every element by the total weight
     for d2 in range(num_dimensions):
