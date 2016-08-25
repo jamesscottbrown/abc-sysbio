@@ -62,9 +62,9 @@ def MatrixToTextfile(matrix, filename, model, eps):
     """
 
     out_file = open(filename + ".txt", "w")
-    for j in range(0, len(matrix[model][eps][0])):  ###for each parameter of the choosen model
-        for i in range(0, len(matrix[model][eps])):  ###for each value of the parameter of the choosen model
-            out_file.write(repr(matrix[model][eps][i][j]) + " ")
+    for particle in range(0, len(matrix[model][eps][0])):
+        for param in range(0, len(matrix[model][eps])):
+            out_file.write(repr(matrix[model][eps][param][particle]) + " ")
         out_file.write("\n")
     out_file.close()
 
