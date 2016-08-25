@@ -8,13 +8,12 @@ import math
 import scipy.stats.mvn
 
 
-def w_choice(item, weight):
+def w_choice(weight):
     """
     Sample from the categorical distribution with probabilities given by weight.
 
     Parameters
     ----------
-    item : not used
     weight : list of probability for each category
 
     Returns

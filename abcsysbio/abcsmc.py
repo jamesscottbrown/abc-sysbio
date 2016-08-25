@@ -591,7 +591,7 @@ class abcsmc:
         models = [0] * self.nbatch
         if self.nmodel > 1:
             for i in range(self.nbatch):
-                models[i] = statistics.w_choice(range(self.nmodel), self.modelprior)
+                models[i] = statistics.w_choice(self.modelprior)
 
         return models
 
@@ -606,7 +606,7 @@ class abcsmc:
         if self.nmodel > 1:
             # Sample models from prior distribution
             for i in range(self.nbatch):
-                models[i] = statistics.w_choice(range(self.nmodel), self.margins_prev)
+                models[i] = statistics.w_choice(self.margins_prev)
 
             # perturb models
             if len(self.dead_models) < self.nmodel - 1:
