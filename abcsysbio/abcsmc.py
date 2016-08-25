@@ -115,12 +115,12 @@ class abcsmc:
 
         self.model_prev = [0] * nparticles
         self.weights_prev = [0] * nparticles
-        self.parameters_prev = [[] for j in range(self.nparticles)]
+        self.parameters_prev = [[] for _ in range(self.nparticles)]
         self.margins_prev = [0] * self.nmodel
 
         self.model_curr = [0] * nparticles
         self.weights_curr = [0] * nparticles
-        self.parameters_curr = [[] for j in range(self.nparticles)]
+        self.parameters_curr = [[] for _ in range(self.nparticles)]
         self.margins_curr = [0] * self.nmodel
 
         self.b = [0] * nparticles
