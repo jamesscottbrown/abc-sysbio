@@ -77,7 +77,7 @@ class input_output:
                 # print os.getcwd()
                 os.mkdir("Population_" + repr(population + 1))
                 os.chdir("../..")
-            except:
+            except OSError:
                 sys.exit("\nCan not create the folder Population_" + repr(population + 1) + "!\n")
 
         # count number of particles in each model so that we can skip empty models
@@ -282,14 +282,14 @@ class input_output:
         try:
             os.mkdir(self.folder)
             os.chdir(self.folder)
-        except:
+        except OSError:
             sys.exit("\nThe folder " + self.folder + " already exists!\n")
 
         if not simulation:
             for mod in modelnames:
                 try:
                     os.mkdir('results_' + mod)
-                except:
+                except OSError:
                     sys.exit("\nThe folder " + self.folder + "/results_" + mod + " already exists!\n")
 
         os.chdir('..')
@@ -299,7 +299,7 @@ class input_output:
                 os.chdir(self.folder)
                 os.mkdir('copy')
                 os.chdir('..')
-            except:
+            except OSError:
                 sys.exit("\nThe folder \'copy\' already exists!\n")
 
             out_file = open(self.folder + '/copy/algorithm_parameter.dat', "w")
@@ -318,35 +318,35 @@ class input_output:
             in_file = open(location + '/copy/model_last.dat', "r")
             model_pickled = pickle.load(in_file)
             in_file.close()
-        except:
+        except IOError:
             sys.exit("\nCan not find file \'model_last.dat\' in folder \'copy\'!\n")
 
         try:
             in_file = open(location + '/copy/weights_last.dat', "r")
             weights_pickled = pickle.load(in_file)
             in_file.close()
-        except:
+        except IOError:
             sys.exit("\nCan not find file \'weights_last.dat\' in folder \'copy\'!\n")
 
         try:
             in_file = open(location + '/copy/params_last.dat', "r")
             parameters_pickled = pickle.load(in_file)
             in_file.close()
-        except:
+        except IOError:
             sys.exit("\nCan not find file \'params_last.dat\' in folder \'copy\'!\n")
 
         try:
             in_file = open(location + '/copy/margins_last.dat', "r")
             margins_pickled = pickle.load(in_file)
             in_file.close()
-        except:
+        except IOError:
             sys.exit("\nCan not find file \'margins_last.dat\' in folder \'copy\'!\n")
 
         try:
             in_file = open(location + '/copy/kernels_last.dat', "r")
             kernel = pickle.load(in_file)
             in_file.close()
-        except:
+        except IOError:
             sys.exit("\nCan not find file \'kernels_last.dat\' in folder \'copy\'!\n")
 
         # print "\n\n\n Reading previous population"

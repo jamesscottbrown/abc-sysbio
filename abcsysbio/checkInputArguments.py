@@ -150,7 +150,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
             in_file = open(fname + '/copy/algorithm_parameter.dat', "r")
             num_particles_pickled = pickle.load(in_file)
             in_file.close()
-        except:
+        except IOError:
             return False, "\nCan not find file \'algorithm_parameter.dat\' in folder \'copy\'!\n"
 
         if not num_particles <= num_particles_pickled:
