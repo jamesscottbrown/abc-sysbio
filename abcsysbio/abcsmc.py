@@ -699,8 +699,8 @@ class abcsmc:
                                                self.weights_prev)
 
                 # Copy this particle's params into a new array, then perturb this in place using the parameter perturbation kernel
-                for nn in range(num_params):
-                    sample[nn] = self.parameters_prev[particle][nn]
+                for param in range(num_params):
+                    sample[param] = self.parameters_prev[particle][param]
 
                 prior_prob = self.perturbfn(sample, model.prior, self.kernels[model_num],
                                             self.kernel_type, self.special_cases[model_num])
