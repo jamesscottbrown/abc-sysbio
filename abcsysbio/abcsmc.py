@@ -698,6 +698,7 @@ class abcsmc:
                 particle = sample_particle_from_model(self.nparticles, model_num, self.margins_prev, self.model_prev,
                                                self.weights_prev)
 
+                # Copy this particle's params into a new array, then perturb this in place using the parameter perturbation kernel
                 for nn in range(num_params):
                     sample[nn] = self.parameters_prev[particle][nn]
 
