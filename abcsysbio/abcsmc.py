@@ -666,8 +666,8 @@ class abcsmc:
     def sampleTheParameter(self, sampled_models):
         """
         For each model index in sampled_models, sample a set of parameters by sampling a particle from
-        the corresponding model (with probability biased by the particle weights); if this gives parameters with
-        probability <=0 the process is repeated.
+        the corresponding model (with probability biased by the particle weights), and then perturbing using the parameter
+        perturbation kernel; if this gives parameters with probability <=0 the process is repeated.
 
         Parameters
         ----------
