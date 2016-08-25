@@ -345,11 +345,10 @@ def kNearestNeighEuc(ind, s, k):
     for i in range(min(k, n)):
         im = argmin(dist)
         k_min.append(im)
-        dist[im] = m
+        dist[im] = Inf
     return k_min
 
 
-#
 def compute_cov(x, weights):
     """
         Compute the weighted covariance matrix for a set of measurements, by first calculating the weighted mean.
