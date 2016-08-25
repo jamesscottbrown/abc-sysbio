@@ -44,7 +44,7 @@ def parse_required_single_value(node, tagname, message, cast):
     try:
         data = node.getElementsByTagName(tagname)[0].firstChild.data
         ret = cast(data)
-    except:
+    except (IndexError, ValueError):
         sys.exit(message)
 
     return ret
@@ -71,7 +71,7 @@ def parse_required_vector_value(node, tag_name, message, cast):
         data = node.getElementsByTagName(tag_name)[0].firstChild.data
         tmp = str(data).split()
         ret = [cast(i) for i in tmp]
-    except:
+    except (IndexError, ValueError):
         sys.exit(message)
 
     if len(ret) == 0:
@@ -100,7 +100,7 @@ def process_prior(tmp, model_num):
         prior_params[0] = PriorType.constant
         try:
             prior_params[1] = float(tmp[1])
-        except:
+        except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_normal.match(tmp[0]):
@@ -108,7 +108,7 @@ def process_prior(tmp, model_num):
         try:
             prior_params[1] = float(tmp[1])
             prior_params[2] = float(tmp[2])
-        except:
+        except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_uni.match(tmp[0]):
@@ -116,7 +116,7 @@ def process_prior(tmp, model_num):
         try:
             prior_params[1] = float(tmp[1])
             prior_params[2] = float(tmp[2])
-        except:
+        except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_logn.match(tmp[0]):
@@ -124,7 +124,7 @@ def process_prior(tmp, model_num):
         try:
             prior_params[1] = float(tmp[1])
             prior_params[2] = float(tmp[2])
-        except:
+        except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
     else:
         sys.exit("\nSupplied parameter prior %s unsupported" % tmp[0])
@@ -316,7 +316,7 @@ class algorithm_info:
                         self.logp.append(True)
                     else:
                         self.logp.append(False)
-                except:
+                except IndexError:
                     self.logp.append(False)
 
                 num_params = 0
@@ -352,14 +352,14 @@ class algorithm_info:
         try:
             data = xmldoc.getElementsByTagName('atol')[0].firstChild.data
             self.atol = float(data)
-        except:
+        except (IndexError, ValueError):
             pass
 
         # get rtol
         try:
             data = xmldoc.getElementsByTagName('rtol')[0].firstChild.data
             self.rtol = float(data)
-        except:
+        except (IndexError, ValueError):
             pass
 
         # get restart
@@ -367,7 +367,7 @@ class algorithm_info:
             tmp = str(xmldoc.getElementsByTagName('restart')[0].firstChild.data).strip()
             if re_true.match(tmp):
                 self.restart = True
-        except:
+        except IndexError:
             pass
 
         # get model kernel
@@ -375,13 +375,13 @@ class algorithm_info:
             data = xmldoc.getElementsByTagName('modelkernel')[0].firstChild.data
             try:
                 self.modelkernel = float(data)
-            except:
+            except ValueError:
                 print "\n#################\n<modelkernel> must be a float so I am going to ignore your argument"
 
             if self.modelkernel > 1.0:
                 print "\n#################\n<modelkernel> must be <= 1.0  so I am going to ignore your argument"
                 self.modelkernel = 0.7
-        except:
+        except IndexError:
             pass
 
         # get kernel
@@ -399,7 +399,7 @@ class algorithm_info:
                 self.kernel = KernelType.multivariate_normal_ocm
             else:
                 print "\n#################\n<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or multivariateNormalOCM  so I am going to ignore your argument"
-        except:
+        except IndexError:
             pass
 
         # get model priors
@@ -411,14 +411,14 @@ class algorithm_info:
             ret = []
             try:
                 ret = [float(population) for population in tmp]
-            except:
+            except ValueError:
                 print "\n#################\n<modelprior> must be a vector of floats so I am going to ignore your argument"
 
             if sum(ret) != 1.0 or len(ret) != self.nmodels:
                 print "\n#################\n<modelprior> must sum to one and be the same length as the number of models so I am going to ignore your argument"
             else:
                 self.modelprior = ret[:]
-        except:
+        except IndexError:
             pass
 
     def print_info(self):
