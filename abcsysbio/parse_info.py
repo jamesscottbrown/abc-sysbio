@@ -172,7 +172,7 @@ def parse_fitting_information(node):
         return fitting_strings
 
 
-class algorithm_info:
+class AlgorithmInfo:
     """
     A class to parse the user-provided input file and return all information required to run the abc-SMC algorithm.
     

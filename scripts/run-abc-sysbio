@@ -132,7 +132,7 @@ if __name__ == '__main__':
         mode = 1
     if design:
         mode = 2
-    info_new = parse_info.algorithm_info(input_file, mode)
+    info_new = parse_info.AlgorithmInfo(input_file, mode)
 
     info_new.print_info()
 
