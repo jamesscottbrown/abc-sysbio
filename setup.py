@@ -4,7 +4,7 @@ from distutils.command.install import install as _install
 
 
 # extend the install class
-class install(_install):
+class Install(_install):
     def run(self):
         _install.run(self)
         v = sys.version_info
@@ -31,7 +31,7 @@ setup(name='abc-sysbio',
 
       package_data={'abcsysbio': ['src/*']},
 
-      cmdclass={"install": install},
+      cmdclass={"install": Install},
 
       requires=['libSBML',
                 'matplotlib',
