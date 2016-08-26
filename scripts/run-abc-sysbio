@@ -233,7 +233,7 @@ if __name__ == '__main__':
                                               dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
                                               logp=info_new.logp[i], ngpu=ngpu)
         elif use_c:
-            new_model = model_c.model(name=info_new.name[i], nspecies=info_new.nspecies[i],
+            new_model = model_c.Model(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                       nparameters=info_new.nparameters[i],
                                       prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                       source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
@@ -242,7 +242,7 @@ if __name__ == '__main__':
                                       logp=info_new.logp[i])
 
         else:
-            new_model = model_py.model(name=info_new.name[i], nspecies=info_new.nspecies[i],
+            new_model = model_py.Model(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                        nparameters=info_new.nparameters[i],
                                        prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                        source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
