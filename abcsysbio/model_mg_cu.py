@@ -5,7 +5,7 @@ import cudasim.EulerMaruyama_mg as EulerMaruyama
 import cudasim.Gillespie_mg as Gillespie
 
 
-class cuda_model:
+class CudaModel:
     # instantiation
     def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, timepoints,
                  logp, ngpu):

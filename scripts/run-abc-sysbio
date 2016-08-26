@@ -217,21 +217,21 @@ if __name__ == '__main__':
     models = []
     for i in range(info_new.modelnumber):
         if use_cuda:
-            new_model = model_cu.cuda_model(name=info_new.name[i], nspecies=info_new.nspecies[i],
-                                            nparameters=info_new.nparameters[i],
-                                            prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                            source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                            dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
-                                            logp=info_new.logp[i])
+            new_model = model_cu.CudaModel(name=info_new.name[i], nspecies=info_new.nspecies[i],
+                                           nparameters=info_new.nparameters[i],
+                                           prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                           source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
+                                           dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
+                                           logp=info_new.logp[i])
         elif use_cudamg:
             from abcsysbio import model_mg_cu
-            new_model = model_mg_cu.cuda_model(name=info_new.name[i], nspecies=info_new.nspecies[i],
-                                               nparameters=info_new.nparameters[i],
-                                               prior=info_new.prior[i], x0prior=info_new.x0prior[i],
-                                               source=info_new.name[i], integration=info_new.type[i],
-                                               fit=info_new.fit[i],
-                                               dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
-                                               logp=info_new.logp[i], ngpu=ngpu)
+            new_model = model_mg_cu.CudaModel(name=info_new.name[i], nspecies=info_new.nspecies[i],
+                                              nparameters=info_new.nparameters[i],
+                                              prior=info_new.prior[i], x0prior=info_new.x0prior[i],
+                                              source=info_new.name[i], integration=info_new.type[i],
+                                              fit=info_new.fit[i],
+                                              dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
+                                              logp=info_new.logp[i], ngpu=ngpu)
         elif use_c:
             new_model = model_c.model(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                       nparameters=info_new.nparameters[i],
