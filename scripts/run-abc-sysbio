@@ -251,7 +251,7 @@ if __name__ == '__main__':
         models.append(new_model)
 
     # create a data object
-    data_new = data.data(info_new.times, info_new.data)
+    data_new = data.Data(info_new.times, info_new.data)
 
     # IO
     if simulate or design:
