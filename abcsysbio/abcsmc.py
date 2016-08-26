@@ -65,7 +65,7 @@ fit:
 # distances are stored as [nparticle][nbeta][d1, d2, d3 .... ]
 # trajectories are stored as [nparticle][nbeta][ species ][ times ]
 
-class abcsmc_results:
+class AbcsmcResults:
     def __init__(self,
                  naccepted,
                  sampled,
@@ -89,7 +89,7 @@ class abcsmc_results:
         self.epsilon = epsilon
 
 
-class abcsmc:
+class Abcsmc:
 
     def __init__(self,
                  models,
@@ -341,8 +341,8 @@ class abcsmc:
         if self.debug == 2:
             print "**** end of population num_accepted/sampled:", num_accepted, sampled
 
-        results = abcsmc_results(num_accepted, sampled, num_accepted / float(sampled), self.trajectories, self.distances,
-                                 0, self.model_curr, 0, self.parameters_curr, 0)
+        results = AbcsmcResults(num_accepted, sampled, num_accepted / float(sampled), self.trajectories, self.distances,
+                                0, self.model_curr, 0, self.parameters_curr, 0)
 
         io.write_data_simulation(0, results, 0, self.models, self.data)
 
@@ -460,16 +460,16 @@ class abcsmc:
         self.sampled.append(sampled)
         self.rate.append(naccepted / float(sampled))
 
-        results = abcsmc_results(naccepted,
-                                 sampled,
-                                 naccepted / float(sampled),
-                                 self.trajectories,
-                                 self.distances,
-                                 self.margins_prev,
-                                 self.model_prev,
-                                 self.weights_prev,
-                                 self.parameters_prev,
-                                 next_epsilon)
+        results = AbcsmcResults(naccepted,
+                                sampled,
+                                naccepted / float(sampled),
+                                self.trajectories,
+                                self.distances,
+                                self.margins_prev,
+                                self.model_prev,
+                                self.weights_prev,
+                                self.parameters_prev,
+                                next_epsilon)
 
         self.trajectories = []
         self.distances = []

@@ -292,8 +292,8 @@ if __name__ == '__main__':
         kernelpdffn = customABC.getPdfParameterKernel
         perturbfn = customABC.perturbParticle
 
-    # instantiate the abcsmc algorithm class
-    algorithm = abcsmc.abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta=info_new.beta,
+    # instantiate the Abcsmc algorithm class
+    algorithm = abcsmc.Abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta=info_new.beta,
                               nbatch=nbatch,
                               modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn,
                               kernel_type=info_new.kernel, kernelfn=kernelfn,
