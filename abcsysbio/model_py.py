@@ -5,7 +5,7 @@ from abcsysbio import sdeint
 from abcsysbio import GillespieAlgorithm
 
 
-class model:
+class Model:
     # instantiation
     def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, atol, rtol, logp):
 

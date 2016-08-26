@@ -34,7 +34,7 @@ def compile(name, integration):
     return CDLL(libname)
 
 
-class model:
+class Model:
     # instantiation
     def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, initstep,
                  relativeError, absoluteError, logp):
