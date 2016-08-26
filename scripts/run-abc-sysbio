@@ -255,10 +255,10 @@ if __name__ == '__main__':
 
     # IO
     if simulate or design:
-        io = input_output.input_output(fname, info_new.restart, diagnostic, plotTimeSeries, havedata=False)
+        io = input_output.InputOutput(fname, info_new.restart, diagnostic, plotTimeSeries, havedata=False)
         io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
     else:
-        io = input_output.input_output(fname, info_new.restart, diagnostic, plotTimeSeries)
+        io = input_output.InputOutput(fname, info_new.restart, diagnostic, plotTimeSeries)
         io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
         io.plot_data(data_new)
 

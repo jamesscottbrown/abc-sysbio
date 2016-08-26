@@ -11,7 +11,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from PriorType import PriorType
 
-class input_output:
+
+class InputOutput:
     def __init__(self, folder, restart, diagnostic, plot_data_series, havedata=True):
         self.folder = folder
         self.diagnostic = diagnostic
