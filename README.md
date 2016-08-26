@@ -28,6 +28,8 @@ While the first two are essential, the latter three need only
 be installed if full use of abc-sysbio is required.
 
 
+You can then install in the usual way by downloading the code, changing directory, and running ``python setup.py install``.
+
 # Linux installation
 
 If custom installation is required then replace ``<dir>`` with the full path to a location. This will be the location containing lib and bin directories (usually ``/usr/local`` by default).
@@ -123,21 +125,12 @@ should display a list of options and you are ready to run the examples.
 
 # Mac OS installation
 
-What follows is one way to install abc-sysbio on Mac OSX 10.8 (though it should work on 10.7 as well). It assumes that you have admin rights. 
+It is recommended that you install Python/Numpy/Matplotlib together using the [Scipy Superpack](http://fonnesbeck.github.io/ScipySuperpack/),
+[Enthought Canopy](https://www.enthought.com/products/canopy/) or [Anaconda](https://www.continuum.io/downloads).
 
-Before installing ABC-SysBio we need to install Python the following packages:
-Numpy, Scipy, Matplotlib, libSBML 
+You can then install libSBML using [these instructions](http://sbml.org/Software/libSBML/docs/python-api/libsbml-downloading.html#dl-python)
 
-Luckily the first three can be obtained easily by installing the [Scipy Superpack](http://fonnesbeck.github.io/ScipySuperpack/)
-
-To obtain a compatible version of libSBML it is best to install from source. Download [libSBML](http://sourceforge.net/projects/sbml/files/libsbml/) and unzip it. In the terminal go to the libSBML directory and type:
-
-    ./configure --with-python=/usr/ --prefix=/usr/ --enable-m64
-    make
-    sudo make install
-    sudo cp -r /usr/lib/python2.7/site-packages/* /Library/Python/2.7/site-packages/
-
-Assuming that the previous steps were completed successfully, we can now install ABC-SysBio. Download the [ABC-SysBio package](http://sourceforge.net/projects/abc-sysbio/files/) and unzip it. Open a terminal and type:
+Download the [ABC-SysBio package](https://github.com/jamesscottbrown/abc-sysbio/releases/) and unzip it. Open a terminal and type:
 
      cd abc-sysbio-2.07
      sudo python setup.py install 
