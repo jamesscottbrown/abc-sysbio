@@ -246,9 +246,3 @@ class Model:
                         ret[ni][j][k][h] = output[count]
                         count += 1
         return ret
-
-
-class data:
-    def __init__(self, timepoints, values):
-        self.timepoints = timepoints
-        self.values = values
