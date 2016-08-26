@@ -236,13 +236,6 @@ def generateTemplate(source, filename, sumname, dataname=None):
         num_parameters = num_local_parameters + num_global_parameters
 
         species = model.getListOfSpecies()
-        ##for k in range(0, len(species)):
-            ##if (species[k].getConstant() == True):
-                ##numParameters=numParameters+1
-                ##parameter.append(getSpeciesValue(species[k]))
-                ##parameterId.append(species[k].getId())
-                ##parameterId2.append('species'+repr(k+1))
-                ##numSpecies=numSpecies-1
 
         sum_file.write("number of compartments: " + repr(num_compartments) + "\n")
         sum_file.write("number of reactions: " + repr(num_reactions) + "\n")
@@ -268,9 +261,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
         x = 0
         for k in range(0, len(species)):
-            ##if (species[k].getConstant() == False):
             x += 1
-            # out_file.write(repr(getSpeciesValue(species[k]))+", ")
             out_file.write(
                 " <ic" + repr(x) + "> constant " + repr(getSpeciesValue(species[k])) + " </ic" + repr(x) + ">\n")
             sum_file.write("S" + repr(x) + ":\t" + species[k].getId() + "\tspecies" + repr(k + 1) + "\t(" + repr(
@@ -282,7 +273,6 @@ def generateTemplate(source, filename, sumname, dataname=None):
                         if parameter_id[k] == list_of_rules[j].getVariable():
                             x += 1
                             param_as_species += 1
-                            # out_file.write(repr(listOfParameter[k].getValue())+", ")
                             out_file.write(
                                 " <ic" + repr(x) + "> constant " + repr(list_of_parameters[k].getValue()) + " </ic" + repr(
                                     x) + ">\n")

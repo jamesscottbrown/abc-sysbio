@@ -2,6 +2,7 @@ import pickle
 import re
 from PriorType import PriorType
 
+
 def checkInputABC(info_new, fname, custom_distance, design):
     """
     Check that the information in the input file is consistent with each other and with the model,

@@ -32,7 +32,6 @@ class ODEPythonWriter(Writer):
         self.out_file.write("def modelfunction((")
 
         for i in range(0, len(self.parsedModel.species)):
-            ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
@@ -55,10 +54,6 @@ class ODEPythonWriter(Writer):
                 self.out_file.write(repr(self.parsedModel.parameter[i]))
                 self.out_file.write(",")
 
-                ##for i in range(0, self.parsedModel.numSpecies):
-                ##if (self.parsedModel.species[i].getConstant() == True):
-                ##self.out_file.write(repr(self.parsedModel.initValues[i]))
-                ##self.out_file.write(",")
         self.out_file.write(")):\n\n")
 
         counter = 0
@@ -72,17 +67,12 @@ class ODEPythonWriter(Writer):
                 self.out_file.write("\t" + self.parsedModel.parameterId[i] + "=parameter[" + repr(counter) + "]\n")
                 counter += 1
 
-                ##for i in range(0, self.parsedModel.numSpecies):
-                ##if (self.parsedModel.species[i].getConstant() == True):
-                ##self.out_file.write("\t"+self.parsedModel.speciesId[i]+"=parameter["+repr(counter)+"]\n")
-                ##counter = counter+1
 
         self.out_file.write("\n")
 
         # write the derivatives
 
         for i in range(0, self.parsedModel.numSpecies):
-            ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write("\td_" + self.parsedModel.speciesId[i] + "=")
             if self.parsedModel.species[i].isSetCompartment():
                 self.out_file.write("(")
@@ -115,7 +105,6 @@ class ODEPythonWriter(Writer):
         self.out_file.write("\n\treturn(")
 
         for i in range(0, len(self.parsedModel.species)):
-            ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write("d_" + self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
@@ -154,11 +143,6 @@ class ODEPythonWriter(Writer):
                 self.out_file.write(self.parsedModel.parameterId[i])
                 self.out_file.write(",")
 
-                ##for i in range(0, self.parsedModel.numSpecies):
-                ##if (self.parsedModel.species[i].getConstant() == True):
-                ##self.out_file.write(self.parsedModel.speciesId[i])
-                ##self.out_file.write(",")
-
         self.out_file.write("),time):\n\n")
 
         # Write the events
@@ -190,7 +174,6 @@ class ODEPythonWriter(Writer):
 
         self.out_file.write("\n\treturn((")
         for i in range(0, self.parsedModel.numSpecies):
-            ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
@@ -212,10 +195,5 @@ class ODEPythonWriter(Writer):
             if not dontPrint:
                 self.out_file.write(self.parsedModel.parameterId[i])
                 self.out_file.write(",")
-
-                ##for i in range(0, self.parsedModel.numSpecies):
-                ##if (self.parsedModel.species[i].getConstant() == True):
-                ##self.out_file.write(self.parsedModel.speciesId[i])
-                ##self.out_file.write(",")
         self.out_file.write("))\n\n")
         self.out_file.close()

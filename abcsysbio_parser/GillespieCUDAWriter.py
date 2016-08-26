@@ -6,14 +6,7 @@ import re
 from Writer import Writer
 
 
-## replace the species and parameters recursively
-##
-## replace
-## pq = re.compile(speciesId[q])
-## string=pq.sub('y['+repr(q)+']' ,string)
-## with
-## string = rep(string, speciesId[q],'y['+repr(q)+']')
-
+# replace the species and parameters recursively
 def rep(string, find, replace):
     ex = find + "[^0-9]"
     while re.search(ex, string) is not None:

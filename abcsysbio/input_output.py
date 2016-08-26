@@ -30,7 +30,7 @@ class InputOutput:
         if self.havedata:
             plotData(data, self.folder + '/_data')
 
-    ################write rates, distances, trajectories
+    # write rates, distances, trajectories
     def write_data(self, population, results, timing, models, data):
 
         # results abcsmc_results class
@@ -220,7 +220,7 @@ class InputOutput:
 
                         pp.close()
 
-    ################ writes trajectories and parameters from simulations
+    # writes trajectories and parameters from simulations
     def write_data_simulation(self, population, results, timing, models, data):
 
         # results abcsmc_results class
@@ -274,7 +274,7 @@ class InputOutput:
                 #  plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=False)
                 plotTimeSeries2(models[mod], pars, data, beta, filename, traj2, population, plotdata=False)
 
-    ################create output folders
+    # create output folders
     def create_output_folders(self, modelnames, numOutput, pickling, simulation):
 
         if simulation:
@@ -307,10 +307,8 @@ class InputOutput:
             pickle.dump(numOutput, out_file)
             out_file.close()
 
-    ###
-
-    ################read the stored data
-    def read_pickled(self, location):
+    # read the stored data
+    def read_pickled(location):
         # pickle numbers selected model of previous population
         # pickle population of selected model of previous population pop_pickled[selected_model][n][vectpos]
         # pickle weights of selected model of previous population weights_pickled[selected_model][n][vectpos]
@@ -358,9 +356,7 @@ class InputOutput:
 
         return [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
 
-    ###
-
-    ################write the stored data
+    # write the stored data
     def write_pickled(self, nmodel, model_prev, weights_prev, parameters_prev, margins_prev, kernel):
 
         out_file = open(self.folder + '/copy/model_last.dat', "w")

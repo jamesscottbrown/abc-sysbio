@@ -41,7 +41,6 @@ def getKernel(kernel_type, kernel, population, weights):
     # multi-variate normal kernel whose covariance is the OCM
     # kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
 
-
     pop_size = population.shape[0]
     npar = population.shape[1]
 
@@ -50,7 +49,7 @@ def getKernel(kernel_type, kernel, population, weights):
 
     if kernel_type == KernelType.component_wise_uniform:
         if pop_size == 1:
-            tmp = [[-1,1] for _ in kernel[0]]
+            tmp = [[-1, 1] for _ in kernel[0]]
         else:
             tmp = list()
             for param in kernel[0]:

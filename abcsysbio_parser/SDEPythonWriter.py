@@ -30,7 +30,6 @@ class SDEPythonWriter(Writer):
         self.out_file.write("def modelfunction((")
 
         for i in range(0, len(self.parsedModel.species)):
-            ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):
@@ -44,7 +43,6 @@ class SDEPythonWriter(Writer):
         self.out_file.write(")=(")
 
         for i in range(0, len(self.parsedModel.species)):
-            ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write(repr(self.parsedModel.initValues[i]))
             self.out_file.write(",")
         for i in range(0, len(self.parsedModel.listOfParameter)):

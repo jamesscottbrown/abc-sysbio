@@ -12,7 +12,7 @@ class CudaModel:
         self.nspecies = nspecies
         self.name = name
 
-        ## combine the parameters with the species
+        # combine the parameters with the species
         self.kparameters = nparameters
         self.nparameters = nparameters + nspecies
 
@@ -42,16 +42,14 @@ class CudaModel:
 
         n_per_card[self.ngpu - 1] = n - (self.ngpu - 1) * nc
 
-        ## print n, n_per_card, numpy.shape(p)
-        ## card_ids = [0, 1, 3, 4]
 
         for c in range(self.ngpu):
 
-            ### Create local parameter and species arrays
+            # Create local parameter and species arrays
             species = numpy.zeros([n_per_card[c], self.nspecies])
             pp = numpy.zeros([n_per_card[c], self.kparameters])
 
-            ### Fill species and parameters
+            # Fill species and parameters
             for i in range(n_per_card[c]):
                 place_mark = sum(n_per_card[0:c])
                 species[i, :] = p[place_mark + i][self.kparameters:self.nparameters]
@@ -61,7 +59,7 @@ class CudaModel:
                 else:
                     pp[i, :] = numpy.power(10, p[place_mark + i][0:self.kparameters])
 
-            ### Run on multiple GPUs
+            # Run on multiple GPUs
             gpu_thread = Lsoda_mg.Lsoda(self.timepoints, self.cudaCode, pp, species, output_cpu, card=c, dt=self.dt,
                                         dump=False, info=False, timing=False)
             gpu_threads.append(gpu_thread)
@@ -70,12 +68,7 @@ class CudaModel:
         result_dict = {}
         for gpu_pro in gpu_threads:
             thread_id, results = output_cpu.get(gpu_pro)
-            ## print id, np.shape(results)
             result_dict[thread_id] = results
 
-        ## print result_dict.keys()
         result = numpy.vstack(result_dict.values())
-
-        ## print numpy.shape(result)
-
         return result

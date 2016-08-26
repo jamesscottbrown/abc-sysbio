@@ -29,7 +29,6 @@ def compile(name, integration):
     command = command + "ABC_NM_INC=" + ABC_NM_INC + " "
     command = command + "ABC_SRC_DIR=" + ABC_SRC_DIR + " "
 
-    ##print "COMPILE:", command
     os.system(command)
     return CDLL(libname)
 
@@ -61,10 +60,7 @@ class Model:
         self.name = name
         self.nspecies = nspecies
 
-        ##self.seed = numpy.random.randint(low=1, high=4294967296)
-        ##print "C model:", solverName, self.seed
-
-        ## combine the parameters with the species
+        # combine the parameters with the species
         self.kparameters = nparameters
         self.nparameters = nparameters + nspecies
 
@@ -199,9 +195,10 @@ class Model:
         return ret
 
     def simulate_gillespie(self, p, t, n, beta):
-        ### must return a structure of the form [n][ntimepoints][nspecies]
+        # must return a structure of the form [n][ntimepoints][nspecies]
         ntimepoints = len(t)
         ret = numpy.zeros([n, beta, ntimepoints, self.nspecies])
+
         # set output from cpp file to python
         output_arr_type = beta * (self.nspecies + 1) * ntimepoints * c_double
         output = output_arr_type()
@@ -211,12 +208,12 @@ class Model:
         ctime = tim_arr_type()
         for i in range(ntimepoints):
             ctime[i] = t[i]
+
         # set other ctypes
         cbeta = c_int(beta)
         cntimepoints = c_int(ntimepoints)
         CNPARAMETERS = c_int(self.nparameters)
         CNSPECIES = c_int(self.nspecies)
-        ##print "info:", self.name, ntimepoints, beta, self.nparameters, self.nspecies
 
         for ni in range(n):
             # set parameters; ctypes

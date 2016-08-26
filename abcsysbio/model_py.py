@@ -12,7 +12,7 @@ class Model:
         self.name = name
         self.nspecies = nspecies
 
-        ## combine the parameters with the species
+        # combine the parameters with the species
         self.kparameters = nparameters
         self.nparameters = nparameters + nspecies
 
