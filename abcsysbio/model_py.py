@@ -3,6 +3,7 @@ import numpy
 from abcsysbio import abcodesolve
 from abcsysbio import sdeint
 from abcsysbio import GillespieAlgorithm
+from Prior import *
 
 
 class Model:
@@ -16,9 +17,8 @@ class Model:
         self.kparameters = nparameters
         self.nparameters = nparameters + nspecies
 
-        self.prior = [x[:] for x in prior]
-        for x in x0prior:
-            self.prior.append(x[:])
+        self.prior = prior
+        self.prior.extend(x0prior)
 
         self.source = source
         self.integration = integration

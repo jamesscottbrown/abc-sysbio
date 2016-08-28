@@ -2,6 +2,7 @@ import numpy
 import os
 import re
 from ctypes import *
+from Prior import *
 
 
 # compilation step to create share object for a correct solver and model
@@ -64,9 +65,8 @@ class Model:
         self.kparameters = nparameters
         self.nparameters = nparameters + nspecies
 
-        self.prior = [x[:] for x in prior]
-        for x in x0prior:
-            self.prior.append(x[:])
+        self.prior = prior
+        self.prior.extend(x0prior)
 
         self.source = source
         self.integration = solverName

@@ -9,41 +9,16 @@ from abcsysbio import statistics
 
 from KernelType import KernelType
 from PriorType import PriorType
+from Prior import *
+
 
 """
 priors: 
-              a 3D list.
-              The first dimension represents the number of models, the second dimension
-              represents the number of parameter for a particular model and the third dimension
-              represents the distribution for this parameter and has a constant length of 3.
-              The first entry for each parameter is an integer number that stands for a
-              specific distribution.
-              
-              Implemented distributions are:
-              0   ---   constant parameter.
-                        Example: constant parameter with value 12.3
-                        [0 , 12.3 , x] , where x can be any number
-
-              1   ---   normal distribution. 
-                        Example: normal distribution in mean 10 and var 1
-                        [1 , 10 , 1]
-
-              2   ---   uniform distribution. 
-                        Example: uniform distribution in the range 0.1 to 50
-                        [2 , 0.1 , 50]
-
-              3   ---   lognormal distribution.
-                        Example: lognormal distribution with mean 3 and var 1.5
-                        [3 , 3 , 1.5]
-
-              Example:
-              1 model with 3 parameter, the first two parameter have uniform prior between 0 and
-              5, the third parameter has lognormal prior with mean 1 and varianz 3.
-              [ [ [1,0,5],[1,0,5],[2,1,3] ], ]
-              2 models where the first model has 2 parameter (the first is constant 3 and the 
-              second is uniform between 0 and 1) and the second model has 1 lognormal parameter
-              with 0 mean and varianz 0.5
-              [ [ [0,3,0],[1,0,1] ] , [ [2,0,0.5],] ]
+              a 2D list.
+              priors[model_number][parameter_number] is a NamedTuple of type prior.
+              The 'type' attribute is a PriorType object (one of PriorType.constant, PriorType.uniform, PriorType.normal,
+              PriorType.lognormal).
+              The other attributes store the appropriate parameters.
 
 fit:      
               a 2D list of strings.
@@ -161,7 +136,7 @@ class Abcsmc:
         for i in range(self.nmodel):
             ind = list()
             for j in range(self.models[i].nparameters):
-                if not (self.models[i].prior[j][0] == PriorType.constant):
+                if not (self.models[i].prior[j].type == PriorType.constant):
                     ind.append(j)
             # kernel info will get set after first population
             self.kernels.append([ind, kernel_option[i], 0])
@@ -173,7 +148,7 @@ class Abcsmc:
             for m in range(self.nmodel):
                 all_uniform = True
                 for j in range(self.models[m].nparameters):
-                    if not (self.models[m].prior[j][0] == PriorType.constant or self.models[m].prior[j][0] == PriorType.uniform):
+                    if not (self.models[m].prior[j].type == PriorType.constant or self.models[m].prior[j].type == PriorType.uniform):
                         all_uniform = False
                 if all_uniform:
                     self.special_cases[m] = 1
@@ -647,17 +622,17 @@ class Abcsmc:
             sample = [0] * model.nparameters
 
             for param in range(model.nparameters):
-                if model.prior[param][0] == PriorType.constant:
-                    sample[param] = model.prior[param][1]
+                if model.prior[param].type == PriorType.constant:
+                    sample[param] = model.prior[param].value
 
-                if model.prior[param][0] == PriorType.normal:
-                    sample[param] = rnd.normal(loc=model.prior[param][1], scale=numpy.sqrt(model.prior[param][2]))
+                if model.prior[param].type == PriorType.normal:
+                    sample[param] = rnd.normal(loc=model.prior[param].mean, scale=numpy.sqrt(model.prior[param].variance))
 
-                if model.prior[param][0] == PriorType.uniform:
-                    sample[param] = rnd.uniform(low=model.prior[param][1], high=model.prior[param][2])
+                if model.prior[param].type == PriorType.uniform:
+                    sample[param] = rnd.uniform(low=model.prior[param].lower_bound, high=model.prior[param].upper_bound)
 
-                if model.prior[param][0] == PriorType.lognormal:
-                    sample[param] = rnd.lognormal(mean=model.prior[param][1], sigma=numpy.sqrt(model.prior[param][2]))
+                if model.prior[param].type == PriorType.lognormal:
+                    sample[param] = rnd.lognormal(mean=model.prior[param].mu, sigma=numpy.sqrt(model.prior[param].sigma))
 
             samples.append(sample[:])
 
@@ -738,17 +713,17 @@ class Abcsmc:
             particle_prior = 1
             for n in range(0, len(self.parameters_curr[k])):
                 x = 1.0
-                if model.prior[n][0] == PriorType.constant:
+                if model.prior[n].type == PriorType.constant:
                     x = 1
 
-                if model.prior[n][0] == PriorType.normal:
-                    x = statistics.getPdfGauss(model.prior[n][1], numpy.sqrt(model.prior[n][2]), this_param[n])
+                if model.prior[n].type == PriorType.normal:
+                    x = statistics.getPdfGauss(model.prior[n].mean, numpy.sqrt(model.prior[n].variance), this_param[n])
 
-                if model.prior[n][0] == PriorType.uniform:
-                    x = statistics.getPdfUniform(model.prior[n][1], model.prior[n][2], this_param[n])
+                if model.prior[n].type == PriorType.uniform:
+                    x = statistics.getPdfUniform(model.prior[n].lower_bound, model.prior[n].upper_bound, this_param[n])
 
-                if model.prior[n][0] == PriorType.lognormal:
-                    x = statistics.getPdfLognormal(model.prior[n][1], numpy.sqrt(model.prior[n][2]), this_param[n])
+                if model.prior[n].type == PriorType.lognormal:
+                    x = statistics.getPdfLognormal(model.prior[n].mu, numpy.sqrt(model.prior[n].sigma), this_param[n])
                 particle_prior = particle_prior * x
 
             # self.b[k] is an indicator variable recording whether the simulation corresponding to particle k was accepted

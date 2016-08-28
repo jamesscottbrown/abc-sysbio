@@ -23,6 +23,7 @@ from abcsysbio import checkInputArguments
 from abcsysbio import kernels
 from abcsysbio import euclidian
 
+from abcsysbio.Prior import *
 sys.path.insert(0, ".")
 
 
@@ -295,7 +296,7 @@ if __name__ == '__main__':
     # instantiate the Abcsmc algorithm class
     algorithm = abcsmc.Abcsmc(models, info_new.particles, info_new.modelprior, data=data_new, beta=info_new.beta,
                               nbatch=nbatch,
-                              modelKernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn,
+                              model_kernel=info_new.modelkernel, debug=debug, timing=timing, distancefn=distancefn,
                               kernel_type=info_new.kernel, kernelfn=kernelfn,
                               kernelpdffn=kernelpdffn, perturbfn=perturbfn)
 

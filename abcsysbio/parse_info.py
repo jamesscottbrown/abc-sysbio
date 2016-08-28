@@ -5,6 +5,7 @@ import re, sys, numpy
 from xml.dom import minidom
 from KernelType import KernelType
 from PriorType import PriorType
+from Prior import *
 
 # implemented priors
 re_prior_const = re.compile('constant')
@@ -91,39 +92,31 @@ def process_prior(tmp, model_num):
 
     Returns
     -------
-    List in which first entry is int indicator prior type, and remaining entries are parameters.
+    A NamedTuple representing the prior. The "type" field represents the prior type, and determines which other fields exist.
 
     """
-    prior_params = [0, 0, 0]
 
     if re_prior_const.match(tmp[0]):
-        prior_params[0] = PriorType.constant
         try:
-            prior_params[1] = float(tmp[1])
+            prior_params = Prior(type=PriorType.constant, value=float(tmp[1]))
         except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_normal.match(tmp[0]):
-        prior_params[0] = PriorType.normal
         try:
-            prior_params[1] = float(tmp[1])
-            prior_params[2] = float(tmp[2])
+            prior_params = Prior(type=PriorType.normal, mean=float(tmp[1]), variance=float(tmp[2]))
         except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_uni.match(tmp[0]):
-        prior_params[0] = PriorType.uniform
         try:
-            prior_params[1] = float(tmp[1])
-            prior_params[2] = float(tmp[2])
+            prior_params = Prior(type=PriorType.uniform, lower_bound=float(tmp[1]), upper_bound=float(tmp[2]))
         except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_logn.match(tmp[0]):
-        prior_params[0] = PriorType.lognormal
         try:
-            prior_params[1] = float(tmp[1])
-            prior_params[2] = float(tmp[2])
+            prior_params = Prior(type=PriorType.lognormal, mu=float(tmp[1]), sigma=float(tmp[2]))
         except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
     else:

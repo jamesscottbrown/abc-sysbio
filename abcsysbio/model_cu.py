@@ -1,4 +1,5 @@
 import numpy
+from Prior import *
 
 
 class CudaModel:
@@ -12,9 +13,8 @@ class CudaModel:
         self.kparameters = nparameters
         self.nparameters = nparameters + nspecies
 
-        self.prior = [x[:] for x in prior]
-        for x in x0prior:
-            self.prior.append(x[:])
+        self.prior = prior
+        self.prior.extend(x0prior)
 
         self.source = source
         self.integration = integration
