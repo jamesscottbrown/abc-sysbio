@@ -63,16 +63,16 @@ def ParseAndWrite(source, integrationType, modelName=None, inputPath="", outputP
     else:
         if modelName is None:
             modelName = []
-            for x in range(0, len(source)):
+            for x in range(len(source)):
                 modelName.append("model" + repr(x + 1))
         else:
-            for x in range(0, len(modelName)):
+            for x in range(len(modelName)):
                 if modelName[x] == "":
                     modelName[x] = "model" + repr(x + 1)
 
         # if no method is specified and the integrationType is "SDE"
         # the method type defaults to 1
-        for model in range(0, len(source)):
+        for model in range(len(source)):
             if cuda.search(integrationType[model]):
                 if not (sde.search(integrationType[model]) or gil.search(integrationType[model]) or ode.search(
                         integrationType[model])):

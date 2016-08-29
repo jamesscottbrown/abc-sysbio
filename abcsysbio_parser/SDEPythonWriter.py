@@ -16,11 +16,11 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write("def trunc_sqrt(x):\n\tif x < 0: return 0\n\telse: return sqrt(x)\n\n")
 
-        for i in range(0, len(self.parsedModel.listOfFunctions)):
+        for i in range(len(self.parsedModel.listOfFunctions)):
             self.out_file.write("def ")
             self.out_file.write(self.parsedModel.listOfFunctions[i].getId())
             self.out_file.write("(")
-            for j in range(0, self.parsedModel.listOfFunctions[i].getNumArguments()):
+            for j in range(self.parsedModel.listOfFunctions[i].getNumArguments()):
                 self.out_file.write(self.parsedModel.functionArgument[i][j])
                 self.out_file.write(",")
             self.out_file.write("):\n\n\toutput=")
@@ -29,12 +29,12 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write("def modelfunction((")
 
-        for i in range(0, len(self.parsedModel.species)):
+        for i in range(len(self.parsedModel.species)):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
-        for i in range(0, len(self.parsedModel.listOfParameter)):
+        for i in range(len(self.parsedModel.listOfParameter)):
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         self.out_file.write(self.parsedModel.parameterId[i])
@@ -42,12 +42,12 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write(")=(")
 
-        for i in range(0, len(self.parsedModel.species)):
+        for i in range(len(self.parsedModel.species)):
             self.out_file.write(repr(self.parsedModel.initValues[i]))
             self.out_file.write(",")
-        for i in range(0, len(self.parsedModel.listOfParameter)):
+        for i in range(len(self.parsedModel.listOfParameter)):
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         self.out_file.write(repr(self.parsedModel.parameter[i]))
@@ -55,10 +55,10 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write("),dt=0,parameter=(")
 
-        for i in range(0, len(self.parsedModel.parameterId)):
+        for i in range(len(self.parsedModel.parameterId)):
             dontPrint = False
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         dontPrint = True
@@ -66,7 +66,7 @@ class SDEPythonWriter(Writer):
                 self.out_file.write(repr(self.parsedModel.parameter[i]))
                 self.out_file.write(",")
 
-                ##for i in range(0, self.parsedModel.numSpecies):
+                ##for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == True):
                 ##    self.out_file.write(repr(self.parsedModel.initValues[i]))
                 ##    self.out_file.write(",")
@@ -74,17 +74,17 @@ class SDEPythonWriter(Writer):
         self.out_file.write("),time=0):\n\n")
 
         counter = 0
-        for i in range(0, len(self.parsedModel.parameterId)):
+        for i in range(len(self.parsedModel.parameterId)):
             dontPrint = False
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]: dontPrint = True
             if not dontPrint:
                 self.out_file.write("\t" + self.parsedModel.parameterId[i] + "=parameter[" + repr(counter) + "]\n")
                 counter += 1
 
-                ##for i in range(0, self.parsedModel.numSpecies):
+                ##for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == True):
                 ##    self.out_file.write("\t"+self.parsedModel.speciesId[i]+"=parameter["+repr(counter)+"]\n")
                 ##    counter = counter+1
@@ -93,12 +93,12 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write("\n")
 
-        for i in range(0, self.parsedModel.numSpecies):
+        for i in range(self.parsedModel.numSpecies):
             ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write("\td_" + self.parsedModel.speciesId[i] + "=")
             if self.parsedModel.species[i].isSetCompartment():
                 self.out_file.write("(")
-            for k in range(0, self.parsedModel.numReactions):
+            for k in range(self.parsedModel.numReactions):
                 if not self.parsedModel.stoichiometricMatrix[i][k] == 0.0:
                     self.out_file.write("(")
                     self.out_file.write(repr(self.parsedModel.stoichiometricMatrix[i][k]))
@@ -110,13 +110,13 @@ class SDEPythonWriter(Writer):
             if self.parsedModel.species[i].isSetCompartment():
                 self.out_file.write(")/")
                 mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
-                for j in range(0, len(self.parsedModel.listOfParameter)):
+                for j in range(len(self.parsedModel.listOfParameter)):
                     if self.parsedModel.listOfParameter[j].getId() == mySpeciesCompartment:
                         self.out_file.write(self.parsedModel.parameterId[j])
                         break
             self.out_file.write("\n")
 
-        for i in range(0, len(self.parsedModel.listOfRules)):
+        for i in range(len(self.parsedModel.listOfRules)):
             if self.parsedModel.listOfRules[i].isRate():
                 self.out_file.write("\td_")
                 self.out_file.write(self.parsedModel.ruleVariable[i])
@@ -132,9 +132,9 @@ class SDEPythonWriter(Writer):
 
         # check for columns of the stochiometry matrix with more than one entry
         randomVariables = ["*random.normal(0.0,sqrt(dt))"] * self.parsedModel.numReactions
-        for k in range(0, self.parsedModel.numReactions):
+        for k in range(self.parsedModel.numReactions):
             countEntries = 0
-            for i in range(0, self.parsedModel.numSpecies):
+            for i in range(self.parsedModel.numSpecies):
                 if self.parsedModel.stoichiometricMatrix[i][k] != 0.0:
                     countEntries += 1
 
@@ -145,10 +145,10 @@ class SDEPythonWriter(Writer):
 
         if method == 1:
 
-            for i in range(0, self.parsedModel.numSpecies):
+            for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == False):
                 self.out_file.write("\tnoise_" + self.parsedModel.speciesId[i] + "=")
-                for k in range(0, self.parsedModel.numReactions):
+                for k in range(self.parsedModel.numReactions):
                     if not self.parsedModel.stoichiometricMatrix[i][k] == 0.0:
                         self.out_file.write("(" + repr(self.parsedModel.stoichiometricMatrix[i][k]))
                         self.out_file.write(")*trunc_sqrt(")
@@ -159,7 +159,7 @@ class SDEPythonWriter(Writer):
                         self.out_file.write("+")
                 self.out_file.write("0\n")
 
-            for i in range(0, len(self.parsedModel.listOfRules)):
+            for i in range(len(self.parsedModel.listOfRules)):
                 if self.parsedModel.listOfRules[i].isRate():
                     self.out_file.write("\tnoise_")
                     self.out_file.write(self.parsedModel.ruleVariable[i])
@@ -171,12 +171,12 @@ class SDEPythonWriter(Writer):
 
         if method == 2:
 
-            for i in range(0, self.parsedModel.numSpecies):
+            for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == False):
                 self.out_file.write("\tnoise_" + self.parsedModel.speciesId[i] + "=")
                 self.out_file.write("random.normal(0.0,sqrt(dt))\n")
 
-            for i in range(0, len(self.parsedModel.listOfRules)):
+            for i in range(len(self.parsedModel.listOfRules)):
                 if self.parsedModel.listOfRules[i].isRate():
                     self.out_file.write("\tnoise_")
                     self.out_file.write(self.parsedModel.ruleVariable[i])
@@ -185,10 +185,10 @@ class SDEPythonWriter(Writer):
 
         if method == 3:
 
-            for i in range(0, self.parsedModel.numSpecies):
+            for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == False):
                 self.out_file.write("\tnoise_" + self.parsedModel.speciesId[i] + "=")
-                for k in range(0, self.parsedModel.numReactions):
+                for k in range(self.parsedModel.numReactions):
                     if not self.parsedModel.stoichiometricMatrix[i][k] == 0.0:
                         self.out_file.write("(")
                         self.out_file.write(repr(self.parsedModel.stoichiometricMatrix[i][k]))
@@ -200,7 +200,7 @@ class SDEPythonWriter(Writer):
                         self.out_file.write("+")
                 self.out_file.write("0\n")
 
-            for i in range(0, len(self.parsedModel.listOfRules)):
+            for i in range(len(self.parsedModel.listOfRules)):
                 if self.parsedModel.listOfRules[i].isRate():
                     self.out_file.write("\tnoise_")
                     self.out_file.write(self.parsedModel.ruleVariable[i])
@@ -211,26 +211,26 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write("\n\treturn((")
 
-        for i in range(0, len(self.parsedModel.species)):
+        for i in range(len(self.parsedModel.species)):
             ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write("d_" + self.parsedModel.speciesId[i])
             self.out_file.write(",")
-        for i in range(0, len(self.parsedModel.listOfParameter)):
+        for i in range(len(self.parsedModel.listOfParameter)):
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         self.out_file.write("d_" + self.parsedModel.parameterId[i])
                         self.out_file.write(",")
 
         self.out_file.write("),(")
-        for i in range(0, self.parsedModel.numSpecies):
+        for i in range(self.parsedModel.numSpecies):
             ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write("noise_" + self.parsedModel.speciesId[i])
             self.out_file.write(", ")
-        for i in range(0, len(self.parsedModel.listOfParameter)):
+        for i in range(len(self.parsedModel.listOfParameter)):
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         self.out_file.write("noise_" + self.parsedModel.parameterId[i])
@@ -241,22 +241,22 @@ class SDEPythonWriter(Writer):
         # Write the assignment rules
         self.out_file.write("\ndef rules((")
 
-        for i in range(0, len(self.parsedModel.species)):
+        for i in range(len(self.parsedModel.species)):
             ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
-        for i in range(0, len(self.parsedModel.listOfParameter)):
+        for i in range(len(self.parsedModel.listOfParameter)):
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         self.out_file.write(self.parsedModel.parameterId[i])
                         self.out_file.write(",")
         self.out_file.write("),(")
-        for i in range(0, len(self.parsedModel.parameterId)):
+        for i in range(len(self.parsedModel.parameterId)):
             dontPrint = False
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         dontPrint = True
@@ -264,7 +264,7 @@ class SDEPythonWriter(Writer):
                 self.out_file.write(self.parsedModel.parameterId[i])
                 self.out_file.write(",")
 
-                ##for i in range(0, self.parsedModel.numSpecies):
+                ##for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == True):
                 ##    self.out_file.write(self.parsedModel.speciesId[i])
                 ##    self.out_file.write(",")
@@ -273,12 +273,12 @@ class SDEPythonWriter(Writer):
 
         # Write the events
 
-        for i in range(0, len(self.parsedModel.listOfEvents)):
+        for i in range(len(self.parsedModel.listOfEvents)):
             self.out_file.write("\tif ")
             self.out_file.write(mathMLConditionParser(self.parsedModel.eventCondition[i]))
             self.out_file.write(":\n")
             listOfAssignmentRules = self.parsedModel.listOfEvents[i].getListOfEventAssignments()
-            for j in range(0, len(listOfAssignmentRules)):
+            for j in range(len(listOfAssignmentRules)):
                 self.out_file.write("\t\t")
                 self.out_file.write(self.parsedModel.eventVariable[i][j])
                 self.out_file.write("=")
@@ -288,7 +288,7 @@ class SDEPythonWriter(Writer):
 
         self.out_file.write("\n")
 
-        for i in range(0, len(self.parsedModel.listOfRules)):
+        for i in range(len(self.parsedModel.listOfRules)):
             if self.parsedModel.listOfRules[i].isAssignment():
                 self.out_file.write("\t")
                 self.out_file.write(self.parsedModel.ruleVariable[i])
@@ -297,23 +297,23 @@ class SDEPythonWriter(Writer):
                 self.out_file.write("\n")
 
         self.out_file.write("\n\treturn((")
-        for i in range(0, self.parsedModel.numSpecies):
+        for i in range(self.parsedModel.numSpecies):
             ##if (self.parsedModel.species[i].getConstant() == False):
             self.out_file.write(self.parsedModel.speciesId[i])
             self.out_file.write(",")
-        for i in range(0, len(self.parsedModel.listOfParameter)):
+        for i in range(len(self.parsedModel.listOfParameter)):
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         self.out_file.write(self.parsedModel.parameterId[i])
                         self.out_file.write(",")
         self.out_file.write("),(")
 
-        for i in range(0, len(self.parsedModel.parameterId)):
+        for i in range(len(self.parsedModel.parameterId)):
             dontPrint = False
             if not self.parsedModel.listOfParameter[i].getConstant():
-                for k in range(0, len(self.parsedModel.listOfRules)):
+                for k in range(len(self.parsedModel.listOfRules)):
                     if self.parsedModel.listOfRules[k].isRate() and self.parsedModel.ruleVariable[k] == \
                             self.parsedModel.parameterId[i]:
                         dontPrint = True
@@ -321,7 +321,7 @@ class SDEPythonWriter(Writer):
                 self.out_file.write(self.parsedModel.parameterId[i])
                 self.out_file.write(",")
 
-                ##for i in range(0, self.parsedModel.numSpecies):
+                ##for i in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[i].getConstant() == True):
                 ##self.out_file.write(self.parsedModel.speciesId[i])
                 ##self.out_file.write(",")

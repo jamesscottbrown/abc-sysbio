@@ -83,7 +83,7 @@ class Parser:
     def getCompartmentVolume(self):
         listOfCompartments = self.sbmlModel.getListOfCompartments()
 
-        for i in range(0, len(listOfCompartments)):
+        for i in range(len(listOfCompartments)):
             if listOfCompartments[i].isSetVolume():
                 self.comp += 1
                 self.parameterId.append(listOfCompartments[i].getId())
@@ -93,7 +93,7 @@ class Parser:
 
     def getGlobalParameters(self):
         # Differs between CUDA and Python/C
-        for i in range(0, self.writer.parsedModel.numGlobalParameters):
+        for i in range(self.writer.parsedModel.numGlobalParameters):
             self.parameterId.append(self.sbmlModel.getParameter(i).getId())
             self.writer.parsedModel.parameter.append(self.sbmlModel.getParameter(i).getValue())
             self.writer.parsedModel.listOfParameter.append(self.sbmlModel.getParameter(i))
@@ -102,7 +102,7 @@ class Parser:
         # Differs between CUDA and Python/C
         self.listOfSpecies = self.sbmlModel.getListOfSpecies()
 
-        for k in range(0, len(self.listOfSpecies)):
+        for k in range(len(self.listOfSpecies)):
             self.writer.parsedModel.species.append(self.listOfSpecies[k])
             self.speciesId.append(self.listOfSpecies[k].getId())
             self.S1.append(0.0)
@@ -120,8 +120,8 @@ class Parser:
 
         self.listOfReactions = self.sbmlModel.getListOfReactions()
 
-        for i in range(0, len(self.listOfReactions)):
-            for a in range(0, len(self.writer.parsedModel.species)):
+        for i in range(len(self.listOfReactions)):
+            for a in range(len(self.writer.parsedModel.species)):
                 self.S1[a] = 0.0
                 self.S2[a] = 0.0
 
@@ -130,29 +130,29 @@ class Parser:
             self.writer.parsedModel.kineticLaw.append(self.listOfReactions[i].getKineticLaw().getFormula())
             self.numLocalParameters.append(self.listOfReactions[i].getKineticLaw().getNumParameters())
 
-            for j in range(0, numReactants[i]):
+            for j in range(numReactants[i]):
                 self.reactant[j] = self.listOfReactions[i].getReactant(j)
 
-                for k in range(0, len(self.writer.parsedModel.species)):
+                for k in range(len(self.writer.parsedModel.species)):
                     if self.reactant[j].getSpecies() == self.writer.parsedModel.species[k].getId():
                         self.S1[k] = self.reactant[j].getStoichiometry()
 
-            for l in range(0, numProducts[i]):
+            for l in range(numProducts[i]):
                 self.product[l] = self.listOfReactions[i].getProduct(l)
 
-                for k in range(0, len(self.writer.parsedModel.species)):
+                for k in range(len(self.writer.parsedModel.species)):
                     if self.product[l].getSpecies() == self.writer.parsedModel.species[k].getId():
                         self.S2[k] = self.product[l].getStoichiometry()
 
-            for m in range(0, len(self.writer.parsedModel.species)):
+            for m in range(len(self.writer.parsedModel.species)):
                 self.writer.parsedModel.stoichiometricMatrix[m][i] = -self.S1[m] + self.S2[m]
 
-            for n in range(0, self.numLocalParameters[i]):
+            for n in range(self.numLocalParameters[i]):
                 self.writer.parsedModel.parameter.append(
                     self.listOfReactions[i].getKineticLaw().getParameter(n).getValue())
                 self.writer.parsedModel.listOfParameter.append(self.listOfReactions[i].getKineticLaw().getParameter(n))
 
-            for n in range(0, self.comp):
+            for n in range(self.comp):
                 compartment_name = self.parameterId[n]
                 new_name = 'compartment' + repr(n + 1)
                 node = self.sbmlModel.getReaction(i).getKineticLaw().getMath()
@@ -162,13 +162,13 @@ class Parser:
     def analyseFunctions(self):
         sbmlListOfFunctions = self.sbmlModel.getListOfFunctionDefinitions()
 
-        for fun in range(0, len(sbmlListOfFunctions)):
+        for fun in range(len(sbmlListOfFunctions)):
             self.writer.parsedModel.listOfFunctions.append(sbmlListOfFunctions[fun])
             self.writer.parsedModel.functionArgument.append([])
             self.writer.parsedModel.functionBody.append(
                 formulaToString(self.writer.parsedModel.listOfFunctions[fun].getBody()))
 
-            for funArg in range(0, self.writer.parsedModel.listOfFunctions[fun].getNumArguments()):
+            for funArg in range(self.writer.parsedModel.listOfFunctions[fun].getNumArguments()):
                 self.writer.parsedModel.functionArgument[fun].append(
                     formulaToString(self.writer.parsedModel.listOfFunctions[fun].getArgument(funArg)))
                 old_name = self.writer.parsedModel.functionArgument[fun][funArg]
@@ -179,20 +179,20 @@ class Parser:
 
     def analyseRules(self):
         self.writer.parsedModel.listOfRules = self.sbmlModel.getListOfRules()
-        for rule in range(0, len(self.writer.parsedModel.listOfRules)):
+        for rule in range(len(self.writer.parsedModel.listOfRules)):
             self.writer.parsedModel.ruleFormula.append(self.writer.parsedModel.listOfRules[rule].getFormula())
             self.writer.parsedModel.ruleVariable.append(self.writer.parsedModel.listOfRules[rule].getVariable())
 
     def analyseEvents(self):
         self.writer.parsedModel.listOfEvents = self.sbmlModel.getListOfEvents()
-        for event in range(0, len(self.writer.parsedModel.listOfEvents)):
+        for event in range(len(self.writer.parsedModel.listOfEvents)):
             self.writer.parsedModel.eventCondition.append(
                 formulaToString(self.writer.parsedModel.listOfEvents[event].getTrigger().getMath()))
             self.listOfAssignmentRules = self.writer.parsedModel.listOfEvents[event].getListOfEventAssignments()
             self.writer.parsedModel.eventVariable.append([])
             self.writer.parsedModel.eventFormula.append([])
 
-            for rule in range(0, len(self.listOfAssignmentRules)):
+            for rule in range(len(self.listOfAssignmentRules)):
                 self.writer.parsedModel.eventVariable[event].append(self.listOfAssignmentRules[rule].getVariable())
                 self.writer.parsedModel.eventFormula[event].append(
                     formulaToString(self.listOfAssignmentRules[rule].getMath()))
@@ -205,31 +205,31 @@ class Parser:
         NAMES[1].append(self.speciesId)
         NAMES[1].append(self.writer.parsedModel.speciesId)
 
-        for nam in range(0, 2):
+        for nam in range(2):
 
-            for i in range(0, len(NAMES[nam][0])):
+            for i in range(len(NAMES[nam][0])):
                 old_name = NAMES[nam][0][i]
                 new_name = NAMES[nam][1][i]
 
-                for k in range(0, self.writer.parsedModel.numReactions):
+                for k in range(self.writer.parsedModel.numReactions):
                     node = self.sbmlModel.getReaction(k).getKineticLaw().getMath()
                     new_node = self.rename(node, old_name, new_name)
                     self.writer.parsedModel.kineticLaw[k] = formulaToString(new_node)
 
-                for k in range(0, len(self.writer.parsedModel.listOfRules)):
+                for k in range(len(self.writer.parsedModel.listOfRules)):
                     node = self.writer.parsedModel.listOfRules[k].getMath()
                     new_node = self.rename(node, old_name, new_name)
                     self.writer.parsedModel.ruleFormula[k] = formulaToString(new_node)
                     if self.writer.parsedModel.ruleVariable[k] == old_name:
                         self.writer.parsedModel.ruleVariable[k] = new_name
 
-                for k in range(0, len(self.writer.parsedModel.listOfEvents)):
+                for k in range(len(self.writer.parsedModel.listOfEvents)):
                     node = self.writer.parsedModel.listOfEvents[k].getTrigger().getMath()
                     new_node = self.rename(node, old_name, new_name)
                     self.writer.parsedModel.eventCondition[k] = formulaToString(new_node)
                     self.listOfAssignmentRules = self.writer.parsedModel.listOfEvents[k].getListOfEventAssignments()
 
-                    for cond in range(0, len(self.listOfAssignmentRules)):
+                    for cond in range(len(self.listOfAssignmentRules)):
                         node = self.listOfAssignmentRules[cond].getMath()
                         new_node = self.rename(node, old_name, new_name)
                         self.writer.parsedModel.eventFormula[k][cond] = formulaToString(new_node)
@@ -244,7 +244,7 @@ class Parser:
             if nme == old_name:
                 node.setName(new_name)
 
-        for n in range(0, node.getNumChildren()):
+        for n in range(node.getNumChildren()):
             self.rename(node.getChild(n), old_name, new_name)
         return node
 

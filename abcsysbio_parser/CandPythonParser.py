@@ -23,18 +23,18 @@ class CandPythonParser(Parser):
 
     def getGlobalParameters(self):
         Parser.getGlobalParameters(self)
-        for i in range(0, self.writer.parsedModel.numGlobalParameters):
+        for i in range(self.writer.parsedModel.numGlobalParameters):
             self.writer.parsedModel.parameterId.append("parameter" + repr(i + 1))
 
     def getSpecies(self):
         Parser.getSpecies(self)
-        for k in range(0, len(self.listOfSpecies)):
+        for k in range(len(self.listOfSpecies)):
             self.writer.parsedModel.speciesId.append("species" + repr(k + 1))
 
     def analyseModelStructure(self):
         Parser.analyseModelStructure(self)
-        for i in range(0, len(self.listOfReactions)):
-            for n in range(0, self.numLocalParameters[i]):
+        for i in range(len(self.listOfReactions)):
+            for n in range(self.numLocalParameters[i]):
                 self.parameterId.append(self.listOfReactions[i].getKineticLaw().getParameter(n).getId())
                 self.writer.parsedModel.parameterId.append("parameter" + repr(len(self.parameterId) - self.comp))
                 param_name = self.listOfReactions[i].getKineticLaw().getParameter(n).getId()

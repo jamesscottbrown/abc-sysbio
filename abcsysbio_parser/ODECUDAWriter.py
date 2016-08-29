@@ -68,9 +68,9 @@ class OdeCUDAWriter(Writer):
             self.out_file.write("#define and_(a,b) a&&b\n")
             self.out_file.write("#define or_(a,b) a||b\n")
 
-        for i in range(0, len(self.parsedModel.listOfFunctions)):
+        for i in range(len(self.parsedModel.listOfFunctions)):
             self.out_file.write("__device__ float " + self.parsedModel.listOfFunctions[i].getId() + "(")
-            for j in range(0, self.parsedModel.listOfFunctions[i].getNumArguments()):
+            for j in range(self.parsedModel.listOfFunctions[i].getNumArguments()):
                 self.out_file.write("float " + self.parsedModel.functionArgument[i][j])
                 if j < (self.parsedModel.listOfFunctions[i].getNumArguments() - 1):
                     self.out_file.write(",")
@@ -85,7 +85,7 @@ class OdeCUDAWriter(Writer):
         numSpecies = len(self.parsedModel.species)
 
         # write rules and events
-        for i in range(0, len(self.parsedModel.listOfRules)):
+        for i in range(len(self.parsedModel.listOfRules)):
             if self.parsedModel.listOfRules[i].isRate():
                 self.out_file.write("        ")
                 if not (self.parsedModel.ruleVariable[i] in self.parsedModel.speciesId):
@@ -96,14 +96,14 @@ class OdeCUDAWriter(Writer):
                 self.out_file.write("=")
 
                 string = self.parsedModel.ruleFormula[i]
-                for q in range(0, len(self.parsedModel.speciesId)):
+                for q in range(len(self.parsedModel.speciesId)):
                     # pq = re.compile(self.parsedModel.speciesId[q])
                     # string=pq.sub('y['+repr(q)+']' ,string)
                     string = rep(string, self.parsedModel.speciesId[q], 'y[' + repr(q) + ']')
-                for q in range(0, len(self.parsedModel.parameterId)):
+                for q in range(len(self.parsedModel.parameterId)):
                     if not (self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                         flag = False
-                        for r in range(0, len(self.parsedModel.eventVariable)):
+                        for r in range(len(self.parsedModel.eventVariable)):
                             if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                 flag = True
                         if not flag:
@@ -113,13 +113,13 @@ class OdeCUDAWriter(Writer):
                 self.out_file.write(string)
                 self.out_file.write(";\n")
 
-        for i in range(0, len(self.parsedModel.listOfEvents)):
+        for i in range(len(self.parsedModel.listOfEvents)):
             self.out_file.write("    if( ")
             # print EventCondition[i]
             self.out_file.write(self.mathMLConditionParserCuda(self.parsedModel.eventCondition[i]))
             self.out_file.write("){\n")
             listOfAssignmentRules = self.parsedModel.listOfEvents[i].getListOfEventAssignments()
-            for j in range(0, len(listOfAssignmentRules)):
+            for j in range(len(listOfAssignmentRules)):
                 self.out_file.write("        ")
                 # self.out_file.write("float ")
                 if not (self.parsedModel.eventVariable[i][j] in self.parsedModel.speciesId):
@@ -130,14 +130,14 @@ class OdeCUDAWriter(Writer):
                 self.out_file.write("=")
 
                 string = self.parsedModel.eventFormula[i][j]
-                for q in range(0, len(self.parsedModel.speciesId)):
+                for q in range(len(self.parsedModel.speciesId)):
                     # pq = re.compile(self.parsedModel.speciesId[q])
                     # string=pq.sub('y['+repr(q)+']' ,string)
                     string = rep(string, self.parsedModel.speciesId[q], 'y[' + repr(q) + ']')
-                for q in range(0, len(self.parsedModel.parameterId)):
+                for q in range(len(self.parsedModel.parameterId)):
                     if not (self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                         flag = False
-                        for r in range(0, len(self.parsedModel.eventVariable)):
+                        for r in range(len(self.parsedModel.eventVariable)):
                             if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                 flag = True
                         if not flag:
@@ -150,7 +150,7 @@ class OdeCUDAWriter(Writer):
 
         self.out_file.write("\n")
 
-        for i in range(0, len(self.parsedModel.listOfRules)):
+        for i in range(len(self.parsedModel.listOfRules)):
             if self.parsedModel.listOfRules[i].isAssignment():
                 self.out_file.write("    ")
                 if not (self.parsedModel.ruleVariable[i] in self.parsedModel.speciesId):
@@ -162,13 +162,13 @@ class OdeCUDAWriter(Writer):
                 self.out_file.write("=")
 
                 string = self.mathMLConditionParserCuda(self.parsedModel.ruleFormula[i])
-                for q in range(0, len(self.parsedModel.speciesId)):
+                for q in range(len(self.parsedModel.speciesId)):
                     pq = re.compile(self.parsedModel.speciesId[q])
                     string = pq.sub("y[" + repr(q) + "]", string)
-                for q in range(0, len(self.parsedModel.parameterId)):
+                for q in range(len(self.parsedModel.parameterId)):
                     if not (self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                         flag = False
-                        for r in range(0, len(self.parsedModel.eventVariable)):
+                        for r in range(len(self.parsedModel.eventVariable)):
                             if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                 flag = True
                         if not flag:
@@ -190,7 +190,7 @@ class OdeCUDAWriter(Writer):
                     self.out_file.write("(")
 
                 reactionWritten = False
-                for k in range(0, self.parsedModel.numReactions):
+                for k in range(self.parsedModel.numReactions):
                     if not self.parsedModel.stoichiometricMatrix[i][k] == 0.0:
 
                         if reactionWritten and self.parsedModel.stoichiometricMatrix[i][k] > 0.0:
@@ -219,10 +219,10 @@ class OdeCUDAWriter(Writer):
                             # pq = re.compile(self.parsedModel.speciesId[q])
                             # string=pq.sub('y['+repr(q)+']' ,string)
                             string = rep(string, self.parsedModel.speciesId[q], 'y[' + repr(q) + ']')
-                        for q in range(0, len(self.parsedModel.parameterId)):
+                        for q in range(len(self.parsedModel.parameterId)):
                             if not (self.parsedModel.parameterId[q] in self.parsedModel.ruleVariable):
                                 flag = False
-                                for r in range(0, len(self.parsedModel.eventVariable)):
+                                for r in range(len(self.parsedModel.eventVariable)):
                                     if self.parsedModel.parameterId[q] in self.parsedModel.eventVariable[r]:
                                         flag = True
                                 if not flag:
@@ -237,11 +237,11 @@ class OdeCUDAWriter(Writer):
                 if self.parsedModel.species[i].isSetCompartment():
                     self.out_file.write(")/")
                     mySpeciesCompartment = self.parsedModel.species[i].getCompartment()
-                    for j in range(0, len(self.parsedModel.listOfParameter)):
+                    for j in range(len(self.parsedModel.listOfParameter)):
                         if self.parsedModel.listOfParameter[j].getId() == mySpeciesCompartment:
                             if not (self.parsedModel.parameterId[j] in self.parsedModel.ruleVariable):
                                 flag = False
-                                for r in range(0, len(self.parsedModel.eventVariable)):
+                                for r in range(len(self.parsedModel.eventVariable)):
                                     if self.parsedModel.parameterId[j] in self.parsedModel.eventVariable[r]:
                                         flag = True
                                 if not flag:

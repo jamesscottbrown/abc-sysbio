@@ -80,7 +80,7 @@ class CWriter(Writer):
                             double parameters[], double time);
             """)
 
-        for i in range(0, len(self.parsedModel.listOfFunctions)):
+        for i in range(len(self.parsedModel.listOfFunctions)):
 
             self.hppOutputFile.write("double ")
             string = self.parsedModel.listOfFunctions[i].getId()
@@ -126,7 +126,7 @@ class CWriter(Writer):
 
         # The user-defined functions used in the model must be written in the file
 
-        for i in range(0, len(self.parsedModel.listOfFunctions)):
+        for i in range(len(self.parsedModel.listOfFunctions)):
             self.cppOutputFile.write("double ChildModel::")
             string = self.parsedModel.listOfFunctions[i].getId()
             string = re.sub('_', '', string)
@@ -145,8 +145,8 @@ class CWriter(Writer):
 
         self.cppOutputFile.write("\n\n\tvoid ChildModel::getStoichiometricMatrix() {")
 
-        for i in range(0, self.parsedModel.numReactions):
-            for k in range(0, self.parsedModel.numSpecies):
+        for i in range(self.parsedModel.numReactions):
+            for k in range(self.parsedModel.numSpecies):
                 ##if (self.parsedModel.species[k].getConstant() == False):
                 self.cppOutputFile.write("\n\t\t (*pstoichiometricMatrix)(" + repr(k) + "+1," + repr(i) + "+1)= " + str(
                     self.parsedModel.stoichiometricMatrix[k][i]) + ";")
@@ -156,7 +156,7 @@ class CWriter(Writer):
         self.cppOutputFile.write(
             "\n\n\tColumnVector ChildModel::getHazards(const double concentrations[],const double parameters[]) {")
         self.cppOutputFile.write("\n\t\tColumnVector hazards(NREACTIONS);\n")
-        for i in range(0, self.parsedModel.numReactions):
+        for i in range(self.parsedModel.numReactions):
             string = self.parsedModel.kineticLaw[i]
             string = re.sub('_', '', string)
             string = p1.sub(r"concentrations[\g<1>-1]", string)
@@ -181,7 +181,7 @@ class CWriter(Writer):
     def writeEvents(self, p1, p2):
         # Write the events
 
-        for i in range(0, len(self.parsedModel.listOfEvents)):
+        for i in range(len(self.parsedModel.listOfEvents)):
             self.cppOutputFile.write("\t\tif ")
             string = mathMLConditionParser(self.parsedModel.eventCondition[i])
             string = re.sub(',', '>=', string)
@@ -190,7 +190,7 @@ class CWriter(Writer):
             self.cppOutputFile.write("{\n")
             listOfAssignmentRules = self.parsedModel.listOfEvents[i].getListOfEventAssignments()
 
-            for j in range(0, len(listOfAssignmentRules)):
+            for j in range(len(listOfAssignmentRules)):
                 self.cppOutputFile.write("\t\t\t")
 
                 string = self.parsedModel.eventVariable[i][j]
@@ -217,7 +217,7 @@ class CWriter(Writer):
     def writeRules(self, p1, p2):
         # write the rules
 
-        for i in range(0, len(self.parsedModel.listOfRules)):
+        for i in range(len(self.parsedModel.listOfRules)):
             if self.parsedModel.listOfRules[i].isAssignment():
                 self.cppOutputFile.write("\t\t")
                 string = self.parsedModel.ruleVariable[i]
