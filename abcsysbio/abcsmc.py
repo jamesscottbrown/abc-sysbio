@@ -123,7 +123,7 @@ class Abcsmc:
         # self.kernels[i] is a list of length 2 such that :
         # self.kernels[i][0] contains the index of the non constant parameters for the model i
         # self.kernels[i][1] contains the information required to build the kernel and given by the input_file
-        # self.kernels[i][2] is filled in during the kernelfn step and contains values/matrix etc depending ont he kernel
+        # self.kernels[i][2] is filled in during the kernelfn step and contains values/matrix etc depending on kernel
         kernel_option = list()
         for i in range(self.nmodel):
             if self.kernel_type == KernelType.multivariate_normal_nn:
@@ -283,8 +283,8 @@ class Abcsmc:
         while num_accepted < self.nparticles:
             if self.debug == 2:
                 print "\t****batch"
-            sampled_models = self.sampleTheModelFromPrior()
-            sampled_params = self.sampleTheParameterFromPrior(sampled_models)
+            sampled_models = self.sample_model_from_prior()
+            sampled_params = self.sample_parameters_from_prior(sampled_models)
 
             accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models, sampled_params,
                                                                                 epsilon=0, do_comp=False)
@@ -332,11 +332,11 @@ class Abcsmc:
             if self.debug == 2:
                 print "\t****batch"
             if not prior:
-                sampled_models = self.sampleTheModel()
-                sampled_params = self.sampleTheParameter(sampled_models)
+                sampled_models = self.sample_model()
+                sampled_params = self.sample_parameters(sampled_models)
             else:
-                sampled_models = self.sampleTheModelFromPrior()
-                sampled_params = self.sampleTheParameterFromPrior(sampled_models)
+                sampled_models = self.sample_model_from_prior()
+                sampled_params = self.sample_parameters_from_prior(sampled_models)
 
             accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models, sampled_params,
                                                                                 next_epsilon)
@@ -374,7 +374,7 @@ class Abcsmc:
             for i in range(self.nparticles):
                 self.weights_curr[i] = self.b[i]
 
-        self.normalizeWeights()
+        self.normalize_weights()
         self.update_model_marginals()
 
         if self.debug == 2:
@@ -557,7 +557,7 @@ class Abcsmc:
 
         return accepted, distances, traj
 
-    def sampleTheModelFromPrior(self):
+    def sample_model_from_prior(self):
         """
         Returns a list of model numbers, of length self.nbatch, drawn from a categorical distribution with probabilities
          self.modelprior
@@ -570,7 +570,7 @@ class Abcsmc:
 
         return models
 
-    def sampleTheModel(self):
+    def sample_model(self):
         """
         Returns a list of model numbers, of length self.nbatch, obtained by sampling from a categorical distribution
         with probabilities self.modelprior, and then perturbing with a uniform model perturbation kernel.
@@ -601,7 +601,7 @@ class Abcsmc:
                         models[i] = perturbed_model
         return models[:]
 
-    def sampleTheParameterFromPrior(self, sampled_models):
+    def sample_parameters_from_prior(self, sampled_models):
         """
         For each model whose index is in sampled_models, draw a sample of the corresponding parameters.
 
@@ -638,7 +638,7 @@ class Abcsmc:
 
         return samples
 
-    def sampleTheParameter(self, sampled_models):
+    def sample_parameters(self, sampled_models):
         """
         For each model index in sampled_models, sample a set of parameters by sampling a particle from
         the corresponding model (with probability biased by the particle weights), and then perturbing using the parameter
@@ -751,7 +751,7 @@ class Abcsmc:
 
             self.weights_curr[k] = self.margins_prev[model_num] * numerator / (s1 * s2)
 
-    def normalizeWeights(self):
+    def normalize_weights(self):
         """
         Normalize weights by dividing each by the total.
         """
