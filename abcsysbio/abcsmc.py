@@ -789,12 +789,12 @@ def sample_particle_from_model(nparticle, selected_model, margins_prev, model_pr
     u = rnd.uniform(low=0, high=margins_prev[selected_model])
     f = 0
 
-    for i in range(0, nparticle):
+    for i in range(nparticle):
         if int(model_prev[i]) == int(selected_model):
             f = f + weights_prev[i]
             if f > u:
-                break
-    return i
+                return i
+    return nparticle - 1
 
 
 def howToFitData(fitting_instruction, samplePoints):

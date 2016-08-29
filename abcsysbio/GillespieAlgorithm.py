@@ -22,12 +22,12 @@ def select_hazard(total_hazard, list_of_hazards):
     """
 
     hazard_chooser = numpy.random.random_sample()
-    for i in range(0, len(list_of_hazards)):
-        x = list_of_hazards[i] / total_hazard  # normal hazards
+    for i in range(len(list_of_hazards)):
+        x = list_of_hazards[i] / total_hazard  # normalise hazards
         if hazard_chooser < x:
-            break
+            return i
         hazard_chooser = hazard_chooser - x
-    return i
+    return len(list_of_hazards) - 1
 
 
 def GillespieInt(func, init_values, parameters, outputtimes):
