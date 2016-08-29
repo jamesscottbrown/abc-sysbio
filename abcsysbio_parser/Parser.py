@@ -153,10 +153,10 @@ class Parser:
                 self.writer.parsedModel.listOfParameter.append(self.listOfReactions[i].getKineticLaw().getParameter(n))
 
             for n in range(0, self.comp):
-                name = self.parameterId[n]
+                compartment_name = self.parameterId[n]
                 new_name = 'compartment' + repr(n + 1)
                 node = self.sbmlModel.getReaction(i).getKineticLaw().getMath()
-                new_node = self.rename(node, name, new_name)
+                new_node = self.rename(node, compartment_name, new_name)
                 self.writer.parsedModel.kineticLaw[i] = formulaToString(new_node)
 
     def analyseFunctions(self):
@@ -171,9 +171,9 @@ class Parser:
             for funArg in range(0, self.writer.parsedModel.listOfFunctions[fun].getNumArguments()):
                 self.writer.parsedModel.functionArgument[fun].append(
                     formulaToString(self.writer.parsedModel.listOfFunctions[fun].getArgument(funArg)))
-                name = self.writer.parsedModel.functionArgument[fun][funArg]
+                old_name = self.writer.parsedModel.functionArgument[fun][funArg]
                 node = self.writer.parsedModel.listOfFunctions[fun].getBody()
-                new_node = self.rename(node, name, "a" + repr(funArg + 1))
+                new_node = self.rename(node, old_name, "a" + repr(funArg + 1))
                 self.writer.parsedModel.functionBody[fun] = formulaToString(new_node)
                 self.writer.parsedModel.functionArgument[fun][funArg] = "a" + repr(funArg + 1)
 
@@ -208,44 +208,44 @@ class Parser:
         for nam in range(0, 2):
 
             for i in range(0, len(NAMES[nam][0])):
-                name = NAMES[nam][0][i]
+                old_name = NAMES[nam][0][i]
                 new_name = NAMES[nam][1][i]
 
                 for k in range(0, self.writer.parsedModel.numReactions):
                     node = self.sbmlModel.getReaction(k).getKineticLaw().getMath()
-                    new_node = self.rename(node, name, new_name)
+                    new_node = self.rename(node, old_name, new_name)
                     self.writer.parsedModel.kineticLaw[k] = formulaToString(new_node)
 
                 for k in range(0, len(self.writer.parsedModel.listOfRules)):
                     node = self.writer.parsedModel.listOfRules[k].getMath()
-                    new_node = self.rename(node, name, new_name)
+                    new_node = self.rename(node, old_name, new_name)
                     self.writer.parsedModel.ruleFormula[k] = formulaToString(new_node)
-                    if self.writer.parsedModel.ruleVariable[k] == name: 
+                    if self.writer.parsedModel.ruleVariable[k] == old_name:
                         self.writer.parsedModel.ruleVariable[k] = new_name
 
                 for k in range(0, len(self.writer.parsedModel.listOfEvents)):
                     node = self.writer.parsedModel.listOfEvents[k].getTrigger().getMath()
-                    new_node = self.rename(node, name, new_name)
+                    new_node = self.rename(node, old_name, new_name)
                     self.writer.parsedModel.eventCondition[k] = formulaToString(new_node)
                     self.listOfAssignmentRules = self.writer.parsedModel.listOfEvents[k].getListOfEventAssignments()
 
                     for cond in range(0, len(self.listOfAssignmentRules)):
                         node = self.listOfAssignmentRules[cond].getMath()
-                        new_node = self.rename(node, name, new_name)
+                        new_node = self.rename(node, old_name, new_name)
                         self.writer.parsedModel.eventFormula[k][cond] = formulaToString(new_node)
-                        if self.writer.parsedModel.eventVariable[k][cond] == name:
+                        if self.writer.parsedModel.eventVariable[k][cond] == old_name:
                             self.writer.parsedModel.eventVariable[k][cond] = new_name
 
-    def rename(self, node, name, new_name):
+    def rename(self, node, old_name, new_name):
         typ = node.getType()
 
         if typ == AST_NAME or typ == AST_NAME_TIME:
             nme = node.getName()
-            if nme == name:
+            if nme == old_name:
                 node.setName(new_name)
 
         for n in range(0, node.getNumChildren()):
-            self.rename(node.getChild(n), name, new_name)
+            self.rename(node.getChild(n), old_name, new_name)
         return node
 
     def getSpeciesValue(self, specie):
