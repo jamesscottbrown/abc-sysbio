@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 from numpy import random as rnd
 
 import copy, time
@@ -253,7 +253,7 @@ class Abcsmc:
                 distance_values.append(results.distances[i][j])
 
         # Important to remember that the initial sort on distance is done on the first distance value
-        distance_values = numpy.sort(distance_values, axis=0)
+        distance_values = np.sort(distance_values, axis=0)
         ntar = int(alpha * self.nparticles)
 
         new_epsilon = [round(distance_values[ntar, ne], 4) for ne in range(nepsilon)]
@@ -266,7 +266,7 @@ class Abcsmc:
         # if any entry of ret_epsilon is below the target, replace with the target; if all are below the target we are done
         finished = True
         for ne in range(nepsilon):
-            if ret_epsilon[ne] < target_epsilon[ne] or numpy.fabs(ret_epsilon[ne] - target_epsilon[ne]) < 1e-3:
+            if ret_epsilon[ne] < target_epsilon[ne] or np.fabs(ret_epsilon[ne] - target_epsilon[ne]) < 1e-3:
                 ret_epsilon[ne] = target_epsilon[ne]
             else:
                 finished = False
@@ -406,9 +406,9 @@ class Abcsmc:
 
         # Compute kernels
         for mod in range(self.nmodel):
-            this_model_index = numpy.arange(self.nparticles)[numpy.array(self.model_prev) == mod]
-            this_population = numpy.zeros([len(this_model_index), self.models[mod].nparameters])
-            this_weights = numpy.zeros(len(this_model_index))
+            this_model_index = np.arange(self.nparticles)[np.array(self.model_prev) == mod]
+            this_population = np.zeros([len(this_model_index), self.models[mod].nparameters])
+            this_weights = np.zeros(len(this_model_index))
 
             # if we have just sampled from the prior we shall initialise the kernels using all available particles
             if prior:
@@ -505,12 +505,12 @@ class Abcsmc:
         traj = [[] for it in range(self.nbatch)]
         distances = [[] for it in range(self.nbatch)]
 
-        models = numpy.array(sampled_models)
+        models = np.array(sampled_models)
 
         for model in range(self.nmodel):
 
             # create a list of indexes for the simulations corresponding to this model
-            mapping = numpy.arange(self.nbatch)[models == model]
+            mapping = np.arange(self.nbatch)[models == model]
             if self.debug == 2:
                 print "\t\t\tmodel / mapping:", model, mapping
 
@@ -594,7 +594,7 @@ class Abcsmc:
                         not_available = set(self.dead_models[:])
                         not_available.add(models[i])
 
-                        available_indexes = numpy.array(list(set(range(self.nmodel)) - not_available))
+                        available_indexes = np.array(list(set(range(self.nmodel)) - not_available))
                         rnd.shuffle(available_indexes)
                         perturbed_model = available_indexes[0]
 
@@ -626,13 +626,13 @@ class Abcsmc:
                     sample[param] = model.prior[param].value
 
                 if model.prior[param].type == PriorType.normal:
-                    sample[param] = rnd.normal(loc=model.prior[param].mean, scale=numpy.sqrt(model.prior[param].variance))
+                    sample[param] = rnd.normal(loc=model.prior[param].mean, scale=np.sqrt(model.prior[param].variance))
 
                 if model.prior[param].type == PriorType.uniform:
                     sample[param] = rnd.uniform(low=model.prior[param].lower_bound, high=model.prior[param].upper_bound)
 
                 if model.prior[param].type == PriorType.lognormal:
-                    sample[param] = rnd.lognormal(mean=model.prior[param].mu, sigma=numpy.sqrt(model.prior[param].sigma))
+                    sample[param] = rnd.lognormal(mean=model.prior[param].mu, sigma=np.sqrt(model.prior[param].sigma))
 
             samples.append(sample[:])
 
@@ -717,13 +717,13 @@ class Abcsmc:
                     x = 1
 
                 if model.prior[n].type == PriorType.normal:
-                    x = statistics.getPdfGauss(model.prior[n].mean, numpy.sqrt(model.prior[n].variance), this_param[n])
+                    x = statistics.getPdfGauss(model.prior[n].mean, np.sqrt(model.prior[n].variance), this_param[n])
 
                 if model.prior[n].type == PriorType.uniform:
                     x = statistics.getPdfUniform(model.prior[n].lower_bound, model.prior[n].upper_bound, this_param[n])
 
                 if model.prior[n].type == PriorType.lognormal:
-                    x = statistics.getPdfLognormal(model.prior[n].mu, numpy.sqrt(model.prior[n].sigma), this_param[n])
+                    x = statistics.getPdfLognormal(model.prior[n].mu, np.sqrt(model.prior[n].sigma), this_param[n])
                 particle_prior = particle_prior * x
 
             # self.b[k] is an indicator variable recording whether the simulation corresponding to particle k was accepted
@@ -820,7 +820,7 @@ def howToFitData(fitting_instruction, samplePoints):
     """
 
     if fitting_instruction is not None:
-        transformed_points = numpy.zeros([len(samplePoints), len(fitting_instruction)])
+        transformed_points = np.zeros([len(samplePoints), len(fitting_instruction)])
         for i in range(len(fitting_instruction)):
             transformed_points[:, i] = eval(fitting_instruction[i])
     else:
