@@ -3,6 +3,7 @@
 import abcsysbio
 import sys
 
+
 def printOptions():
     print "\n######################## abc-sysbio-sbml-sum"
     print "List of possible options:"
@@ -13,39 +14,39 @@ def printOptions():
     print "--summary_file_name\t the name of the summary file to write (default model_summary.txt)"
     print "########################\n"
 
-def main():
 
+def main():
     if len(sys.argv) == 1:
         printOptions()
         sys.exit()
 
     input_files = []
     data = None
-    filename="input_file_template.xml"
-    sumname="model_summary.txt"
-    
-    for i in range(1,len(sys.argv)):
+    filename = "input_file_template.xml"
+    sumname = "model_summary.txt"
+
+    for i in range(1, len(sys.argv)):
 
         if sys.argv[i].startswith('--'):
             option = sys.argv[i][2:]
-          
+
             if option == 'help':
                 printOptions()
                 sys.exit()
             elif option == 'files':
-                tmp=sys.argv[i+1]
+                tmp = sys.argv[i + 1]
                 input_files = str(tmp).split(',')
             elif option == 'data':
-                data=sys.argv[i+1]
+                data = sys.argv[i + 1]
             elif option == 'input_file_name':
-                filename=sys.argv[i+1]
+                filename = sys.argv[i + 1]
             elif option == 'summary_file_name':
-                sumname=sys.argv[i+1] 
+                sumname = sys.argv[i + 1]
             else:
                 print "Option --", option, "not recognised"
                 sys.exit()
 
-    print "input_files:", input_files 
+    print "input_files:", input_files
     print "data:", data
     print "filename:", filename
     print "sumname:", sumname
@@ -55,5 +56,6 @@ def main():
         sys.exit()
 
     abcsysbio.generateTemplate(input_files, filename=filename, sumname=sumname, dataname=data)
+
 
 main()
