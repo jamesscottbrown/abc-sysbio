@@ -308,7 +308,7 @@ class InputOutput:
             out_file.close()
 
     # read the stored data
-    def read_pickled(location):
+    def read_pickled(self, location):
         # pickle numbers selected model of previous population
         # pickle population of selected model of previous population pop_pickled[selected_model][n][vectpos]
         # pickle weights of selected model of previous population weights_pickled[selected_model][n][vectpos]
