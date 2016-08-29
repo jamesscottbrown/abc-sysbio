@@ -4,12 +4,12 @@
 # Imperial College London
 
 from generateTemplate import generateTemplate
-from checkInputArguments import checkInputABC
+from checkInputArguments import check_input_abc
 
 __all__ = ['GillespieAlgorithm',
            'sdeint',
            'abcodesolve',
-           'checkInputABC',
+           'check_input_abc',
            'checkInputArguments',
            'generateTemplate',
            'relations.py',

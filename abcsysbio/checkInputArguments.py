@@ -4,7 +4,7 @@ from PriorType import PriorType
 from Prior import *
 
 
-def checkInputABC(info_new, fname, custom_distance, design):
+def check_input_abc(info_new, fname, custom_distance, design):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to run the abc-SMC algorithm.
@@ -159,7 +159,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
     return True, ""
 
 
-def checkInputSimulation(info_new):
+def check_input_simulation(info_new):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to simulate the model.

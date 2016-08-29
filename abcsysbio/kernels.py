@@ -13,7 +13,7 @@ from Prior import *
 
 
 # populations, weights refers to particles and weights from previous population for one model
-def getKernel(kernel_type, kernel, population, weights):
+def get_kernel(kernel_type, kernel, population, weights):
     """
     Calculate some details of the kernel for a single model, based on the previous population of particles.
     Populate kernels[2] with the result.
@@ -140,7 +140,7 @@ def getKernel(kernel_type, kernel, population, weights):
 
 # Here params refers to one particle
 # The function changes params in place and returns the probability (which may be zero)
-def perturbParticle(params, priors, kernel, kernel_type, special_cases):
+def perturb_particle(params, priors, kernel, kernel_type, special_cases):
     np = len(priors)
     prior_prob = 1
 
@@ -240,7 +240,7 @@ def perturbParticle(params, priors, kernel, kernel_type, special_cases):
 
 # Here params and params0 refer to one particle each.
 # Auxilliary is a vector size of nparameters
-def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_type):
+def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel_type):
     if kernel_type == KernelType.component_wise_uniform:
         prob = 1
         kernel_index = 0
@@ -285,7 +285,7 @@ def getPdfParameterKernel(params, params0, priors, kernel, auxilliary, kernel_ty
 
 
 # Here models and parameters refer to the whole population
-def getAuxilliaryInfo(kernel_type, models, parameters, model_objs, kernel):
+def get_auxilliary_info(kernel_type, models, parameters, model_objs, kernel):
     """
     Return the 'Auxilliary Information' for a kernel
 

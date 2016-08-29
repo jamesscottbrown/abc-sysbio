@@ -200,15 +200,15 @@ if __name__ == '__main__':
             sys.exit()
 
         if not simulate:
-            modelCorrect, message = checkInputArguments.checkInputABC(info_new, fname, custom_distance, design)
+            modelCorrect, message = checkInputArguments.check_input_abc(info_new, fname, custom_distance, design)
         else:
-            modelCorrect, message = checkInputArguments.checkInputSimulation(info_new)
+            modelCorrect, message = checkInputArguments.check_input_simulation(info_new)
     else:
         info_new.source = None
         if not simulate:
-            modelCorrect, message = checkInputArguments.checkInputABC(info_new, fname, custom_distance, design)
+            modelCorrect, message = checkInputArguments.check_input_abc(info_new, fname, custom_distance, design)
         else:
-            modelCorrect, message = checkInputArguments.checkInputSimulation(info_new)
+            modelCorrect, message = checkInputArguments.check_input_simulation(info_new)
 
     if not modelCorrect:
         print message
@@ -278,10 +278,10 @@ if __name__ == '__main__':
         debug = 2
 
     # set the required distance and kernel functions
-    distancefn = euclidian.euclidianDistance
-    kernelfn = kernels.getKernel
-    kernelpdffn = kernels.getPdfParameterKernel
-    perturbfn = kernels.perturbParticle
+    distancefn = euclidian.euclidian_distance
+    kernelfn = kernels.get_kernel
+    kernelpdffn = kernels.get_parameter_kernel_pdf
+    perturbfn = kernels.perturb_particle
 
     if custom_distance:
         customABC = __import__(custom_distance)

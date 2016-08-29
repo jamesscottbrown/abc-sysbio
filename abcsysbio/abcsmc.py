@@ -76,11 +76,11 @@ class Abcsmc:
                  model_kernel,
                  debug,
                  timing,
-                 distancefn=euclidian.euclidianDistance,
+                 distancefn=euclidian.euclidian_distance,
                  kernel_type=KernelType.component_wise_uniform,
-                 kernelfn=kernels.getKernel,
-                 kernelpdffn=kernels.getPdfParameterKernel,
-                 perturbfn=kernels.perturbParticle):
+                 kernelfn=kernels.get_kernel,
+                 kernelpdffn=kernels.get_parameter_kernel_pdf,
+                 perturbfn=kernels.perturb_particle):
 
         self.nmodel = len(models)
         self.models = copy.copy(models)
@@ -429,8 +429,8 @@ class Abcsmc:
                     self.kernels[mod] = tmp_kernel[:]
 
         # Kernel auxilliary information
-        self.kernel_aux = kernels.getAuxilliaryInfo(self.kernel_type, self.model_prev, self.parameters_prev,
-                                                    self.models, self.kernels)[:]
+        self.kernel_aux = kernels.get_auxilliary_info(self.kernel_type, self.model_prev, self.parameters_prev,
+                                                      self.models, self.kernels)[:]
 
         self.hits.append(naccepted)
         self.sampled.append(sampled)

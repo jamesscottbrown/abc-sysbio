@@ -36,7 +36,7 @@ def bin_data(d, w, nbins):
     return [bin_c, count]
 
 
-def MatrixToTextfile(matrix, filename, model, eps):
+def matrix_to_text_file(matrix, filename, model, eps):
     """
     Write the part of a three dimensional matrix indexed by model and eps
     to a text file
@@ -69,7 +69,7 @@ def MatrixToTextfile(matrix, filename, model, eps):
     out_file.close()
 
 
-def printModelDistribution(matrix, eps, filename='model_distribution.txt'):
+def print_model_distribution(matrix, eps, filename='model_distribution.txt'):
     """
     Write the contents of a two-dimensional matrix indexed by
     eps to a text file.
@@ -100,7 +100,7 @@ def printModelDistribution(matrix, eps, filename='model_distribution.txt'):
     out_file.close()
 
 
-def plotData(data, filename):
+def plot_data(data, filename):
     matplotlib.pyplot.subplot(111)
     clf()
     matplotlib.pyplot.plot(data.timepoints, data.values, 'o')
@@ -110,7 +110,7 @@ def plotData(data, filename):
     matplotlib.pylab.clf()
 
 
-def plotTimeSeries2(model, pars, data, beta, filename, traj2, population, plotdata=True):
+def plot_time_series2(model, pars, data, beta, filename, traj2, population, plotdata=True):
     """
     Plot simulated trajectories from the model with accepted parameters.
         
@@ -155,7 +155,7 @@ def plotTimeSeries2(model, pars, data, beta, filename, traj2, population, plotda
     matplotlib.pylab.clf()
 
 
-def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
+def plot_time_series(model, pars, data, beta, filename, plotdata=True):
     """
     Plot simulated trajectories from the model with accepted parameters.
         
@@ -203,7 +203,7 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
     matplotlib.pylab.clf()
 
 
-def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', model=1):
+def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots', model=1):
     """
     Plot weighted histograms.
     
@@ -362,7 +362,7 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
         matplotlib.pyplot.subplot(111)
 
 
-def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPlots', model=1):
+def get_all_scatter_plots(matrix, weights, populations=(1,), PlotName='AllScatterPlots', model=1):
     """
     Plot scatter plots and histograms of data given in matrix.
     Used to plot posterior parameter distributions.
@@ -554,7 +554,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
             matplotlib.pyplot.subplot(111)
 
 
-def getScatterPlot(matrix, parameter, populations=(1,), PlotName='ScatterPlot', model=1):
+def get_scatter_plot(matrix, parameter, populations=(1,), PlotName='ScatterPlot', model=1):
     """
     Plot a single scatter plot of accepted parameters.
     ***** args *****
@@ -602,7 +602,7 @@ def getScatterPlot(matrix, parameter, populations=(1,), PlotName='ScatterPlot', 
     matplotlib.pylab.clf()
 
 
-def getModelDistribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
+def get_model_distribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
     """
     Plot a histogram of the posterior distributions of the models
     ***** args *****
