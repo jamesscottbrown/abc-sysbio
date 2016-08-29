@@ -69,7 +69,7 @@ def sdeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01):
     x = zeros([1, dim])
 
     time = t1
-    next_time = min(time + dt, t2)
+    next_time = min([time + dt, t2])
 
     x[0], parameters = func.rules(current_concentrations, parameters, t=time)
 
