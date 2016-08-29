@@ -23,9 +23,9 @@ def w_choice(weight):
     n = rnd.random_sample()
     for i in range(0, len(weight)):
         if n < weight[i]:
-            break
+            return i
         n = n - weight[i]
-    return i
+    return len(weight) - 1
 
 
 def getPdfUniform(min_val, max_val, x):
