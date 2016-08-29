@@ -44,19 +44,19 @@ class Model:
         heun = re.compile('Heun', re.I)
         milstein = re.compile('Milstein', re.I)
 
-        solverName = ""
+        solver_name = ""
         if gil.search(integration):
-            solverName = 'Gillespie'
+            solver_name = 'Gillespie'
         elif ode.search(integration):
-            solverName = 'ODE'
+            solver_name = 'ODE'
         elif euler.search(integration):
-            solverName = 'EulerSDE'
+            solver_name = 'EulerSDE'
         elif heun.search(integration):
-            solverName = 'HeunSDE'
+            solver_name = 'HeunSDE'
         elif milstein.search(integration):
-            solverName = 'MilsteinSDE'
+            solver_name = 'MilsteinSDE'
         else:
-            print "C model : unrecognised integrator : ", solverName
+            print "C model : unrecognised integrator : ", solver_name
 
         self.name = name
         self.nspecies = nspecies
@@ -69,7 +69,7 @@ class Model:
         self.prior.extend(x0prior)
 
         self.source = source
-        self.integration = solverName
+        self.integration = solver_name
         self.fit = fit
         self.dt = dt
         self.beta = beta
