@@ -276,9 +276,9 @@ def generateTemplate(source, filename, sumname, dataname=None):
                             out_file.write(
                                 " <ic" + repr(x) + "> constant " + repr(list_of_parameters[k].getValue()) + " </ic" + repr(
                                     x) + ">\n")
-                            sum_file.write("S" + repr(x) + ":\t" + list_of_parameters[k].getId() + "\tparameter" + repr(
-                                k + 1 - comp) + "\t(" + repr(list_of_parameters[
-                                                                 k].getValue()) + ") (parameter included in a rate rule and therefore treated as species)\n")
+                            sum_file.write("S" + repr(x) + ":\t" + list_of_parameters[k].getId() + "\tparameter" +
+                                           repr(k + 1 - comp) + "\t(" + repr(list_of_parameters[k].getValue()) +
+                                           ") (parameter included in a rate rule and therefore treated as species)\n")
 
         out_file.write("</initial>\n\n")
 

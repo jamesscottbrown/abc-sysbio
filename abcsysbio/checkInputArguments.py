@@ -3,6 +3,7 @@ import re
 from PriorType import PriorType
 from Prior import *
 
+
 def checkInputABC(info_new, fname, custom_distance, design):
     """
     Check that the information in the input file is consistent with each other and with the model,
@@ -123,7 +124,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
         for ic in range(len(x0priors[mod])):
             if x0priors[mod][ic].type not in [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]:
                 return False, "\nThe prior distribution of initial condition " + repr(ic + 1) + " in model " + \
-                       model_name[mod] + " does not exist!\n"
+                    model_name[mod] + " does not exist!\n"
 
         for param in range(len(priors[mod])):
             # TODO: re-add check that all necessary params have been set

@@ -550,7 +550,7 @@ class Abcsmc:
 
                     if self.debug == 2:
                         print '\t\t\tdistance/this_epsilon/mapping/b:', distance, epsilon, \
-                    simulation_number, accepted[simulation_number]
+                            simulation_number, accepted[simulation_number]
 
                 traj[simulation_number] = copy.deepcopy(this_traj)
                 distances[simulation_number] = copy.deepcopy(this_dist)
@@ -671,7 +671,7 @@ class Abcsmc:
 
                 # sample putative particle from previous population
                 particle = sample_particle_from_model(self.nparticles, model_num, self.margins_prev, self.model_prev,
-                                               self.weights_prev)
+                                                      self.weights_prev)
 
                 # Copy this particle's params into a new array, then perturb this in place using the parameter perturbation kernel
                 for param in range(num_params):
@@ -732,7 +732,7 @@ class Abcsmc:
             s1 = 0
             for i in range(self.nmodel):
                 s1 += self.margins_prev[i] * getPdfModelKernel(model_num, i, self.modelKernel, self.nmodel,
-                                                                    self.dead_models)
+                                                               self.dead_models)
             s2 = 0
             for j in range(self.nparticles):
                 if int(model_num) == int(self.model_prev[j]):
@@ -741,8 +741,10 @@ class Abcsmc:
                         print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
                         self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
                                          self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
-                    s2 += self.weights_prev[j] * self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
-                                        self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
+
+                    kernel_pdf = self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
+                                                  self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
+                    s2 += self.weights_prev[j] * kernel_pdf
 
                 if self.debug == 2:
                     print "\tnumer/s1/s2/m(t-1) : ", numerator, s1, s2, self.margins_prev[model_num]

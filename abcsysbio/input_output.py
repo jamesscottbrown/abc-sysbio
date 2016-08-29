@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from PriorType import PriorType
 from Prior import *
 
+
 class InputOutput:
     def __init__(self, folder, restart, diagnostic, plot_data_series, havedata=True):
         self.folder = folder

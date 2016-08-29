@@ -182,7 +182,7 @@ class Model:
                 cinit[j] = p[ni][i]
                 j += 1
 
-            ## double* initialValues, double* parameters, int beta, double* timepoints, int ntimepoints, double dt, NPARAMETERS, NSPECIES
+            # double* initialValues, double* parameters, int beta, double* timepoints, int ntimepoints, double dt, NPARAMETERS, NSPECIES
             dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime), cdt, cntimepoints, CNPARAMETERS,
                                  CNSPECIES, byref(output))
 

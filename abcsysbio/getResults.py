@@ -397,7 +397,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
     dim = len(matrix[int(model) - 1][0])
 
     my_colors = ['#000000', '#003399', '#3333FF', '#6666FF', '#990000', '#CC0033', '#FF6600', '#FFCC00', '#FFFF33',
-                '#33CC00', '#339900', '#336600']
+                 '#33CC00', '#339900', '#336600']
 
     if len(populations) > len(my_colors):
         q = int(math.ceil(len(populations) / len(my_colors)))

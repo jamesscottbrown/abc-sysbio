@@ -42,7 +42,6 @@ class CudaModel:
 
         n_per_card[self.ngpu - 1] = n - (self.ngpu - 1) * nc
 
-
         for c in range(self.ngpu):
 
             # Create local parameter and species arrays
