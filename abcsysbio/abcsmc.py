@@ -104,9 +104,9 @@ class Abcsmc:
 
         self.distancefn = distancefn
         self.kernel_type = kernel_type
-        self.kernelfn = kernels.getKernel
-        self.kernelpdffn = kernels.getPdfParameterKernel
-        self.perturbfn = kernels.perturbParticle
+        self.kernelfn = kernelfn
+        self.kernelpdffn = kernelpdffn
+        self.perturbfn = perturbfn
 
         self.beta = beta
         self.dead_models = []
