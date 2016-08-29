@@ -720,13 +720,13 @@ class Abcsmc:
                     x = 1
 
                 if model.prior[n].type == PriorType.normal:
-                    x = statistics.getPdfGauss(model.prior[n].mean, np.sqrt(model.prior[n].variance), this_param[n])
+                    x = statistics.get_pdf_gauss(model.prior[n].mean, np.sqrt(model.prior[n].variance), this_param[n])
 
                 if model.prior[n].type == PriorType.uniform:
-                    x = statistics.getPdfUniform(model.prior[n].lower_bound, model.prior[n].upper_bound, this_param[n])
+                    x = statistics.get_pdf_uniform(model.prior[n].lower_bound, model.prior[n].upper_bound, this_param[n])
 
                 if model.prior[n].type == PriorType.lognormal:
-                    x = statistics.getPdfLognormal(model.prior[n].mu, np.sqrt(model.prior[n].sigma), this_param[n])
+                    x = statistics.get_pdf_lognormal(model.prior[n].mu, np.sqrt(model.prior[n].sigma), this_param[n])
                 particle_prior = particle_prior * x
 
             # self.b[k] is a variable indicating whether the simulation corresponding to particle k was accepted

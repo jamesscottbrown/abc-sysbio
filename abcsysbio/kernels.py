@@ -96,7 +96,7 @@ def get_kernel(kernel_type, kernel, population, weights):
             for n in range(pop_size):
 
                 # compute the index of the neighbours
-                kset = statistics.kNearestNeighEuc(n, pop, k)
+                kset = statistics.k_nearest_neighbours(n, pop, k)
 
                 # save the coordinate of the particle (with all components)
                 pop_cur = list()
@@ -227,7 +227,7 @@ def perturb_particle(params, priors, kernel, kernel_type, special_cases):
             # if we do not care about the value of prior_prob, then here: x=1.0
 
             if priors[n].type == PriorType.uniform:
-                x = statistics.getPdfUniform(priors[n].lower_bound, priors[n].upper_bound, params[n])
+                x = statistics.get_pdf_uniform(priors[n].lower_bound, priors[n].upper_bound, params[n])
 
                 # if priors[n][0]==3:
                 #    x=statistics.getPdfLognormal(priors[n][1],priors[n][2],params[n])
@@ -245,7 +245,7 @@ def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel
         prob = 1
         kernel_index = 0
         for param_index in kernel[0]:
-            kern = statistics.getPdfUniform(params0[param_index] + kernel[2][kernel_index][0], params0[param_index] + kernel[2][kernel_index][1], params[param_index])
+            kern = statistics.get_pdf_uniform(params0[param_index] + kernel[2][kernel_index][0], params0[param_index] + kernel[2][kernel_index][1], params[param_index])
             prob = prob * kern
             kernel_index += 1
         return prob
@@ -256,7 +256,7 @@ def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel
         for param_index in kernel[0]:
             mean = params0[param_index]
             scale = numpy.sqrt(kernel[2][kernel_index])
-            kern = statistics.getPdfGauss(mean, scale, params[param_index])
+            kern = statistics.get_pdf_gauss(mean, scale, params[param_index])
             kern = kern / auxilliary[param_index]
             prob = prob * kern
             kernel_index += 1
@@ -268,7 +268,7 @@ def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel
         for param_index in kernel[0]:
             p0.append(params0[param_index])
             p.append(params[param_index])
-        kern = statistics.getPdfMultinormal(p0, kernel[2], p)
+        kern = statistics.get_pdf_multinormal(p0, kernel[2], p)
         kern = kern / auxilliary
         return kern
 
@@ -279,7 +279,7 @@ def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel
         for param_index in kernel[0]:
             p0.append(params0[param_index])
             p.append(params[param_index])
-        kern = statistics.getPdfMultinormal(p0, d[str(params0)], p)
+        kern = statistics.get_pdf_multinormal(p0, d[str(params0)], p)
         kern = kern / auxilliary
     return kern
 

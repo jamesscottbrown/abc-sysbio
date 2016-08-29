@@ -28,7 +28,7 @@ def w_choice(weight):
     return len(weight) - 1
 
 
-def getPdfUniform(min_val, max_val, x):
+def get_pdf_uniform(min_val, max_val, x):
     """
     Evaluate the P(x) for x ~ U(min_val, max_val)
 
@@ -44,7 +44,7 @@ def getPdfUniform(min_val, max_val, x):
         return 1 / (max_val - min_val)
 
 
-def getPdfGauss(m, scale, x):
+def get_pdf_gauss(m, scale, x):
     """
     Evaluate P(x) for Gaussian distribution, x ~ N(m, scale^2)
 
@@ -59,7 +59,7 @@ def getPdfGauss(m, scale, x):
     return x
 
 
-def getPdfLognormal(m, sigma, x):
+def get_pdf_lognormal(m, sigma, x):
     """
     Evaluate P(x) for lognormal distribution, x ~ ln N(m, sigma^2)
 
@@ -77,7 +77,7 @@ def getPdfLognormal(m, sigma, x):
 
 
 # compute the pdf of a multinormal distribution
-def getPdfMultinormal(x, covariances, m):
+def get_pdf_multinormal(x, covariances, m):
     """
     Evaluate P(x) for multivariate normal distribution, x ~ N(means, covariances)
 
@@ -316,7 +316,7 @@ def mvnormcdf(lower, upper, mu, c, **kwds):
     return mvstdnormcdf(lower, upper, corr, **kwds)
 
 
-def kNearestNeighEuc(ind, s, k):
+def k_nearest_neighbours(ind, s, k):
     """
     Compute the k nearest neighbors of a point inside a set S of points using the Euclidian distance.
 
