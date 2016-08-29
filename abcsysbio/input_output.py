@@ -122,7 +122,7 @@ class InputOutput:
                     r.append(self.all_results[i].rate)
                     e.append(self.all_results[i].epsilon)
 
-                get_model_distribution(m, e, r, PlotName=self.folder + '/ModelDistribution')
+                get_model_distribution(m, e, r, plot_name=self.folder + '/ModelDistribution')
 
             # for scatter plots and histograms we require container [model][population][parameter][values]
             population_mod = []
@@ -159,7 +159,7 @@ class InputOutput:
                                 non_const += 1
 
                     get_all_scatter_plots(population_mod, weights_mod, populations=numpy.arange(1, population + 2),
-                                          PlotName=plot_name, model=mod + 1)
+                                          plot_name=plot_name, model=mod + 1)
                     get_all_histograms(population_mod, weights_mod, population=population + 1, PlotName=plot_name2,
                                        model=mod + 1)
 

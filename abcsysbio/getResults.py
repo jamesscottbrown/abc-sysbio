@@ -362,7 +362,7 @@ def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots'
         matplotlib.pyplot.subplot(111)
 
 
-def get_all_scatter_plots(matrix, weights, populations=(1,), PlotName='AllScatterPlots', model=1):
+def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatterPlots', model=1):
     """
     Plot scatter plots and histograms of data given in matrix.
     Used to plot posterior parameter distributions.
@@ -471,7 +471,7 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), PlotName='AllScatte
                 xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
                 yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
 
-        savefig(PlotName)
+        savefig(plot_name)
         matplotlib.pylab.clf()
         matplotlib.pyplot.subplot(111)
 
@@ -549,12 +549,12 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), PlotName='AllScatte
                     xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
                     yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
 
-            savefig(PlotName + "_" + repr(p))
+            savefig(plot_name + "_" + repr(p))
             matplotlib.pylab.clf()
             matplotlib.pyplot.subplot(111)
 
 
-def get_scatter_plot(matrix, parameter, populations=(1,), PlotName='ScatterPlot', model=1):
+def get_scatter_plot(matrix, parameter, populations=(1,), plot_name='ScatterPlot', model=1):
     """
     Plot a single scatter plot of accepted parameters.
     ***** args *****
@@ -598,11 +598,11 @@ def get_scatter_plot(matrix, parameter, populations=(1,), PlotName='ScatterPlot'
         y = matrix[int(model) - 1][int(populations[j]) - 1][int(parameter[1]) - 1]
         if not (len(x) == 0):
             scatter(x, y, s=10, c=repr(g), edgecolor=repr(g))
-    savefig(PlotName)
+    savefig(plot_name)
     matplotlib.pylab.clf()
 
 
-def get_model_distribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
+def get_model_distribution(matrix, epsilon, rate, plot_name='ModelDistribution'):
     """
     Plot a histogram of the posterior distributions of the models
     ***** args *****
@@ -669,6 +669,6 @@ def get_model_distribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
             yticks(size='xx-small')
             xticks(left, size='xx-small')
             title("(" + repr(i + 1) + ") " + str(epsilon[i]) + "\n" + str(rate[i]), size='xx-small')
-            savefig(PlotName + '_' + repr(p + 1))
+            savefig(plot_name + '_' + repr(p + 1))
         matplotlib.pylab.clf()
         matplotlib.pyplot.subplot(111)
