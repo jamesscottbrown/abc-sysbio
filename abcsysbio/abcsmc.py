@@ -16,7 +16,7 @@ from Prior import *
 priors: 
               a 2D list.
               priors[model_number][parameter_number] is a NamedTuple of type prior.
-              The 'type' attribute is a PriorType object (one of PriorType.constant, PriorType.uniform, PriorType.normal,
+              The .type attribute is a PriorType object (one of PriorType.constant, PriorType.uniform, PriorType.normal,
               PriorType.lognormal).
               The other attributes store the appropriate parameters.
 
@@ -148,7 +148,7 @@ class Abcsmc:
             for m in range(self.nmodel):
                 all_uniform = True
                 for j in range(self.models[m].nparameters):
-                    if not (self.models[m].prior[j].type == PriorType.constant or self.models[m].prior[j].type == PriorType.uniform):
+                    if self.models[m].prior[j].type not in [PriorType.constant, PriorType.uniform]:
                         all_uniform = False
                 if all_uniform:
                     self.special_cases[m] = 1
@@ -263,7 +263,8 @@ class Abcsmc:
         for ne in range(nepsilon):
             ret_epsilon[ne] = new_epsilon[ne]
 
-        # if any entry of ret_epsilon is below the target, replace with the target; if all are below the target we are done
+        # if any entry of ret_epsilon is below the target, replace with the target;
+        # if all are below the target we are done
         finished = True
         for ne in range(nepsilon):
             if ret_epsilon[ne] < target_epsilon[ne] or np.fabs(ret_epsilon[ne] - target_epsilon[ne]) < 1e-3:
@@ -393,7 +394,7 @@ class Abcsmc:
 
         self.model_curr = [0] * self.nparticles
         self.weights_curr = [0] * self.nparticles
-        self.parameters_curr = [[] for j in range(self.nparticles)]
+        self.parameters_curr = [[] for _ in range(self.nparticles)]
         self.margins_curr = [0] * self.nmodel
 
         self.b = [0] * self.nparticles
@@ -457,7 +458,8 @@ class Abcsmc:
 
         Parameters
         ----------
-        particle_data : particle data, in form [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
+        particle_data : particle data, in form:
+         [model_pickled, weights_pickled, parameters_pickled, margins_pickled, kernel]
 
         """
         self.model_prev = particle_data[0][:]
@@ -502,8 +504,8 @@ class Abcsmc:
             print '\t\t\t***simulate_and_compare_to_data'
 
         accepted = [0] * self.nbatch
-        traj = [[] for it in range(self.nbatch)]
-        distances = [[] for it in range(self.nbatch)]
+        traj = [[] for _ in range(self.nbatch)]
+        distances = [[] for _ in range(self.nbatch)]
 
         models = np.array(sampled_models)
 
@@ -537,7 +539,7 @@ class Abcsmc:
                     points = transform_data_for_fitting(self.models[model].fit, sample_points)
                     if do_comp:
                         distance = self.distancefn(points, self.data.values, this_model_parameters[i], model)
-                        dist = evaluateDistance(distance, epsilon)
+                        dist = check_below_threshold(distance, epsilon)
                     else:
                         distance = 0
                         dist = True
@@ -611,8 +613,8 @@ class Abcsmc:
 
         Returns
         -------
-        a list of length self.nbatch, each entry of which is a list of parameter samples (whose length is model.nparameters
-            for the corresponding model)
+        a list of length self.nbatch, each entry of which is a list of parameter samples (whose length is
+                model.nparameters for the corresponding model)
 
         """
         samples = []
@@ -641,8 +643,8 @@ class Abcsmc:
     def sample_parameters(self, sampled_models):
         """
         For each model index in sampled_models, sample a set of parameters by sampling a particle from
-        the corresponding model (with probability biased by the particle weights), and then perturbing using the parameter
-        perturbation kernel; if this gives parameters with probability <=0 the process is repeated.
+        the corresponding model (with probability biased by the particle weights), and then perturbing using the
+        parameter perturbation kernel; if this gives parameters with probability <=0 the process is repeated.
 
         Parameters
         ----------
@@ -651,8 +653,8 @@ class Abcsmc:
 
         Returns
         -------
-        a list of length self.nbatch, each entry of which is a list of parameter samples (whose length is model.nparameters
-            for the corresponding model)
+        a list of length self.nbatch, each entry of which is a list of parameter samples (whose length is
+            model.nparameters for the corresponding model)
 
         """
         if self.debug == 2:
@@ -673,7 +675,8 @@ class Abcsmc:
                 particle = sample_particle_from_model(self.nparticles, model_num, self.margins_prev, self.model_prev,
                                                       self.weights_prev)
 
-                # Copy this particle's params into a new array, then perturb this in place using the parameter perturbation kernel
+                # Copy this particle's params into a new array, then perturb this in place using the parameter
+                #  perturbation kernel
                 for param in range(num_params):
                     sample[param] = self.parameters_prev[particle][param]
 
@@ -726,13 +729,13 @@ class Abcsmc:
                     x = statistics.getPdfLognormal(model.prior[n].mu, np.sqrt(model.prior[n].sigma), this_param[n])
                 particle_prior = particle_prior * x
 
-            # self.b[k] is an indicator variable recording whether the simulation corresponding to particle k was accepted
+            # self.b[k] is a variable indicating whether the simulation corresponding to particle k was accepted
             numerator = self.b[k] * model_prior * particle_prior
 
             s1 = 0
             for i in range(self.nmodel):
-                s1 += self.margins_prev[i] * getPdfModelKernel(model_num, i, self.modelKernel, self.nmodel,
-                                                               self.dead_models)
+                s1 += self.margins_prev[i] * get_model_kernel_pdf(model_num, i, self.modelKernel, self.nmodel,
+                                                                  self.dead_models)
             s2 = 0
             for j in range(self.nparticles):
                 if int(model_num) == int(self.model_prev[j]):
@@ -811,11 +814,11 @@ def transform_data_for_fitting(fitting_instruction, samplePoints):
     fitting_instruction : list of functions, one per dimension of the data to be fitted. Each is a string representation
         of an expression of the state variables of the model; dimension n  is represented by 'samplePoints[:,n];.
 
-    samplePoints : a numpy.ndarray of simulation results, with shape (number_timepoints, model_dimension)
+    samplePoints : a numpy.ndarray of simulation results, with shape (num_timepoints, model_dimension)
 
     Returns
     -------
-    transformed_points : a numpy.ndarray of transformed simulation results, with shape (number_timepoints, data_dimension)
+    transformed_points : a numpy.ndarray of transformed simulation results, with shape (num_timepoints, data_dimension)
 
     """
 
@@ -829,7 +832,7 @@ def transform_data_for_fitting(fitting_instruction, samplePoints):
     return transformed_points[:]
 
 
-def getPdfModelKernel(new_model, old_model, model_k, num_models, dead_models):
+def get_model_kernel_pdf(new_model, old_model, model_k, num_models, dead_models):
     """
     Returns the probability of model number m0 being perturbed into model number m (assuming neither is dead).
 
@@ -857,7 +860,7 @@ def getPdfModelKernel(new_model, old_model, model_k, num_models, dead_models):
             return (1 - model_k) / (num_models - num_dead_models)
 
 
-def evaluateDistance(distance, epsilon):
+def check_below_threshold(distance, epsilon):
     """
     Return true if each element of distance is less than the corresponding entry of epsilon (and non-negative)
 
