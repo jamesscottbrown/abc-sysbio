@@ -8,7 +8,7 @@ from pylab import *
 from matplotlib.backends.backend_pdf import PdfPages
 
 import abcsmc
-from abcsmc import howToFitData
+from abcsmc import transform_data_for_fitting
 
 
 # weighted histogramming
@@ -191,7 +191,7 @@ def plotTimeSeries(model, pars, data, beta, filename, plotdata=True):
     for i in range(nsim):
         for j in range(beta):
             points = sims[i, j, :, :]
-            points_sim = abcsmc.howToFitData(model.fit, points)
+            points_sim = abcsmc.transform_data_for_fitting(model.fit, points)
             matplotlib.pyplot.plot(data.timepoints, points_sim)
 
     if plotdata:

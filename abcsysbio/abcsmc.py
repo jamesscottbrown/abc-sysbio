@@ -534,7 +534,7 @@ class Abcsmc:
 
                 for k in range(self.beta):
                     sample_points = sims[i, k, :, :]
-                    points = howToFitData(self.models[model].fit, sample_points)
+                    points = transform_data_for_fitting(self.models[model].fit, sample_points)
                     if do_comp:
                         distance = self.distancefn(points, self.data.values, this_model_parameters[i], model)
                         dist = evaluateDistance(distance, epsilon)
@@ -799,7 +799,7 @@ def sample_particle_from_model(nparticle, selected_model, margins_prev, model_pr
     return nparticle - 1
 
 
-def howToFitData(fitting_instruction, samplePoints):
+def transform_data_for_fitting(fitting_instruction, samplePoints):
     """
     Given the results of a simulation, evaluate given functions of the state variables of the model.
 
