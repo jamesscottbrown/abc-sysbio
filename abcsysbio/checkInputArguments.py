@@ -28,7 +28,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
     model_kernel = info_new.modelkernel
 
     # check general properties of the given arguments that are independent of the model
-    for i in range(0, len(model_name)):
+    for i in range(len(model_name)):
         if model_name[i] == "":
             return False, "\nPlease do not give empty strings for model names!\n"
 
@@ -65,7 +65,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
             return False, "\nPlease provide the same amount of model sources and model names!\n"
 
         reader = libsbml.SBMLReader()
-        for mod in range(0, len(source)):
+        for mod in range(len(source)):
 
             document = reader.readSBML(source[mod])
             model = document.getModel()
@@ -76,27 +76,27 @@ def checkInputABC(info_new, fname, custom_distance, design):
 
             num_compartments = model.getNumCompartments()
 
-            for i in range(0, num_compartments):
+            for i in range(num_compartments):
                 if model.getCompartment(i).isSetVolume():
                     num_global_parameters += 1
                     list_of_parameters.append(model.getListOfCompartments()[i])
 
-            for i in range(0, num_global_parameters - num_compartments):
+            for i in range(num_global_parameters - num_compartments):
                 list_of_parameters.append(model.getParameter(i))
 
             num_local_parameters = 0
-            for i in range(0, model.getNumReactions()):
+            for i in range(model.getNumReactions()):
                 local = model.getReaction(i).getKineticLaw().getNumParameters()
                 num_local_parameters = num_local_parameters + local
-                for k in range(0, local):
+                for k in range(local):
                     list_of_parameters.append(model.getListOfReactions()[i].getKineticLaw().getParameter(k))
 
             num_parameters = num_local_parameters + num_global_parameters
 
             list_of_rules = model.getListOfRules()
-            for k in range(0, len(list_of_parameters)):
+            for k in range(len(list_of_parameters)):
                 if not list_of_parameters[k].getConstant():
-                    for j in range(0, len(list_of_rules)):
+                    for j in range(len(list_of_rules)):
                         if list_of_rules[j].isRate():
                             if list_of_parameters[k].getId() == list_of_rules[j].getVariable():
                                 num_species += 1
@@ -114,7 +114,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
     ode = re.compile('ODE')
     gillespie = re.compile('Gillespie')
 
-    for mod in range(0, len(model_name)):
+    for mod in range(len(model_name)):
 
         string = integration_type[mod]
         if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):
@@ -125,7 +125,7 @@ def checkInputABC(info_new, fname, custom_distance, design):
                 return False, "\nThe prior distribution of initial condition " + repr(ic + 1) + " in model " + \
                        model_name[mod] + " does not exist!\n"
 
-        for param in range(0, len(priors[mod])):
+        for param in range(len(priors[mod])):
             # TODO: re-add check that all necessary params have been set
 
             if priors[mod][param].type not in [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]:
@@ -171,7 +171,7 @@ def checkInputSimulation(info_new):
     integration_type = info_new.type
     source = info_new.source
 
-    for i in range(0, len(name)):
+    for i in range(len(name)):
         if name[i] == "":
             return False, "\nPlease do not give empty strings for model names!\n"
 
@@ -186,7 +186,7 @@ def checkInputSimulation(info_new):
             return False, "\nPlease provide the same amount of model sources and model names!\n"
 
         reader = libsbml.SBMLReader()
-        for mod in range(0, len(source)):
+        for mod in range(len(source)):
 
             document = reader.readSBML(source[mod])
             model = document.getModel()
@@ -195,12 +195,12 @@ def checkInputSimulation(info_new):
             num_global_parameters = model.getNumParameters()
 
             num_compartments = model.getNumCompartments()
-            for i in range(0, num_compartments):
+            for i in range(num_compartments):
                 if model.getCompartment(i).isSetVolume():
                     num_global_parameters += 1
 
             num_local_parameters = 0
-            for i in range(0, model.getNumReactions()):
+            for i in range(model.getNumReactions()):
                 num_local_parameters = num_local_parameters + model.getReaction(i).getKineticLaw().getNumParameters()
 
             num_parameters = num_local_parameters + num_global_parameters
@@ -218,7 +218,7 @@ def checkInputSimulation(info_new):
     ode = re.compile('ODE')
     gillespie = re.compile('Gillespie')
 
-    for mod in range(0, len(name)):
+    for mod in range(len(name)):
 
         string = integration_type[mod]
         if (not sde.search(string)) and (not ode.search(string)) and (not gillespie.search(string)):

@@ -106,7 +106,7 @@ def getKernel(kernel_type, kernel, population, weights):
                 # construct the list of the neighbours given kset (restrained to the non constant components) and the corresponding weights
                 subpop = list()
                 subwei = list()
-                for param in range(0, len(pop)):
+                for param in range(len(pop)):
                     subpop.append([])
                     for j in range(len(kset)):
                         subpop[param].append(pop[param][kset[j]])

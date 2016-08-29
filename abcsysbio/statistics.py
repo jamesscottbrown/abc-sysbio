@@ -21,7 +21,7 @@ def w_choice(weight):
 
     """
     n = rnd.random_sample()
-    for i in range(0, len(weight)):
+    for i in range(len(weight)):
         if n < weight[i]:
             return i
         n = n - weight[i]

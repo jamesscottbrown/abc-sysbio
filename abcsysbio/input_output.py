@@ -189,7 +189,7 @@ class InputOutput:
                         # trajectories are stored as list [nparticle][nbeta][ species ][ times ] not numpy array
 
                         # here we assume beta=1
-                        for i in range(0, min(len(results.trajectories), 1000)):
+                        for i in range(min(len(results.trajectories), 1000)):
                             # print "printing traj", i
                             if results.models[i] == mod:
                                 # if i < 500:
@@ -381,7 +381,7 @@ class InputOutput:
 
         out_file = open(self.folder + '/copy/kernels_last.dat', "w")
         x = []
-        for mod in range(0, nmodel):
+        for mod in range(nmodel):
             x.append(kernel[mod])
         pickle.dump(x, out_file)
         out_file.close()

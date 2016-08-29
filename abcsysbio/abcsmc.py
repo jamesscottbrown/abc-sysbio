@@ -594,7 +594,7 @@ class Abcsmc:
                         not_available = set(self.dead_models[:])
                         not_available.add(models[i])
 
-                        available_indexes = numpy.array(list(set(range(0, self.nmodel)) - not_available))
+                        available_indexes = numpy.array(list(set(range(self.nmodel)) - not_available))
                         rnd.shuffle(available_indexes)
                         perturbed_model = available_indexes[0]
 
@@ -711,7 +711,7 @@ class Abcsmc:
             model_prior = self.modelprior[model_num]
 
             particle_prior = 1
-            for n in range(0, len(self.parameters_curr[k])):
+            for n in range(len(self.parameters_curr[k])):
                 x = 1.0
                 if model.prior[n].type == PriorType.constant:
                     x = 1

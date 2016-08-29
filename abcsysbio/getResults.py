@@ -62,8 +62,8 @@ def MatrixToTextfile(matrix, filename, model, eps):
     """
 
     out_file = open(filename + ".txt", "w")
-    for particle in range(0, len(matrix[model][eps][0])):
-        for param in range(0, len(matrix[model][eps])):
+    for particle in range(len(matrix[model][eps][0])):
+        for param in range(len(matrix[model][eps])):
             out_file.write(repr(matrix[model][eps][param][particle]) + " ")
         out_file.write("\n")
     out_file.close()
@@ -93,8 +93,8 @@ def printModelDistribution(matrix, eps, filename='model_distribution.txt'):
     """
 
     out_file = open(filename, "w")
-    for j in range(0, eps + 1):
-        for i in range(0, len(matrix[0])):
+    for j in range(eps + 1):
+        for i in range(len(matrix[0])):
             out_file.write(repr(matrix[j][i]) + " ")
         out_file.write("\n")
     out_file.close()
@@ -268,7 +268,7 @@ def getAllHistograms(matrix, weights, population=1, PlotName='AllScatterPlots', 
 
         num_plots = math.ceil(dim / max2)
 
-        for p in range(0, int(num_plots)):
+        for p in range(int(num_plots)):
             start = p * max1 ** 2
             end = p * max1 * max2 + max1 * max2
             for i in range(int(start), int(end)):
@@ -402,7 +402,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
     if len(populations) > len(my_colors):
         q = int(math.ceil(len(populations) / len(my_colors)))
 
-        for slopes in range(0, q):
+        for slopes in range(q):
             my_colors.extend(my_colors)
 
     max1 = 4.0
@@ -417,12 +417,12 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
 
         bin_b = 20.0
         i2 = 0
-        for i in range(0, len(permutation)):
+        for i in range(len(permutation)):
             matplotlib.pyplot.subplot(dim, dim, i + 1)
             subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
             w = weights[int(model) - 1][int(populations[len(populations) - 1]) - 1][int(permutation[i][0]) - 1]
 
-            for j in range(0, len(populations)):
+            for j in range(len(populations)):
 
                 x = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][0]) - 1]
                 y = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][1]) - 1]
@@ -490,7 +490,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
         dim = math.ceil(len(permutation) / max1)
         num_plots = math.ceil(dim / max1)
 
-        for p in range(0, int(num_plots)):
+        for p in range(int(num_plots)):
 
             start = p * max1 ** 2
             end = p * max1 ** 2 + max1 ** 2
@@ -500,7 +500,7 @@ def getAllScatterPlots(matrix, weights, populations=(1,), PlotName='AllScatterPl
                 matplotlib.pyplot.subplot(max1, max1, i - start + 1)
                 subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
                 w = weights[int(model) - 1][int(populations[len(populations) - 1]) - 1][int(permutation[i][0]) - 1]
-                for j in range(0, len(populations)):
+                for j in range(len(populations)):
                     x = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][0]) - 1]
                     y = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][1]) - 1]
                     g = (j + 1) * ((len(populations) * 1.5) ** (-1))
@@ -592,7 +592,7 @@ def getScatterPlot(matrix, parameter, populations=(1,), PlotName='ScatterPlot', 
     matplotlib.pylab.clf()
     matplotlib.pyplot.subplot(111)
 
-    for j in range(0, len(populations)):
+    for j in range(len(populations)):
         g = (j + 1) * ((len(populations) * 1.5) ** (-1))
         x = matrix[int(model) - 1][int(populations[j]) - 1][int(parameter[0]) - 1]
         y = matrix[int(model) - 1][int(populations[j]) - 1][int(parameter[1]) - 1]
@@ -650,7 +650,7 @@ def getModelDistribution(matrix, epsilon, rate, PlotName='ModelDistribution'):
 
     num_plots = math.ceil(dim / max2)
 
-    for p in range(0, int(num_plots)):
+    for p in range(int(num_plots)):
 
         start = p * max1 ** 2
         end = p * max1 * max2 + max1 * max2

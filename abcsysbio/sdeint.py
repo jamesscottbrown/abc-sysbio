@@ -44,13 +44,13 @@ def sdeint(func, init_values, parameter, timepoints, dt=0.01):
     for i in range(1, length):
         new, w = func.modelfunction(solutions[i - 1], dt, parameter, time=times[i])
 
-        for k in range(0, dim):
+        for k in range(dim):
             solutions[i][k] = solutions[i - 1][k] + new[k] * dt + w[k]
 
         solutions[i], parameter = func.rules(solutions[i], parameter, times[i])
 
         # if any concentration has gone negative, terminate the simulation
-        for k in range(0, dim):
+        for k in range(dim):
             if solutions[i][k] < 0.0:
                 solutions[i][k] = 0.0
                 return solutions_out
@@ -76,12 +76,12 @@ def sdeint_onestep(func, current_concentrations, t1, t2, parameters, dt=0.01):
     while 1:
         dx, w = func.modelfunction(x[0], next_time - time, parameters, time=next_time)
 
-        for k in range(0, dim):
+        for k in range(dim):
             x[0][k] += dx[k] * (next_time - time) + w[k]
 
         x[0], parameters = func.rules(x[0], parameters, next_time)
 
-        for k in range(0, dim):
+        for k in range(dim):
             if x[0][k] < 0.0:
                 x[0][k] = 0.0
                 return [x[0], next_time, False]

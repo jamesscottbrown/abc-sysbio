@@ -160,7 +160,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
     import libsbml
     reader = libsbml.SBMLReader()
 
-    for i in range(0, len(source)):
+    for i in range(len(source)):
         sum_file.write("Model " + repr(i + 1) + "\n")
         sum_file.write("name: model" + repr(i + 1) + "\nsource: " + source[i] + "\n\n")
 
@@ -194,7 +194,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
         r2 = 0
         r3 = 0
         list_of_rules = model.getListOfRules()
-        for k in range(0, len(list_of_rules)):
+        for k in range(len(list_of_rules)):
             if model.getRule(k).isAlgebraic():
                 r1 += 1
             if model.getRule(k).isAssignment():
@@ -204,7 +204,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
         comp = 0
         num_compartments = model.getNumCompartments()
-        for k in range(0, num_compartments):
+        for k in range(num_compartments):
             if model.getCompartment(k).isSetVolume():
                 comp += 1
                 num_global_parameters += 1
@@ -213,7 +213,7 @@ def generateTemplate(source, filename, sumname, dataname=None):
                 parameter_id2.append('compartment' + repr(k + 1))
                 list_of_parameters.append(model.getListOfCompartments()[k])
 
-        for k in range(0, num_global_parameters - comp):
+        for k in range(num_global_parameters - comp):
             param = model.getParameter(k)
             parameter.append(param.getValue())
             parameter_id.append(param.getId())
@@ -222,11 +222,11 @@ def generateTemplate(source, filename, sumname, dataname=None):
 
         num_local_parameters = 0
         num_reactions = model.getNumReactions()
-        for k in range(0, num_reactions):
+        for k in range(num_reactions):
             local = model.getReaction(k).getKineticLaw().getNumParameters()
             num_local_parameters = num_local_parameters + local
 
-            for j in range(0, local):
+            for j in range(local):
                 parameter.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j).getValue())
                 parameter_id.append(model.getListOfReactions()[k].getKineticLaw().getParameter(j).getId())
                 x = len(parameter_id) - comp
@@ -260,15 +260,15 @@ def generateTemplate(source, filename, sumname, dataname=None):
         out_file.write("<initial>\n")
 
         x = 0
-        for k in range(0, len(species)):
+        for k in range(len(species)):
             x += 1
             out_file.write(
                 " <ic" + repr(x) + "> constant " + repr(getSpeciesValue(species[k])) + " </ic" + repr(x) + ">\n")
             sum_file.write("S" + repr(x) + ":\t" + species[k].getId() + "\tspecies" + repr(k + 1) + "\t(" + repr(
                 getSpeciesValue(species[k])) + ")\n")
-        for k in range(0, len(list_of_parameters)):
+        for k in range(len(list_of_parameters)):
             if not list_of_parameters[k].getConstant():
-                for j in range(0, len(list_of_rules)):
+                for j in range(len(list_of_rules)):
                     if list_of_rules[j].isRate():
                         if parameter_id[k] == list_of_rules[j].getVariable():
                             x += 1
@@ -299,11 +299,11 @@ def generateTemplate(source, filename, sumname, dataname=None):
         out_file.write("<parameters>\n")
 
         counter = 0
-        for k in range(0, num_parameters - param_as_species):
+        for k in range(num_parameters - param_as_species):
             do_print = True
             if k < len(list_of_parameters):
                 if not list_of_parameters[k].getConstant():
-                    for j in range(0, len(list_of_rules)):
+                    for j in range(len(list_of_rules)):
                         if list_of_rules[j].isRate():
                             if parameter_id[k] == list_of_rules[j].getVariable():
                                 do_print = False
