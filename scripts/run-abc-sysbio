@@ -11,10 +11,7 @@ import sys
 import re
 import argparse
 
-import abcsysbio
 from abcsysbio import parse_info
-from cudasim.solvers.python import model_py
-from abcsysbio import model_cu
 from abcsysbio import model_c
 from abcsysbio import data
 from abcsysbio import abcsmc
@@ -23,7 +20,8 @@ from abcsysbio import checkInputArguments
 from abcsysbio import kernels
 from abcsysbio import euclidian
 
-from abcsysbio.Prior import *
+from cudasim.solvers.python import model_py
+
 sys.path.insert(0, ".")
 
 
@@ -216,6 +214,7 @@ if __name__ == '__main__':
     models = []
     for i in range(info_new.modelnumber):
         if use_cuda:
+            from cudasim.solvers.cuda import model_cu
             new_model = model_cu.CudaModel(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                            nparameters=info_new.nparameters[i],
                                            prior=info_new.prior[i], x0prior=info_new.x0prior[i],
@@ -223,7 +222,7 @@ if __name__ == '__main__':
                                            dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
                                            logp=info_new.logp[i])
         elif use_cudamg:
-            from abcsysbio import model_mg_cu
+            from cudasim.solvers.cuda import model_mg_cu
             new_model = model_mg_cu.CudaModel(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                               nparameters=info_new.nparameters[i],
                                               prior=info_new.prior[i], x0prior=info_new.x0prior[i],
