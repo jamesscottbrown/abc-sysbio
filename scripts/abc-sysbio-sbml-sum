@@ -10,9 +10,11 @@ if __name__ == '__main__':
 
     # Input options
     parser.add_argument('--files', '-f', help="a comma separated list of xml model files")
-    parser.add_argument('--data', '-d', help=' a data file with columns <time> <variable1> <variables2> <variable3>')
-    parser.add_argument('--input_file_name', '-i', help='the name of the xml file to write (default input_file_template.xml)')
-    parser.add_argument('--summary_file_name', '-s', help='the name of the summary file to write (default model_summary.txt)')
+    parser.add_argument('--data', '-d', help='a data file with columns <time> <variable1> <variables2> <variable3>')
+    parser.add_argument('--input_file_name', '-i',
+                        help='the name of the xml file to write (default input_file_template.xml)')
+    parser.add_argument('--summary_file_name', '-s',
+                        help='the name of the summary file to write (default model_summary.txt)')
 
     args = parser.parse_args()
 

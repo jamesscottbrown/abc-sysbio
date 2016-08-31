@@ -1,10 +1,7 @@
 #!/usr/bin/python2.5
 
 import matplotlib
-
 matplotlib.use('Agg')
-from matplotlib import pyplot as plt
-from pylab import *
 
 import numpy
 import sys
@@ -31,30 +28,39 @@ if __name__ == '__main__':
     """)
 
     # Input options
-    parser.add_argument('--infile', '-i', help="declaration of the input file. This input file has to be provided to run the program")
-    parser.add_argument('--localcode', '-lc', help='do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file', action='store_true')
+    parser.add_argument('--infile', '-i',
+                        help="declaration of the input file. This input file has to be provided to run the program")
+    parser.add_argument('--localcode', '-lc',
+                        help='do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file',
+                        action='store_true')
 
     # Algorithmic options
-    parser.add_argument('--setseed', '-sd', help="seed the random number generator in numpy with an integer eg -sd=2, --setseed=2")
+    parser.add_argument('--setseed', '-sd',
+                        help="seed the random number generator in numpy with an integer eg -sd=2, --setseed=2")
     parser.add_argument('--timing', '-tm', help="print timing information", action='store_true')
     parser.add_argument('--c++', help="use C++ implementation", action='store_true')
     parser.add_argument('--cuda', '-cu', help="use CUDA implementation", action='store_true')
 
     # Output options
-    parser.add_argument('--outfolder', '-of', help="write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)")
-    parser.add_argument('--fulloutput', '-f', help="print epsilon, sampling steps and acceptence rates after each population", action='store_true')
+    parser.add_argument('--outfolder', '-of',
+                        help="write results to folder eg -of=/full/folder/path (default is ./_results_ )")
+    parser.add_argument('--fulloutput', '-f',
+                        help="print epsilon, sampling steps and acceptence rates after each population",
+                        action='store_true')
     parser.add_argument('--save', '-s', help="no backup after each population", action='store_true')
     parser.add_argument('--debug', '-db', help="set the debug mode", action='store_true')
 
     # Simulate options
-    parser.add_argument('--simulate', '-S', help="simulate the model over the range of timepoints, using paramters sampled from the priors")
+    parser.add_argument('--simulate', '-S',
+                        help="simulate the model over the range of timepoints, using paramters sampled from the priors")
 
     # Design option
     parser.add_argument('--design', '-D', help="run ABC-SysBio in design mode", action='store_true')
 
     # Plotting options
     parser.add_argument('--diagnostic', '-d', help="no printing of diagnostic plots", action='store_true')
-    parser.add_argument('--timeseries', '-t', help="no plotting of simulation results after each population", action='store_true')
+    parser.add_argument('--timeseries', '-t',
+                        help="no plotting of simulation results after each population", action='store_true')
     parser.add_argument('--plotdata', '-p', help="no plotting of given data points", action='store_true')
 
     # custom options
@@ -140,8 +146,7 @@ if __name__ == '__main__':
         try:
             import libsbml
         except ImportError:
-            print "ABORT: libSBML required for SBML parsing. Please install libSBML"
-            sys.exit()
+            sys.exit("ABORT: libSBML required for SBML parsing. Please install libSBML")
 
         from cudasim import ParseAndWrite
 
@@ -152,8 +157,7 @@ if __name__ == '__main__':
             try:
                 from scipy.integrate.odepack import odeint
             except ImportError:
-                print "ABORT: scipy required for ODE modelling. Please install scipy"
-                sys.exit()
+                sys.exit("ABORT: scipy required for ODE modelling. Please install scipy")
             break
 
     # Check that we have cuda-sim installed
@@ -161,8 +165,7 @@ if __name__ == '__main__':
         try:
             import cudasim
         except ImportError:
-            print "ABORT: cudasim required for running on CUDA GPUs. Please install cuda-sim"
-            sys.exit()
+            sys.exit("ABORT: cudasim required for running on CUDA GPUs. Please install cuda-sim")
 
     # set the random seeds
     if seed is not None:
@@ -188,7 +191,9 @@ if __name__ == '__main__':
 
         try:
             ParseAndWrite.ParseAndWrite(info_new.source, integrationType, info_new.name, inputPath="", outputPath="")
-        except:
+        except AttributeError:
+            # If something goes wrong, the first method that gets called on the Parser's self.sbmlModel will throw
+            # an AttributeError
             print "\n#################\n Could not parse the provided SBML file(s). Check the following options:"
             print "\n -provided file names correct?"
             print "\n -input arguments correct?"

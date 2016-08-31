@@ -11,10 +11,11 @@ def euclidian_distance(data1, data2, parameters, model):
 
     Parameters
     ----------
-    data1 - first dataset
-    data2 - second dataset
-    parameters - not used
-    model - not used
+
+    data1 :  first dataset
+    data2 :  second dataset
+    parameters : not used
+    model: not used
 
 
     """

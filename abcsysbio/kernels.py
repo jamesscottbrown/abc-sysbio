@@ -4,7 +4,6 @@ from scipy.stats import norm
 from abcsysbio import statistics
 from KernelType import KernelType
 from PriorType import PriorType
-from Prior import *
 import sys
 
 # kernel is a list of length 3 such that :
