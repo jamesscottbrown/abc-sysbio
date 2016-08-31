@@ -24,7 +24,7 @@ setup(name='abc-sysbio',
 
       url='http://abc-sysbio.sourceforge.net/',
 
-      packages=['abcsysbio', 'abcsysbio_parser'],
+      packages=['abcsysbio'],
 
       scripts=['scripts/run-abc-sysbio',
                'scripts/abc-sysbio-sbml-sum'],

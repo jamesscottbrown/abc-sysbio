@@ -145,8 +145,7 @@ if __name__ == '__main__':
             print "ABORT: libSBML required for SBML parsing. Please install libSBML"
             sys.exit()
 
-        import abcsysbio_parser
-        from abcsysbio_parser import ParseAndWrite
+        from cudasim import ParseAndWrite
 
     # Check that we can import scipy if we have ODE models
     o = re.compile('ODE')
@@ -190,8 +189,7 @@ if __name__ == '__main__':
                 integrationType.append(info_new.type[i] + ' Python')
 
         try:
-            ParseAndWrite.ParseAndWrite(info_new.source, integrationType, info_new.name, inputPath="", outputPath="",
-                                        method=None)
+            ParseAndWrite.ParseAndWrite(info_new.source, integrationType, info_new.name, inputPath="", outputPath="")
         except:
             print "\n#################\n Could not parse the provided SBML file(s). Check the following options:"
             print "\n -provided file names correct?"
