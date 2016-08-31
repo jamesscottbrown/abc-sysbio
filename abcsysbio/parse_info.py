@@ -5,7 +5,7 @@ import re, sys, numpy
 from xml.dom import minidom
 from KernelType import KernelType
 from PriorType import PriorType
-from Prior import *
+from Prior import Prior
 
 # implemented priors
 re_prior_const = re.compile('constant')

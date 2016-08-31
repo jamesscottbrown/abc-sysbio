@@ -666,7 +666,7 @@ def get_model_distribution(matrix, epsilon, rate, plot_name='ModelDistribution')
                 break
             plt.subplot(max1, max2, i - start + 1)
             plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.8)
-            left = plt.arange(1, matrix.shape[1] + 1, 1)
+            left = np.arange(1, matrix.shape[1] + 1, 1)
             height = matrix[i]
             plt.bar(left, height, width=1.0, color='#1E90FF', align='center')
             xmin = 0
