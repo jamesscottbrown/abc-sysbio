@@ -4,7 +4,6 @@ from numpy import *
 from numpy import random as rnd
 from numpy import linalg as la
 import scipy
-import math
 import scipy.stats.mvn
 
 
@@ -172,7 +171,7 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
        lower and upper integration limits with length equal to the number
        of dimensions of the multivariate normal distribution. It can contain
        -np.inf or np.inf for open integration intervals
-    corrcoef : float or array_like
+    corr_coef : float or array_like
        specifies correlation matrix in one of three ways, see notes
     optional keyword parameters to influence integration
         * maxpts : int, maximum number of function values allowed. This
@@ -338,7 +337,6 @@ def k_nearest_neighbours(ind, s, k):
         aa[param, :] = s[param][ind] * ones((1, n))
 
     dist = sum((aa - ss) ** 2, 2)
-    m = max(dist)
 
     k_min = list()
     for i in range(min(k, n)):

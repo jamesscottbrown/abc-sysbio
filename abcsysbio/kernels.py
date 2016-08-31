@@ -9,7 +9,7 @@ import sys
 
 # kernel is a list of length 3 such that :
 # kernel[0] contains the index of the non-constant paramameters
-# kernel[1] contains the informations required to build the kernels in function getKernels - those informations are defined in the input file
+# kernel[1] contains the informations required to build the kernels in function getKernels, given in input file
 # kernel[2] contains the kernel (list, matrix or dictionnary) once it has been built
 
 
@@ -38,10 +38,14 @@ def get_kernel(kernel_type, kernel, population, weights):
     # covariance matrix of the multivariate normal kernel of size len(kernel[0])*len(kernel[0])
 
     # (4) multi-variate normal kernel whose covariance is based on the K nearest neighbours of the particle:
-    #  kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
+    #  kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (length nparam)
+    # of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size
+    # len(kernel[0])*len(kernel[0])
 
     # multi-variate normal kernel whose covariance is the OCM
-    # kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension) of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size len(kernel[0])*len(kernel[0])
+    # kernel[2] is a dictionnary with pop_size keys. Each key is string(p) where p is a particle (with nparam dimension)
+    # of the previous population. The element of the dictionnary for a given key is a covaraince matrix of size
+    #  len(kernel[0])*len(kernel[0])
 
     pop_size = population.shape[0]
     npar = population.shape[1]
@@ -104,7 +108,7 @@ def get_kernel(kernel_type, kernel, population, weights):
                 for param in range(npar):
                     pop_cur.append(population[n, param])
 
-                # construct the list of the neighbours given kset (restrained to the non constant components) and the corresponding weights
+                # construct the list of the neighbours and weights given kset (restrained to non-constant components)
                 subpop = list()
                 subwei = list()
                 for param in range(len(pop)):
@@ -143,7 +147,6 @@ def get_kernel(kernel_type, kernel, population, weights):
 # The function changes params in place and returns the probability (which may be zero)
 def perturb_particle(params, priors, kernel, kernel_type, special_cases):
     np = len(priors)
-    prior_prob = 1
 
     if special_cases == 1:
         # this is the case where kernel is uniform and all priors are uniform
@@ -159,8 +162,6 @@ def perturb_particle(params, priors, kernel, kernel_type, special_cases):
             if uflag:
                 upper = priors[n].upper_bound - params[n]
 
-            delta = 0
-            positive = False
             if lflag is False and uflag is False:
                 # proceed as normal
                 delta = rnd.uniform(low=kernel[2][ind][0], high=kernel[2][ind][1])
@@ -212,8 +213,8 @@ def perturb_particle(params, priors, kernel, kernel_type, special_cases):
             mean = list()
             for n in kernel[0]:
                 mean.append(params[n])
-            D = kernel[2]
-            tmp = statistics.mvnd_gen(mean, D[str(params)])
+            d = kernel[2]
+            tmp = statistics.mvnd_gen(mean, d[str(params)])
             ind = 0
             for n in kernel[0]:
                 params[n] = tmp[ind]
@@ -247,7 +248,8 @@ def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel
         prob = 1
         kernel_index = 0
         for param_index in kernel[0]:
-            kern = statistics.get_pdf_uniform(params0[param_index] + kernel[2][kernel_index][0], params0[param_index] + kernel[2][kernel_index][1], params[param_index])
+            kern = statistics.get_pdf_uniform(params0[param_index] + kernel[2][kernel_index][0],
+                                              params0[param_index] + kernel[2][kernel_index][1], params[param_index])
             prob = prob * kern
             kernel_index += 1
         return prob
@@ -299,7 +301,7 @@ def get_auxilliary_info(kernel_type, models, parameters, model_objs, kernel):
     models
     parameters
     model_objs
-    kernel - kernel list
+    kernel : kernel list
 
     Returns
     -------
@@ -325,7 +327,8 @@ def get_auxilliary_info(kernel_type, models, parameters, model_objs, kernel):
                     if this_prior[param_index].type == PriorType.uniform:
                         mean = parameters[k][param_index]
                         scale = numpy.sqrt(this_kernel[2][kernel_index])
-                        ret[k][param_index] = norm.cdf(this_prior[param_index].upper_bound, mean, scale) - norm.cdf(this_prior[param_index].lower_bound, mean, scale)
+                        ret[k][param_index] = norm.cdf(this_prior[param_index].upper_bound, mean, scale) - \
+                            norm.cdf(this_prior[param_index].lower_bound, mean, scale)
 
                     # if prior is normal, no truncation required
                     if this_prior[param_index].type == PriorType.normal:

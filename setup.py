@@ -19,5 +19,6 @@ setup(name='abc-sysbio',
       requires=['libSBML',
                 'matplotlib',
                 'Numpy',
-                'Scipy']
+                'Scipy',
+                'pylab']
       )

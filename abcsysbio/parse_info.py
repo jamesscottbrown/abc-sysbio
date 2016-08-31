@@ -92,7 +92,8 @@ def process_prior(tmp, model_num):
 
     Returns
     -------
-    A NamedTuple representing the prior. The "type" field represents the prior type, and determines which other fields exist.
+    A NamedTuple representing the prior.
+    The "type" field represents the prior type, and determines which other fields exist.
 
     """
 
@@ -100,25 +101,25 @@ def process_prior(tmp, model_num):
         try:
             prior_params = Prior(type=PriorType.constant, value=float(tmp[1]))
         except ValueError:
-            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
+            sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_normal.match(tmp[0]):
         try:
             prior_params = Prior(type=PriorType.normal, mean=float(tmp[1]), variance=float(tmp[2]))
         except ValueError:
-            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
+            sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_uni.match(tmp[0]):
         try:
             prior_params = Prior(type=PriorType.uniform, lower_bound=float(tmp[1]), upper_bound=float(tmp[2]))
         except ValueError:
-            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
+            sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
 
     elif re_prior_logn.match(tmp[0]):
         try:
             prior_params = Prior(type=PriorType.lognormal, mu=float(tmp[1]), sigma=float(tmp[2]))
         except ValueError:
-            sys.exit("\nValue of the prior for model %s (counting from 1) has the wrong format: %s" % (model_num, tmp[1]))
+            sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
     else:
         sys.exit("\nSupplied parameter prior %s unsupported" % tmp[0])
 
@@ -223,8 +224,8 @@ class AlgorithmInfo:
             autoepsilon_tags = xmldoc.getElementsByTagName('autoepsilon')
             if len(autoepsilon_tags) > 0:
                 self.final_epsilon = parse_required_vector_value(autoepsilon_tags[0], "finalepsilon",
-                                                                 "Please provide a whitespace separated list of values for <autoepsilon><finalepsilon>",
-                                                                 float)
+                                                                 "Please provide a whitespace separated list of " +
+                                                                 "values for <autoepsilon><finalepsilon>", float)
                 self.alpha = parse_required_single_value(autoepsilon_tags[0], "alpha",
                                                          "Please provide a float value for <autoepsilon><alpha>",
                                                          float)
@@ -255,8 +256,7 @@ class AlgorithmInfo:
         dataref = xmldoc.getElementsByTagName('data')[0]
 
         self.times = parse_required_vector_value(dataref, "times",
-                                                 "Please provide a whitespace separated list of values for <data><times>",
-                                                 float)
+                                                 "<data><times> requires a whitespace separated list of values", float)
         self.ntimes = len(self.times)
 
         # variables
@@ -391,7 +391,9 @@ class AlgorithmInfo:
             elif re_kernel_mvnormalOCM.match(data):
                 self.kernel = KernelType.multivariate_normal_ocm
             else:
-                print "\n#################\n<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or multivariateNormalOCM  so I am going to ignore your argument"
+                print "\n#################"
+                print "<kernel> must be one of uniform, normal, multivariateNormal, multivariateNormalKNeigh or " + \
+                      "multivariateNormalOCM  so I will ignore your argument"
         except IndexError:
             pass
 
@@ -405,10 +407,12 @@ class AlgorithmInfo:
             try:
                 ret = [float(population) for population in tmp]
             except ValueError:
-                print "\n#################\n<modelprior> must be a vector of floats so I am going to ignore your argument"
+                print "\n#################\n<modelprior> must be a vector of floats so I will ignore your argument"
 
             if sum(ret) != 1.0 or len(ret) != self.nmodels:
-                print "\n#################\n<modelprior> must sum to one and be the same length as the number of models so I am going to ignore your argument"
+                print "\n#################"
+                print "<modelprior> must sum to one and be the same length as the number of models so I will ignore " \
+                      "your argument"
             else:
                 self.modelprior = ret[:]
         except IndexError:

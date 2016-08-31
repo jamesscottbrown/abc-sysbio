@@ -1,14 +1,7 @@
-import re, math
 import numpy
-
 import matplotlib
-from matplotlib.ticker import FormatStrFormatter
 from pylab import *
-
-from matplotlib.backends.backend_pdf import PdfPages
-
 import abcsmc
-from abcsmc import transform_data_for_fitting
 
 
 # weighted histogramming
@@ -27,7 +20,6 @@ def bin_data(d, w, nbins):
         kd = d[k]
         kw = w[k]
 
-        i = 0
         for i in range(nbins):
             if bin_l[i] < kd <= bin_u[i]:
                 count[i] = count[i] + kw
@@ -41,8 +33,9 @@ def matrix_to_text_file(matrix, filename, model, eps):
     Write the part of a three dimensional matrix indexed by model and eps
     to a text file
 
-    ***** args *****
-    
+    Parameters
+    ----------
+
     matrix:
 
             A three-dimensional matrix
@@ -74,7 +67,8 @@ def print_model_distribution(matrix, eps, filename='model_distribution.txt'):
     Write the contents of a two-dimensional matrix indexed by
     eps to a text file.
     
-    ***** args *****
+    Parameters
+    ----------
 
     matrix:
 
@@ -84,8 +78,6 @@ def print_model_distribution(matrix, eps, filename='model_distribution.txt'):
 
             An integer
 
-    ***** kwargs *****
-    
     filename:
 
             String.
@@ -114,8 +106,9 @@ def plot_time_series2(model, pars, data, beta, filename, traj2, population, plot
     """
     Plot simulated trajectories from the model with accepted parameters.
         
-    ***** args *****
-    
+    Parameters
+    ----------
+
     model:
 
             model object
@@ -126,10 +119,16 @@ def plot_time_series2(model, pars, data, beta, filename, traj2, population, plot
     data:
 
             data object
+
+    beta : ?
    
     filename:
 
             Name of the output file to write to.
+
+    traj2
+
+    population
 
     plotdata:
 
@@ -159,8 +158,9 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
     """
     Plot simulated trajectories from the model with accepted parameters.
         
-    ***** args *****
-    
+    Parameters
+    ----------
+
     model:
 
             model object
@@ -171,6 +171,8 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
     data:
 
             data object
+
+    beta
    
     filename:
 
@@ -203,11 +205,12 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
     matplotlib.pylab.clf()
 
 
-def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots', model=1):
+def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots', model=1):
     """
     Plot weighted histograms.
     
-    ***** args *****
+    Parameters
+    ----------
 
     matrix:
 
@@ -217,13 +220,12 @@ def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots'
 
             Weights to assign to data
 
-    *** kwargs *****
 
-    populations:
+    population:
 
             Integer, to index matrix with required population
 
-    PlotName:
+    plot_name:
 
             String.
             Name for the saved plot
@@ -288,7 +290,8 @@ def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots'
                     min_x = min(histogram_x)
                     range_x = max_x - min_x
 
-                    matplotlib.pyplot.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins, align='center')
+                    matplotlib.pyplot.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins,
+                                          align='center')
                     xlabel('parameter ' + repr(i + 1), size='xx-small')
 
                     xmin, xmax = xlim()
@@ -308,7 +311,7 @@ def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots'
                     yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
                     xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
 
-            savefig(PlotName)
+            savefig(plot_name)
             matplotlib.pylab.clf()
             matplotlib.pyplot.subplot(111)
 
@@ -352,12 +355,12 @@ def get_all_histograms(matrix, weights, population=1, PlotName='AllScatterPlots'
 
             s_num += 1
             if s_num == 17:
-                savefig(PlotName + '_' + repr(p_num))
+                savefig(plot_name + '_' + repr(p_num))
                 s_num = 1
                 p_num += 1
                 clf()
 
-        savefig(PlotName + '_' + repr(p_num))
+        savefig(plot_name + '_' + repr(p_num))
         matplotlib.pylab.clf()
         matplotlib.pyplot.subplot(111)
 
@@ -366,21 +369,23 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
     """
     Plot scatter plots and histograms of data given in matrix.
     Used to plot posterior parameter distributions.
-    ***** args *****
+
+    Parameters
+    ----------
 
     matrix:
 
             Matrix of data.
 
-    *** kwargs *****
-    
+    weights
+
     populations:
 
             Ordered tuple of integers.
             Determines which data will be plotted.
             Used to index the matrix.
             
-    PlotName:
+    plot_name:
 
             String
             Name for the saved plot
@@ -503,7 +508,7 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                 for j in range(len(populations)):
                     x = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][0]) - 1]
                     y = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][1]) - 1]
-                    g = (j + 1) * ((len(populations) * 1.5) ** (-1))
+
                     if permutation[i][0] == permutation[i][1]:
                         if j == len(populations) - 1:
                             cla()
@@ -515,8 +520,8 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                                 max_x = max(histogram_x)
                                 min_x = min(histogram_x)
                                 range_x = max_x - min_x
-                                matplotlib.pyplot.bar(histogram_x, histogram_y, color=my_colors[j], width=range_x / bin_b,
-                                                      align='center')
+                                matplotlib.pyplot.bar(histogram_x, histogram_y, color=my_colors[j],
+                                                      width=range_x / bin_b, align='center')
                                 xlabel('parameter ' + repr(i2), size='xx-small')
 
                     else:
@@ -557,7 +562,9 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
 def get_scatter_plot(matrix, parameter, populations=(1,), plot_name='ScatterPlot', model=1):
     """
     Plot a single scatter plot of accepted parameters.
-    ***** args *****
+
+    Parameters
+    ----------
 
     matrix:
 
@@ -569,15 +576,13 @@ def get_scatter_plot(matrix, parameter, populations=(1,), plot_name='ScatterPlot
             Used to index the matrix,
             to determine which two parameters to plot against each other.
 
-    ***** kwargs *****
-    
     populations:
 
             Tuple of integers.
             Used to index the matrix.
             Accepted parameters from these populations will be plotted.
 
-    PlotName:
+    plot_name:
 
             String
             Name for the saved plot
@@ -605,7 +610,9 @@ def get_scatter_plot(matrix, parameter, populations=(1,), plot_name='ScatterPlot
 def get_model_distribution(matrix, epsilon, rate, plot_name='ModelDistribution'):
     """
     Plot a histogram of the posterior distributions of the models
-    ***** args *****
+
+    Parameters
+    ----------
 
     matrix:
 
@@ -622,9 +629,7 @@ def get_model_distribution(matrix, epsilon, rate, plot_name='ModelDistribution')
             Acceptance rate for each population
             (To be displayed above the plot)
 
-    ***** kwargs *****
-
-    PlotName:
+    plot_name:
 
             Prefix for file name for the saved plot.
             If the saved plot runs over multiple pages,

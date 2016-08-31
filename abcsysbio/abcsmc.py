@@ -9,7 +9,6 @@ from abcsysbio import statistics
 
 from KernelType import KernelType
 from PriorType import PriorType
-from Prior import *
 
 
 """
@@ -716,17 +715,19 @@ class Abcsmc:
             particle_prior = 1
             for n in range(len(self.parameters_curr[k])):
                 x = 1.0
-                if model.prior[n].type == PriorType.constant:
+                this_prior = model.prior[n]
+
+                if this_prior.type == PriorType.constant:
                     x = 1
 
-                if model.prior[n].type == PriorType.normal:
-                    x = statistics.get_pdf_gauss(model.prior[n].mean, np.sqrt(model.prior[n].variance), this_param[n])
+                if this_prior.type == PriorType.normal:
+                    x = statistics.get_pdf_gauss(this_prior.mean, np.sqrt(this_prior.variance), this_param[n])
 
-                if model.prior[n].type == PriorType.uniform:
-                    x = statistics.get_pdf_uniform(model.prior[n].lower_bound, model.prior[n].upper_bound, this_param[n])
+                if this_prior.type == PriorType.uniform:
+                    x = statistics.get_pdf_uniform(this_prior.lower_bound, this_prior.upper_bound, this_param[n])
 
-                if model.prior[n].type == PriorType.lognormal:
-                    x = statistics.get_pdf_lognormal(model.prior[n].mu, np.sqrt(model.prior[n].sigma), this_param[n])
+                if this_prior.type == PriorType.lognormal:
+                    x = statistics.get_pdf_lognormal(this_prior.mu, np.sqrt(this_prior.sigma), this_param[n])
                 particle_prior = particle_prior * x
 
             # self.b[k] is a variable indicating whether the simulation corresponding to particle k was accepted
