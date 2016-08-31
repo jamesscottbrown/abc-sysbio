@@ -276,7 +276,7 @@ class InputOutput:
                 plot_time_series2(models[mod], pars, data, beta, filename, traj2, population, plotdata=False)
 
     # create output folders
-    def create_output_folders(self, modelnames, numOutput, pickling, simulation):
+    def create_output_folders(self, modelnames, num_outputs, pickling, simulation):
 
         if simulation:
             pickling = False
@@ -305,7 +305,7 @@ class InputOutput:
                 sys.exit("\nThe folder \'copy\' already exists!\n")
 
             out_file = open(self.folder + '/copy/algorithm_parameter.dat', "w")
-            pickle.dump(numOutput, out_file)
+            pickle.dump(num_outputs, out_file)
             out_file.close()
 
     # read the stored data

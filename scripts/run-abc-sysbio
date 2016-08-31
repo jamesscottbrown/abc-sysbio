@@ -236,8 +236,8 @@ if __name__ == '__main__':
                                       nparameters=info_new.nparameters[i],
                                       prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                       source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                      dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol,
-                                      absoluteError=info_new.atol,
+                                      dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relative_error=info_new.rtol,
+                                      absolute_error=info_new.atol,
                                       logp=info_new.logp[i])
 
         else:

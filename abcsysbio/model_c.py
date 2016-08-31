@@ -10,25 +10,25 @@ def compile(name, integration):
     integ = integration + "Solver"
     libname = "./lib" + name + ".so.1.0"
 
-    ABC_GSL_LIB = os.getenv("GSL_LIB")
-    ABC_GSL_INC = os.getenv("GSL_INC")
+    abc_gsl_lib = os.getenv("GSL_LIB")
+    abc_gsl_inc = os.getenv("GSL_INC")
 
-    if ABC_GSL_LIB is None:
-        ABC_GSL_LIB = "/usr/local/lib"
-    if ABC_GSL_INC is None:
-        ABC_GSL_INC = "/usr/local/include"
+    if abc_gsl_lib is None:
+        abc_gsl_lib = "/usr/local/lib"
+    if abc_gsl_inc is None:
+        abc_gsl_inc = "/usr/local/include"
 
-    ABC_NM_LIB = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'src/newmat11/')
-    ABC_NM_INC = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'src/newmat11/')
-    ABC_SRC_DIR = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'src/')
+    abc_nm_lib = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'src/newmat11/')
+    abc_nm_inc = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'src/newmat11/')
+    abc_src_dir = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'src/')
 
-    command = "make -f " + ABC_SRC_DIR + "makefile --quiet "
+    command = "make -f " + abc_src_dir + "makefile --quiet "
     command = command + " MODEL=" + name + " SOLVER=" + integ + " LIBNAME=" + libname + " "
-    command = command + "ABC_GSL_LIB=" + ABC_GSL_LIB + " "
-    command = command + "ABC_GSL_INC=" + ABC_GSL_INC + " "
-    command = command + "ABC_NM_LIB=" + ABC_NM_LIB + " "
-    command = command + "ABC_NM_INC=" + ABC_NM_INC + " "
-    command = command + "ABC_SRC_DIR=" + ABC_SRC_DIR + " "
+    command = command + "ABC_GSL_LIB=" + abc_gsl_lib + " "
+    command = command + "ABC_GSL_INC=" + abc_gsl_inc + " "
+    command = command + "ABC_NM_LIB=" + abc_nm_lib + " "
+    command = command + "ABC_NM_INC=" + abc_nm_inc + " "
+    command = command + "ABC_SRC_DIR=" + abc_src_dir + " "
 
     os.system(command)
     return CDLL(libname)
@@ -37,7 +37,7 @@ def compile(name, integration):
 class Model:
     # instantiation
     def __init__(self, name, nspecies, nparameters, prior, x0prior, source, integration, fit, dt, beta, initstep,
-                 relativeError, absoluteError, logp):
+                 relative_error, absolute_error, logp):
         gil = re.compile('Gillespie', re.I)
         ode = re.compile('ODE', re.I)
         euler = re.compile('Euler', re.I)
@@ -74,8 +74,8 @@ class Model:
         self.dt = dt
         self.beta = beta
         self.initstep = initstep
-        self.relativeError = relativeError
-        self.absoluteError = absoluteError
+        self.relativeError = relative_error
+        self.absoluteError = absolute_error
         self.logp = logp
 
         self.lib = compile(self.name, self.integration)
@@ -107,13 +107,13 @@ class Model:
             ctime[i] = t[i]
 
         # set other ctypes
-        cbeta = c_int(beta)
-        cntimepoints = c_int(ntimepoints)
-        CNPARAMETERS = c_int(self.nparameters)
-        CNSPECIES = c_int(self.nspecies)
-        cinitstep = c_double(self.initstep)
-        cabsoluteError = c_double(self.absoluteError)
-        crelativeError = c_double(self.relativeError)
+        c_beta = c_int(beta)
+        c_ntimepoints = c_int(ntimepoints)
+        c_nparameters = c_int(self.nparameters)
+        c_nspecies = c_int(self.nspecies)
+        c_initstep = c_double(self.initstep)
+        c_absolute_error = c_double(self.absoluteError)
+        c_relative_error = c_double(self.relativeError)
         for ni in range(n):
             # set parameters; ctypes
             par_arr_type = self.nparameters * c_double
@@ -132,8 +132,8 @@ class Model:
                 cinit[j] = p[ni][i]
                 j += 1
 
-            dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime), cntimepoints, CNPARAMETERS,
-                                 CNSPECIES, cinitstep, cabsoluteError, crelativeError, byref(output))
+            dat = self.lib.MainC(byref(cinit), byref(cparam), c_beta, byref(ctime), c_ntimepoints, c_nparameters,
+                                 c_nspecies, c_initstep, c_absolute_error, c_relative_error, byref(output))
 
             count = 0
             for j in range(beta):
@@ -154,15 +154,15 @@ class Model:
 
         # set timepoints; ctypes
         tim_arr_type = ntimepoints * c_double
-        ctime = tim_arr_type()
+        c_time = tim_arr_type()
         for i in range(ntimepoints):
-            ctime[i] = t[i]
+            c_time[i] = t[i]
         # set other ctypes
-        cbeta = c_int(beta)
-        cntimepoints = c_int(ntimepoints)
-        cdt = c_double(self.dt)
-        CNPARAMETERS = c_int(self.nparameters)
-        CNSPECIES = c_int(self.nspecies)
+        c_beta = c_int(beta)
+        c_ntimepoints = c_int(ntimepoints)
+        c_dt = c_double(self.dt)
+        c_nparameters = c_int(self.nparameters)
+        c_npsecies = c_int(self.nspecies)
 
         for ni in range(n):
             # set parameters; ctypes
@@ -183,8 +183,8 @@ class Model:
                 j += 1
 
             # double* initialValues, double* parameters, int beta, double* timepoints, int ntimepoints, double dt, NPARAMETERS, NSPECIES
-            dat = self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime), cdt, cntimepoints, CNPARAMETERS,
-                                 CNSPECIES, byref(output))
+            dat = self.lib.MainC(byref(cinit), byref(cparam), c_beta, byref(c_time), c_dt, c_ntimepoints, c_nparameters,
+                                 c_npsecies, byref(output))
 
             count = 0
             for j in range(beta):
@@ -210,10 +210,10 @@ class Model:
             ctime[i] = t[i]
 
         # set other ctypes
-        cbeta = c_int(beta)
-        cntimepoints = c_int(ntimepoints)
-        CNPARAMETERS = c_int(self.nparameters)
-        CNSPECIES = c_int(self.nspecies)
+        c_beta = c_int(beta)
+        c_ntimepoints = c_int(ntimepoints)
+        c_nparameters = c_int(self.nparameters)
+        c_nspecies = c_int(self.nspecies)
 
         for ni in range(n):
             # set parameters; ctypes
@@ -233,7 +233,7 @@ class Model:
                 cinit[j] = p[ni][i]
                 j += 1
 
-            self.lib.MainC(byref(cinit), byref(cparam), cbeta, byref(ctime), cntimepoints, CNPARAMETERS, CNSPECIES,
+            self.lib.MainC(byref(cinit), byref(cparam), c_beta, byref(ctime), c_ntimepoints, c_nparameters, c_nspecies,
                            byref(output))
 
             count = 0

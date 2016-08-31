@@ -1,4 +1,4 @@
-def getSpeciesValue(species):
+def get_species_value(species):
     """
     Return the initial amount of a species.
     If species.isSetInitialAmount() == True, return the initial amount.
@@ -16,7 +16,7 @@ def getSpeciesValue(species):
         return species.getInitialConcentration()
 
 
-def generateTemplate(source, filename, sumname, dataname=None):
+def generate_template(source, filename, sumname, dataname=None):
     """
 
     Generate a model summary file (model_summary.txt) and a template file (filename) from one or more SBML source files.
@@ -263,9 +263,9 @@ def generateTemplate(source, filename, sumname, dataname=None):
         for k in range(len(species)):
             x += 1
             out_file.write(
-                " <ic" + repr(x) + "> constant " + repr(getSpeciesValue(species[k])) + " </ic" + repr(x) + ">\n")
+                " <ic" + repr(x) + "> constant " + repr(get_species_value(species[k])) + " </ic" + repr(x) + ">\n")
             sum_file.write("S" + repr(x) + ":\t" + species[k].getId() + "\tspecies" + repr(k + 1) + "\t(" + repr(
-                getSpeciesValue(species[k])) + ")\n")
+                get_species_value(species[k])) + ")\n")
         for k in range(len(list_of_parameters)):
             if not list_of_parameters[k].getConstant():
                 for j in range(len(list_of_rules)):

@@ -55,7 +55,7 @@ def main():
         print "No model files have been specified. Exiting."
         sys.exit()
 
-    abcsysbio.generateTemplate(input_files, filename=filename, sumname=sumname, dataname=data)
+    abcsysbio.generate_template(input_files, filename=filename, sumname=sumname, dataname=data)
 
 
 main()
