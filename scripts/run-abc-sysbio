@@ -12,7 +12,6 @@ import re
 import argparse
 
 from abcsysbio import parse_info
-from abcsysbio import model_c
 from abcsysbio import data
 from abcsysbio import abcsmc
 from abcsysbio import input_output
@@ -21,6 +20,7 @@ from abcsysbio import kernels
 from abcsysbio import euclidian
 
 from cudasim.solvers.python import model_py
+from cudasim.solvers.c import model_c
 
 sys.path.insert(0, ".")
 
