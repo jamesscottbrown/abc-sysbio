@@ -5,6 +5,7 @@ from abcsysbio import statistics
 from KernelType import KernelType
 from PriorType import PriorType
 from Prior import *
+import sys
 
 # kernel is a list of length 3 such that :
 # kernel[0] contains the index of the non-constant paramameters
@@ -241,6 +242,7 @@ def perturb_particle(params, priors, kernel, kernel_type, special_cases):
 # Here params and params0 refer to one particle each.
 # Auxilliary is a vector size of nparameters
 def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel_type):
+
     if kernel_type == KernelType.component_wise_uniform:
         prob = 1
         kernel_index = 0
@@ -281,7 +283,9 @@ def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel
             p.append(params[param_index])
         kern = statistics.get_pdf_multinormal(p0, d[str(params0)], p)
         kern = kern / auxilliary
-    return kern
+        return kern
+    else:
+        sys.exit("Invalid kernel encountered by get_parameter_kernel_pdf: " + repr(kernel_type))
 
 
 # Here models and parameters refer to the whole population
