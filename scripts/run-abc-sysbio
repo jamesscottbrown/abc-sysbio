@@ -13,7 +13,7 @@ import argparse
 
 import abcsysbio
 from abcsysbio import parse_info
-from abcsysbio import model_py
+from cudasim.solvers.python import model_py
 from abcsysbio import model_cu
 from abcsysbio import model_c
 from abcsysbio import data
