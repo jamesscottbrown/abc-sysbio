@@ -259,7 +259,6 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
         max1 = 4.0
         if max1 > npar:
             max1 = npar
-            max2 = 1
 
         dim = math.ceil(npar / max1)
 
@@ -300,7 +299,6 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
                     ymin, ymax = plt.ylim()
 
                     ax = plt.gca()
-                    ay = plt.gca()
 
                     if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                         x_formatter = FormatStrFormatter('%0.1e')
@@ -309,6 +307,8 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
                     ax.xaxis.set_major_formatter(x_formatter)
 
                     y_formatter = FormatStrFormatter('%i')
+                    ax.yaxis.set_major_formatter(y_formatter)
+
                     plt.axis([xmin, xmax, ymin, ymax])
                     plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
                     plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -342,7 +342,6 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
             ymin, ymax = plt.ylim()
 
             ax = plt.gca()
-            ay = plt.gca()
 
             if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                 x_formatter = FormatStrFormatter('%0.1e')
@@ -351,6 +350,8 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
             ax.xaxis.set_major_formatter(x_formatter)
 
             y_formatter = FormatStrFormatter('%i')
+            ax.xaxis.set_major_formatter(y_formatter)
+
             plt.axis([xmin, xmax, ymin, ymax])
             plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
             plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -433,7 +434,7 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
 
                 x = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][0]) - 1]
                 y = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][1]) - 1]
-                g = (j + 1) * ((len(populations) * 1.5) ** (-1))
+
                 if permutation[i][0] == permutation[i][1]:
                     if j == len(populations) - 1:
                         plt.cla()
@@ -457,7 +458,6 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                 ymin, ymax = plt.ylim()
 
                 ax = plt.gca()
-                ay = plt.gca()
                 if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                     x_formatter = FormatStrFormatter('%0.1e')
                 else:
@@ -468,10 +468,11 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                     y_formatter = FormatStrFormatter('%0.1e')
                 else:
                     y_formatter = FormatStrFormatter('%0.2f')
-                ay.yaxis.set_major_formatter(y_formatter)
 
                 if permutation[i][0] == permutation[i][1]:
                     y_formatter = FormatStrFormatter('%i')
+
+                ax.yaxis.set_major_formatter(y_formatter)
 
                 plt.axis([xmin, xmax, ymin, ymax])
                 plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -546,10 +547,11 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                         y_formatter = FormatStrFormatter('%0.1e')
                     else:
                         y_formatter = FormatStrFormatter('%0.2f')
-                    ay.yaxis.set_major_formatter(y_formatter)
 
                     if permutation[i][0] == permutation[i][1]:
                         y_formatter = FormatStrFormatter('%i')
+
+                    ax.yaxis.set_major_formatter(y_formatter)
 
                     plt.axis([xmin, xmax, ymin, ymax])
                     plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
@@ -642,7 +644,6 @@ def get_model_distribution(matrix, epsilon, rate, plot_name='ModelDistribution')
     max1 = 4.0  # must be float or double, but no integer
     if max1 > len(matrix):
         max1 = len(matrix)
-        max2 = 1
 
     dim = math.ceil(len(matrix) / max1)
 
