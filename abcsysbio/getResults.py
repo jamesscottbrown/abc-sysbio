@@ -1,20 +1,23 @@
-import numpy
+import numpy as np
 import matplotlib
-from pylab import *
+import matplotlib.pylab as plt
 import abcsmc
+import math
+
+from matplotlib.ticker import FormatStrFormatter
 
 
 # weighted histogramming
 def bin_data(d, w, nbins):
-    d_max = numpy.max(d)
-    d_min = numpy.min(d) - 1e-6  # ensures that the lowest entry is included in the first bin
+    d_max = np.max(d)
+    d_min = np.min(d) - 1e-6  # ensures that the lowest entry is included in the first bin
     bin_width = (d_max - d_min) / nbins
 
-    bin_l = numpy.array([d_min + i * bin_width for i in range(nbins)])
-    bin_u = numpy.array([d_min + (i + 1) * bin_width for i in range(nbins)])
-    bin_c = numpy.array([bin_l[i] + bin_width / 2 for i in range(nbins)])
+    bin_l = np.array([d_min + i * bin_width for i in range(nbins)])
+    bin_u = np.array([d_min + (i + 1) * bin_width for i in range(nbins)])
+    bin_c = np.array([bin_l[i] + bin_width / 2 for i in range(nbins)])
 
-    count = numpy.zeros([nbins])
+    count = np.zeros([nbins])
 
     for k in range(len(d)):
         kd = d[k]
@@ -93,12 +96,12 @@ def print_model_distribution(matrix, eps, filename='model_distribution.txt'):
 
 
 def plot_data(data, filename):
-    matplotlib.pyplot.subplot(111)
-    clf()
-    matplotlib.pyplot.plot(data.timepoints, data.values, 'o')
-    xlabel('time')
-    ylabel('Unit')
-    matplotlib.pyplot.savefig(filename)
+    plt.subplot(111)
+    plt.clf()
+    plt.plot(data.timepoints, data.values, 'o')
+    plt.xlabel('time')
+    plt.ylabel('Unit')
+    plt.savefig(filename)
     matplotlib.pylab.clf()
 
 
@@ -138,19 +141,19 @@ def plot_time_series2(model, pars, data, beta, filename, traj2, population, plot
     """
 
     nsim = len(pars)
-    matplotlib.pyplot.subplot(111)
-    clf()
+    plt.subplot(111)
+    plt.clf()
     for i in range(nsim):
         for j in range(beta):
             points_sim = traj2[i][j]
-            matplotlib.pyplot.plot(data.timepoints, points_sim)
+            plt.plot(data.timepoints, points_sim)
 
     if plotdata:
-        matplotlib.pyplot.plot(data.timepoints, data.values, 'o')
-        xlabel('time')
-        ylabel('Unit')
+        plt.plot(data.timepoints, data.values, 'o')
+        plt.xlabel('time')
+        plt.ylabel('Unit')
 
-    matplotlib.pyplot.savefig(filename)
+    plt.savefig(filename)
     matplotlib.pylab.clf()
 
 
@@ -188,20 +191,20 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
     nsim = len(pars)
     sims = model.simulate(pars, data.timepoints, nsim, beta=beta)
 
-    matplotlib.pyplot.subplot(111)
-    clf()
+    plt.subplot(111)
+    plt.clf()
     for i in range(nsim):
         for j in range(beta):
             points = sims[i, j, :, :]
             points_sim = abcsmc.transform_data_for_fitting(model.fit, points)
-            matplotlib.pyplot.plot(data.timepoints, points_sim)
+            plt.plot(data.timepoints, points_sim)
 
     if plotdata:
-        matplotlib.pyplot.plot(data.timepoints, data.values, 'o')
-        xlabel('time')
-        ylabel('Unit')
+        plt.plot(data.timepoints, data.values, 'o')
+        plt.xlabel('time')
+        plt.ylabel('Unit')
 
-    matplotlib.pyplot.savefig(filename)
+    plt.savefig(filename)
     matplotlib.pylab.clf()
 
 
@@ -276,13 +279,13 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
             for i in range(int(start), int(end)):
                 if i >= len(matrix[int(model) - 1][0]):
                     break
-                matplotlib.pyplot.subplot(max1, max2, i - start + 1)
-                subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
+                plt.subplot(max1, max2, i - start + 1)
+                plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
                 x = matrix[int(model) - 1][int(population) - 1][i]
                 w = weights[int(model) - 1][int(population) - 1][i]
                 bins = 20.0
                 if not (len(x) == 0):
-                    cla()
+                    plt.cla()
 
                     histogram_x, histogram_y = bin_data(x, w, int(bins))
 
@@ -290,15 +293,14 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
                     min_x = min(histogram_x)
                     range_x = max_x - min_x
 
-                    matplotlib.pyplot.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins,
-                                          align='center')
-                    xlabel('parameter ' + repr(i + 1), size='xx-small')
+                    plt.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins, align='center')
+                    plt.xlabel('parameter ' + repr(i + 1), size='xx-small')
 
-                    xmin, xmax = xlim()
-                    ymin, ymax = ylim()
+                    xmin, xmax = plt.xlim()
+                    ymin, ymax = plt.ylim()
 
-                    ax = gca()
-                    ay = gca()
+                    ax = plt.gca()
+                    ay = plt.gca()
 
                     if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                         x_formatter = FormatStrFormatter('%0.1e')
@@ -307,25 +309,25 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
                     ax.xaxis.set_major_formatter(x_formatter)
 
                     y_formatter = FormatStrFormatter('%i')
-                    axis([xmin, xmax, ymin, ymax])
-                    yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
-                    xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
+                    plt.axis([xmin, xmax, ymin, ymax])
+                    plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
+                    plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
 
-            savefig(plot_name)
+            plt.savefig(plot_name)
             matplotlib.pylab.clf()
-            matplotlib.pyplot.subplot(111)
+            plt.subplot(111)
 
     else:
 
         s_num = 1
         p_num = 1
         for i in range(npar):
-            matplotlib.pyplot.subplot(4, 4, s_num)
-            subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
+            plt.subplot(4, 4, s_num)
+            plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
             x = matrix[int(model) - 1][int(population) - 1][i]
             w = weights[int(model) - 1][int(population) - 1][i]
 
-            cla()
+            plt.cla()
             bins = 20
             histogram_x, histogram_y = bin_data(x, w, int(bins))
 
@@ -333,14 +335,14 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
             min_x = min(histogram_x)
             range_x = max_x - min_x
 
-            matplotlib.pyplot.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins, align='center')
-            xlabel('parameter ' + repr(i + 1), size='xx-small')
+            plt.bar(histogram_x, histogram_y, color='#1E90FF', width=range_x / bins, align='center')
+            plt.xlabel('parameter ' + repr(i + 1), size='xx-small')
 
-            xmin, xmax = xlim()
-            ymin, ymax = ylim()
+            xmin, xmax = plt.xlim()
+            ymin, ymax = plt.ylim()
 
-            ax = gca()
-            ay = gca()
+            ax = plt.gca()
+            ay = plt.gca()
 
             if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                 x_formatter = FormatStrFormatter('%0.1e')
@@ -349,20 +351,20 @@ def get_all_histograms(matrix, weights, population=1, plot_name='AllScatterPlots
             ax.xaxis.set_major_formatter(x_formatter)
 
             y_formatter = FormatStrFormatter('%i')
-            axis([xmin, xmax, ymin, ymax])
-            yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
-            xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
+            plt.axis([xmin, xmax, ymin, ymax])
+            plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
+            plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
 
             s_num += 1
             if s_num == 17:
-                savefig(plot_name + '_' + repr(p_num))
+                plt.savefig(plot_name + '_' + repr(p_num))
                 s_num = 1
                 p_num += 1
-                clf()
+                plt.clf()
 
-        savefig(plot_name + '_' + repr(p_num))
-        matplotlib.pylab.clf()
-        matplotlib.pyplot.subplot(111)
+        plt.savefig(plot_name + '_' + repr(p_num))
+        plt.clf()
+        plt.subplot(111)
 
 
 def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatterPlots', model=1):
@@ -412,7 +414,7 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
 
     max1 = 4.0
     if dim <= max1:
-        permutation = numpy.zeros([dim ** 2, 2])
+        permutation = np.zeros([dim ** 2, 2])
         k = 0
         for i in range(1, dim + 1):
             for j in range(1, dim + 1):
@@ -423,8 +425,8 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
         bin_b = 20.0
         i2 = 0
         for i in range(len(permutation)):
-            matplotlib.pyplot.subplot(dim, dim, i + 1)
-            subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
+            plt.subplot(dim, dim, i + 1)
+            plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
             w = weights[int(model) - 1][int(populations[len(populations) - 1]) - 1][int(permutation[i][0]) - 1]
 
             for j in range(len(populations)):
@@ -434,7 +436,7 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                 g = (j + 1) * ((len(populations) * 1.5) ** (-1))
                 if permutation[i][0] == permutation[i][1]:
                     if j == len(populations) - 1:
-                        cla()
+                        plt.cla()
                         if not (len(x) == 0):
                             i2 += 1
                             histogram_x, histogram_y = bin_data(x, w, int(bin_b))
@@ -442,21 +444,20 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                             max_x = max(histogram_x)
                             min_x = min(histogram_x)
                             range_x = max_x - min_x
-                            matplotlib.pyplot.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[j],
-                                                  align='center')
-                            xlabel('parameter ' + repr(i2), size='xx-small')
+                            plt.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[j], align='center')
+                            plt.xlabel('parameter ' + repr(i2), size='xx-small')
 
                 else:
                     if not (len(x) == 0):
-                        scatter(x, y, s=10, marker='o', c=my_colors[j], edgecolor=my_colors[j])
-                        ylabel('parameter ' + repr(int(permutation[i][1])), size='xx-small')
-                xlabel('parameter ' + repr(int(permutation[i][0])), size='xx-small')
+                        plt.scatter(x, y, s=10, marker='o', c=my_colors[j], edgecolor=my_colors[j])
+                        plt.ylabel('parameter ' + repr(int(permutation[i][1])), size='xx-small')
+                plt.xlabel('parameter ' + repr(int(permutation[i][0])), size='xx-small')
 
-                xmin, xmax = xlim()
-                ymin, ymax = ylim()
+                xmin, xmax = plt.xlim()
+                ymin, ymax = plt.ylim()
 
-                ax = gca()
-                ay = gca()
+                ax = plt.gca()
+                ay = plt.gca()
                 if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                     x_formatter = FormatStrFormatter('%0.1e')
                 else:
@@ -472,17 +473,17 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                 if permutation[i][0] == permutation[i][1]:
                     y_formatter = FormatStrFormatter('%i')
 
-                axis([xmin, xmax, ymin, ymax])
-                xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
-                yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
+                plt.axis([xmin, xmax, ymin, ymax])
+                plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
+                plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
 
-        savefig(plot_name)
+        plt.savefig(plot_name)
         matplotlib.pylab.clf()
-        matplotlib.pyplot.subplot(111)
+        plt.subplot(111)
 
     else:
         i2 = 0
-        permutation = zeros([dim * (dim + 1) / 2, 2])
+        permutation = plt.zeros([dim * (dim + 1) / 2, 2])
         k = 0
         for i in range(1, dim + 1):
             for j in range(i, dim + 1):
@@ -502,8 +503,8 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
             for i in range(int(start), int(end)):
                 if i >= len(permutation):
                     break
-                matplotlib.pyplot.subplot(max1, max1, i - start + 1)
-                subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
+                plt.subplot(max1, max1, i - start + 1)
+                plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.5)
                 w = weights[int(model) - 1][int(populations[len(populations) - 1]) - 1][int(permutation[i][0]) - 1]
                 for j in range(len(populations)):
                     x = matrix[int(model) - 1][int(populations[j]) - 1][int(permutation[i][0]) - 1]
@@ -511,7 +512,7 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
 
                     if permutation[i][0] == permutation[i][1]:
                         if j == len(populations) - 1:
-                            cla()
+                            plt.cla()
                             if not (len(x) == 0):
                                 i2 += 1
 
@@ -520,21 +521,21 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                                 max_x = max(histogram_x)
                                 min_x = min(histogram_x)
                                 range_x = max_x - min_x
-                                matplotlib.pyplot.bar(histogram_x, histogram_y, color=my_colors[j],
-                                                      width=range_x / bin_b, align='center')
-                                xlabel('parameter ' + repr(i2), size='xx-small')
+                                plt.bar(histogram_x, histogram_y, color=my_colors[j], width=range_x / bin_b,
+                                        align='center')
+                                plt.xlabel('parameter ' + repr(i2), size='xx-small')
 
                     else:
                         if not (len(x) == 0):
-                            scatter(x, y, s=10, marker='o', c=my_colors[j], edgecolor=my_colors[j])
-                            ylabel('parameter ' + repr(int(permutation[i][1])), size='xx-small')
-                            xlabel('parameter ' + repr(int(permutation[i][0])), size='xx-small')
+                            plt.scatter(x, y, s=10, marker='o', c=my_colors[j], edgecolor=my_colors[j])
+                            plt.ylabel('parameter ' + repr(int(permutation[i][1])), size='xx-small')
+                            plt.xlabel('parameter ' + repr(int(permutation[i][0])), size='xx-small')
 
-                    xmin, xmax = xlim()
-                    ymin, ymax = ylim()
+                    xmin, xmax = plt.xlim()
+                    ymin, ymax = plt.ylim()
 
-                    ax = gca()
-                    ay = gca()
+                    ax = plt.gca()
+                    ay = plt.gca()
                     if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                         x_formatter = FormatStrFormatter('%0.1e')
                     else:
@@ -550,13 +551,13 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                     if permutation[i][0] == permutation[i][1]:
                         y_formatter = FormatStrFormatter('%i')
 
-                    axis([xmin, xmax, ymin, ymax])
-                    xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
-                    yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
+                    plt.axis([xmin, xmax, ymin, ymax])
+                    plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
+                    plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
 
-            savefig(plot_name + "_" + repr(p))
+            plt.savefig(plot_name + "_" + repr(p))
             matplotlib.pylab.clf()
-            matplotlib.pyplot.subplot(111)
+            plt.subplot(111)
 
 
 def get_scatter_plot(matrix, parameter, populations=(1,), plot_name='ScatterPlot', model=1):
@@ -595,15 +596,15 @@ def get_scatter_plot(matrix, parameter, populations=(1,), plot_name='ScatterPlot
     """
 
     matplotlib.pylab.clf()
-    matplotlib.pyplot.subplot(111)
+    plt.subplot(111)
 
     for j in range(len(populations)):
         g = (j + 1) * ((len(populations) * 1.5) ** (-1))
         x = matrix[int(model) - 1][int(populations[j]) - 1][int(parameter[0]) - 1]
         y = matrix[int(model) - 1][int(populations[j]) - 1][int(parameter[1]) - 1]
         if not (len(x) == 0):
-            scatter(x, y, s=10, c=repr(g), edgecolor=repr(g))
-    savefig(plot_name)
+            plt.scatter(x, y, s=10, c=repr(g), edgecolor=repr(g))
+    plt.savefig(plot_name)
     matplotlib.pylab.clf()
 
 
@@ -662,18 +663,18 @@ def get_model_distribution(matrix, epsilon, rate, plot_name='ModelDistribution')
         for i in range(int(start), int(end)):
             if i >= len(matrix): 
                 break
-            matplotlib.pyplot.subplot(max1, max2, i - start + 1)
-            subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.8)
-            left = arange(1, matrix.shape[1] + 1, 1)
+            plt.subplot(max1, max2, i - start + 1)
+            plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.6, hspace=0.8)
+            left = plt.arange(1, matrix.shape[1] + 1, 1)
             height = matrix[i]
-            bar(left, height, width=1.0, color='#1E90FF', align='center')
+            plt.bar(left, height, width=1.0, color='#1E90FF', align='center')
             xmin = 0
             xmax = matrix.shape[1] + 1
-            ymin, ymax = ylim()
-            axis([math.floor(xmin), math.ceil(xmax), 0, ymax + ymax * 0.1])
-            yticks(size='xx-small')
-            xticks(left, size='xx-small')
-            title("(" + repr(i + 1) + ") " + str(epsilon[i]) + "\n" + str(rate[i]), size='xx-small')
-            savefig(plot_name + '_' + repr(p + 1))
+            ymin, ymax = plt.ylim()
+            plt.axis([math.floor(xmin), math.ceil(xmax), 0, ymax + ymax * 0.1])
+            plt.yticks(size='xx-small')
+            plt.xticks(left, size='xx-small')
+            plt.title("(" + repr(i + 1) + ") " + str(epsilon[i]) + "\n" + str(rate[i]), size='xx-small')
+            plt.savefig(plot_name + '_' + repr(p + 1))
         matplotlib.pylab.clf()
-        matplotlib.pyplot.subplot(111)
+        plt.subplot(111)
