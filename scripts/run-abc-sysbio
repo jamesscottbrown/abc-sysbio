@@ -175,22 +175,22 @@ if __name__ == '__main__':
     # Check the information is correct for simulation or inference
     modelCorrect = False
     if usesbml:
-        integrationType = []
+        integration_type = []
 
         if use_cuda or use_cudamg:
             for i in range(len(info_new.type)):
-                integrationType.append(info_new.type[i] + ' CUDA')
+                integration_type.append(info_new.type[i] + ' CUDA')
         elif use_c:
             for i in range(len(info_new.type)):
                 if info_new.type[i] == "SDE":
                     info_new.type[i] = "EulerSDE"
-                integrationType.append(info_new.type[i] + ' C')
+                integration_type.append(info_new.type[i] + ' C')
         else:
             for i in range(len(info_new.type)):
-                integrationType.append(info_new.type[i] + ' Python')
+                integration_type.append(info_new.type[i] + ' Python')
 
         try:
-            ParseAndWrite.ParseAndWrite(info_new.source, integrationType, info_new.name, inputPath="", outputPath="")
+            ParseAndWrite.parse_and_write(info_new.source, integration_type, info_new.name, input_path="", output_path="")
         except AttributeError:
             # If something goes wrong, the first method that gets called on the Parser's self.sbmlModel will throw
             # an AttributeError
