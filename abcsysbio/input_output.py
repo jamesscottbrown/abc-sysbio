@@ -10,7 +10,6 @@ from getResults import plot_data
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from PriorType import PriorType
-from Prior import *
 
 
 class InputOutput:
@@ -148,19 +147,18 @@ class InputOutput:
                                 population_mod[mod][eps].append([])
                                 weights_mod[mod][eps].append([])
 
-                                nparticles = len(self.all_results[eps].weights)
+                                res = self.all_results[eps]
+                                nparticles = len(res.weights)
                                 for np in range(nparticles):
-                                    if self.all_results[eps].models[np] == mod:
-                                        # print mod, eps, param, self.all_results[eps].models[np], self.all_results[eps].parameters[np][param]
-                                        population_mod[mod][eps][non_const].append(
-                                            self.all_results[eps].parameters[np][param])
-                                        weights_mod[mod][eps][non_const].append(self.all_results[eps].weights[np])
+                                    if res.models[np] == mod:
+                                        population_mod[mod][eps][non_const].append(res.parameters[np][param])
+                                        weights_mod[mod][eps][non_const].append(res.weights[np])
 
                                 non_const += 1
 
                     get_all_scatter_plots(population_mod, weights_mod, populations=numpy.arange(1, population + 2),
                                           plot_name=plot_name, model=mod + 1)
-                    get_all_histograms(population_mod, weights_mod, population=population + 1, PlotName=plot_name2,
+                    get_all_histograms(population_mod, weights_mod, population=population + 1, plot_name=plot_name2,
                                        model=mod + 1)
 
             if self.plotDataSeries:
@@ -253,7 +251,6 @@ class InputOutput:
         param_file.close()
 
         # do timeseries plots
-        npop = len(self.all_results)
         nmodels = len(models)
 
         # separate timeseries for each model
@@ -276,7 +273,7 @@ class InputOutput:
                 plot_time_series2(models[mod], pars, data, beta, filename, traj2, population, plotdata=False)
 
     # create output folders
-    def create_output_folders(self, modelnames, numOutput, pickling, simulation):
+    def create_output_folders(self, modelnames, num_outputs, pickling, simulation):
 
         if simulation:
             pickling = False
@@ -305,7 +302,7 @@ class InputOutput:
                 sys.exit("\nThe folder \'copy\' already exists!\n")
 
             out_file = open(self.folder + '/copy/algorithm_parameter.dat', "w")
-            pickle.dump(numOutput, out_file)
+            pickle.dump(num_outputs, out_file)
             out_file.close()
 
     # read the stored data

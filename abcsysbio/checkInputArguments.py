@@ -1,17 +1,23 @@
 import pickle
 import re
 from PriorType import PriorType
-from Prior import *
 
 
-def check_input_abc(info_new, fname, custom_distance, design):
+def check_input_abc(info_new, results_dir, custom_distance, design):
     """
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to run the abc-SMC algorithm.
     Return boolean, string (empty if boolean is True)
 
     Takes as input an algorithm_info object, the output folder name, and whether custom distance is specified
-    
+
+    Parameters
+    ----------
+    info_new : AlgorithmInfo object to be checked
+    results_dir : string containing path to results directory
+    custom_distance : False if default distance function used (otherwise name of distance function)
+    design : bool indicating whether running in 'design mode'
+
     """
 
     restart = info_new.restart
@@ -40,7 +46,8 @@ def check_input_abc(info_new, fname, custom_distance, design):
         return False, "\nPlease provide the same amount of model sources and model weights!\n"
 
     if not len(model_name) == len(fit):
-        return False, "\nPlease provide a fit instruction (or None) for each model. If the fit instruction is None all data will be fitted to the model data.\n"
+        return False, "\nPlease provide a fit instruction (or None) for each model." + \
+            "If the fit instruction is None all data will be fitted to the model data.\n"
 
     if not design:
         if not len(data) == len(timepoints):
@@ -115,6 +122,8 @@ def check_input_abc(info_new, fname, custom_distance, design):
     ode = re.compile('ODE')
     gillespie = re.compile('Gillespie')
 
+    prior_types = [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]
+
     for mod in range(len(model_name)):
 
         string = integration_type[mod]
@@ -122,39 +131,39 @@ def check_input_abc(info_new, fname, custom_distance, design):
             return False, "\nThe integration type for model " + model_name[mod] + " does not exist!\n"
 
         for ic in range(len(x0priors[mod])):
-            if x0priors[mod][ic].type not in [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]:
+            if x0priors[mod][ic].type not in prior_types:
                 return False, "\nThe prior distribution of initial condition " + repr(ic + 1) + " in model " + \
                     model_name[mod] + " does not exist!\n"
 
         for param in range(len(priors[mod])):
             # TODO: re-add check that all necessary params have been set
 
-            if priors[mod][param].type not in [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]:
-                return False, "\nThe prior distribution of parameter " + repr(param + 1) + " in model " + model_name[
-                    mod] + " does not exist!\n"
+            if priors[mod][param].type not in prior_types:
+                return False, "\nThe prior distribution of parameter " + repr(param + 1) + " in model " + \
+                    model_name[mod] + " does not exist!\n"
 
             if priors[mod][param].type == PriorType.uniform:
                 if not priors[mod][param].lower_bound < priors[mod][param].upper_bound:
-                    return False, "\nThe range of the uniform prior distribution of parameter " + repr(
-                        param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"
+                    return False, "\nThe range of the uniform prior distribution of parameter " + repr(param + 1) + \
+                        " in model " + model_name[mod] + " is wrong defined!\n"
 
             if priors[mod][param].type == PriorType.lognormal:
                 if not (priors[mod][param].mu >= 0 or priors[mod][param].sigma >= 0):
-                    return False, "\nThe mean or scale of the lognormal prior distribution of parameter " + repr(
-                        param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"
+                    return False, "\nThe mean or scale of the lognormal prior distribution of parameter " + \
+                        repr(param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"
 
     # check arguments connected to pickling
     if restart:
 
         try:
-            in_file = open(fname + '/copy/algorithm_parameter.dat', "r")
+            in_file = open(results_dir + '/copy/algorithm_parameter.dat', "r")
             num_particles_pickled = pickle.load(in_file)
             in_file.close()
         except IOError:
             return False, "\nCan not find file \'algorithm_parameter.dat\' in folder \'copy\'!\n"
 
         if not num_particles <= num_particles_pickled:
-            return False, "\nRunning the abc algorithm from a previous point is not possible with a larger population size!\n"
+            return False, "\nCannot run the abc algorithm from a previous point with a larger population size!\n"
 
     return True, ""
 
@@ -164,7 +173,11 @@ def check_input_simulation(info_new):
     Check that the information in the input file is consistent with each other and with the model,
     and that it is in the format required to simulate the model.
     Return boolean, string (empty if boolean is True)
-    
+
+    Parameters
+    ----------
+    info_new
+
     """
 
     name = info_new.name

@@ -1,10 +1,9 @@
 # statistical functions
 
-from numpy import *
+import numpy as np
 from numpy import random as rnd
 from numpy import linalg as la
 import scipy
-import math
 import scipy.stats.mvn
 
 
@@ -54,8 +53,8 @@ def get_pdf_gauss(m, scale, x):
     scale : standard deviation of the Gaussian
     m : mean of the Gaussian
     """
-    x = exp(-0.5 * (x - m) * (x - m) / (scale * scale))
-    x = x / (scale * sqrt(2 * pi))
+    x = np.exp(-0.5 * (x - m) * (x - m) / (scale * scale))
+    x = x / (scale * np.sqrt(2 * np.pi))
     return x
 
 
@@ -71,8 +70,8 @@ def get_pdf_lognormal(m, sigma, x):
     sigma : standard deviation of the associated normal
     m : mean of the associated normal
     """
-    x = exp(-0.5 * (log(x) - m) * (log(x) - m) / (sigma * sigma))
-    x = x / (x * sigma * sqrt(2 * pi))
+    x = np.exp(-0.5 * (np.log(x) - m) * (np.log(x) - m) / (sigma * sigma))
+    x = x / (x * sigma * np.sqrt(2 * np.pi))
     return x
 
 
@@ -98,7 +97,7 @@ def get_pdf_multinormal(x, covariances, m):
         for j in range(k):
             a += inv[i, j] * (x[i] - m[i]) * (x[j] - m[j])
     det = la.det(covariances)
-    return exp(-1.0 * a / 2.0) / (sqrt((2 * pi) ** k * det))
+    return np.exp(-1.0 * a / 2.0) / (np.sqrt((2 * np.pi) ** k * det))
 
 
 def wtvar(x, weights, method="R"):
@@ -146,7 +145,7 @@ def mvnd_gen(m, c):
     a = list(rnd.normal(0, 1, len(m)))
     lambdas, vect = la.eig(c)
     print lambdas
-    tmp = mat(vect) * mat(diag(sqrt(lambdas))) * transpose(mat(a))
+    tmp = np.mat(vect) * np.mat(np.diag(np.sqrt(lambdas))) * np.transpose(np.mat(a))
     res = list()
     for i in range(len(m)):
         res.append(m[i] + tmp[i, 0])
@@ -172,7 +171,7 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
        lower and upper integration limits with length equal to the number
        of dimensions of the multivariate normal distribution. It can contain
        -np.inf or np.inf for open integration intervals
-    corrcoef : float or array_like
+    corr_coef : float or array_like
        specifies correlation matrix in one of three ways, see notes
     optional keyword parameters to influence integration
         * maxpts : int, maximum number of function values allowed. This
@@ -220,11 +219,11 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
 
     n = len(lower)
 
-    lower = array(lower)
-    upper = array(upper)
-    corr_coef = array(corr_coef)
+    lower = np.array(lower)
+    upper = np.array(upper)
+    corr_coef = np.array(corr_coef)
 
-    correl = zeros(n * (n - 1) / 2.0)  # dtype necessary?
+    correl = np.zeros(n * (n - 1) / 2.0)  # dtype necessary?
 
     if (lower.ndim != 1) or (upper.ndim != 1):
         raise ValueError('can handle only 1D bounds')
@@ -247,14 +246,14 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
         if n > 2:
             kwds['maxpts'] = 10000 * n
 
-    lowinf = isneginf(lower)
-    uppinf = isposinf(upper)
-    infin = 2.0 * ones(n)
+    lowinf = np.isneginf(lower)
+    uppinf = np.isposinf(upper)
+    infin = 2.0 * np.ones(n)
 
-    putmask(infin, lowinf, 0)  # infin.putmask(0,lowinf)
-    putmask(infin, uppinf, 1)  # infin.putmask(1,uppinf)
+    np.putmask(infin, lowinf, 0)  # infin.putmask(0,lowinf)
+    np.putmask(infin, uppinf, 1)  # infin.putmask(1,uppinf)
     # this has to be last
-    putmask(infin, lowinf * uppinf, -1)
+    np.putmask(infin, lowinf * uppinf, -1)
     error, cdfvalue, inform = scipy.stats.mvn.mvndst(lower, upper, infin, correl, **kwds)
     if inform:
         print 'something wrong', inform, error, cdfvalue
@@ -304,13 +303,13 @@ def mvnormcdf(lower, upper, mu, c, **kwds):
     mvstdnormcdf : location and scale standardized multivariate normal cdf
     """
 
-    lower = array(lower)
-    upper = array(upper)
-    c = array(c)
-    stdev = sqrt(diag(c))
+    lower = np.array(lower)
+    upper = np.array(upper)
+    c = np.array(c)
+    stdev = np.sqrt(np.diag(c))
     lower = (lower - mu) / stdev
     upper = (upper - mu) / stdev
-    divrow = atleast_2d(stdev)
+    divrow = np.atleast_2d(stdev)
     corr = c / divrow / divrow.T
 
     return mvstdnormcdf(lower, upper, corr, **kwds)
@@ -331,20 +330,19 @@ def k_nearest_neighbours(ind, s, k):
 
     """
     n = len(s[0])
-    ss = array(s)
-    aa = zeros((len(s), n))
+    ss = np.array(s)
+    aa = np.zeros((len(s), n))
 
     for param in range(len(s)):
-        aa[param, :] = s[param][ind] * ones((1, n))
+        aa[param, :] = s[param][ind] * np.ones((1, n))
 
     dist = sum((aa - ss) ** 2, 2)
-    m = max(dist)
 
     k_min = list()
     for i in range(min(k, n)):
-        im = argmin(dist)
+        im = np.argmin(dist)
         k_min.append(im)
-        dist[im] = Inf
+        dist[im] = np.Inf
     return k_min
 
 
@@ -391,7 +389,7 @@ def compute_optcovmat(x, weights, m):
     """
     num_dimensions = len(x)
     num_samples = len(x[0])
-    c = zeros([num_dimensions, num_dimensions], float)
+    c = np.zeros([num_dimensions, num_dimensions], float)
 
     # Fill in upper-half of c
     for sample in range(num_samples):
@@ -400,7 +398,7 @@ def compute_optcovmat(x, weights, m):
                 c[d1, d2] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d2][sample] - m[d2])
 
     # Fill in lower-half by symmetry
-    c = c + transpose(c)
+    c = c + np.transpose(c)
 
     # Fill in diagonal
     for sample in range(num_samples):

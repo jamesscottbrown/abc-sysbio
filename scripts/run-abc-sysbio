@@ -1,21 +1,14 @@
 #!/usr/bin/python2.5
 
 import matplotlib
-
 matplotlib.use('Agg')
-from matplotlib import pyplot as plt
-from pylab import *
 
 import numpy
 import sys
 import re
 import argparse
 
-import abcsysbio
 from abcsysbio import parse_info
-from abcsysbio import model_py
-from abcsysbio import model_cu
-from abcsysbio import model_c
 from abcsysbio import data
 from abcsysbio import abcsmc
 from abcsysbio import input_output
@@ -23,7 +16,9 @@ from abcsysbio import checkInputArguments
 from abcsysbio import kernels
 from abcsysbio import euclidian
 
-from abcsysbio.Prior import *
+from cudasim.solvers.python import model_py
+from cudasim.solvers.c import model_c
+
 sys.path.insert(0, ".")
 
 
@@ -33,30 +28,39 @@ if __name__ == '__main__':
     """)
 
     # Input options
-    parser.add_argument('--infile', '-i', help="declaration of the input file. This input file has to be provided to run the program")
-    parser.add_argument('--localcode', '-lc', help='do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file', action='store_true')
+    parser.add_argument('--infile', '-i',
+                        help="declaration of the input file. This input file has to be provided to run the program")
+    parser.add_argument('--localcode', '-lc',
+                        help='do not import model from sbml intead use a local .py, .hpp/.cpp or .cu file',
+                        action='store_true')
 
     # Algorithmic options
-    parser.add_argument('--setseed', '-sd', help="seed the random number generator in numpy with an integer eg -sd=2, --setseed=2")
+    parser.add_argument('--setseed', '-sd',
+                        help="seed the random number generator in numpy with an integer eg -sd=2, --setseed=2")
     parser.add_argument('--timing', '-tm', help="print timing information", action='store_true')
     parser.add_argument('--c++', help="use C++ implementation", action='store_true')
     parser.add_argument('--cuda', '-cu', help="use CUDA implementation", action='store_true')
 
     # Output options
-    parser.add_argument('--outfolder', '-of', help="write results to folder eg -of=/full/path/to/folder (default is _results_ in current directory)")
-    parser.add_argument('--fulloutput', '-f', help="print epsilon, sampling steps and acceptence rates after each population", action='store_true')
+    parser.add_argument('--outfolder', '-of',
+                        help="write results to folder eg -of=/full/folder/path (default is ./_results_ )")
+    parser.add_argument('--fulloutput', '-f',
+                        help="print epsilon, sampling steps and acceptence rates after each population",
+                        action='store_true')
     parser.add_argument('--save', '-s', help="no backup after each population", action='store_true')
     parser.add_argument('--debug', '-db', help="set the debug mode", action='store_true')
 
     # Simulate options
-    parser.add_argument('--simulate', '-S', help="simulate the model over the range of timepoints, using paramters sampled from the priors")
+    parser.add_argument('--simulate', '-S',
+                        help="simulate the model over the range of timepoints, using paramters sampled from the priors")
 
     # Design option
     parser.add_argument('--design', '-D', help="run ABC-SysBio in design mode", action='store_true')
 
     # Plotting options
     parser.add_argument('--diagnostic', '-d', help="no printing of diagnostic plots", action='store_true')
-    parser.add_argument('--timeseries', '-t', help="no plotting of simulation results after each population", action='store_true')
+    parser.add_argument('--timeseries', '-t',
+                        help="no plotting of simulation results after each population", action='store_true')
     parser.add_argument('--plotdata', '-p', help="no plotting of given data points", action='store_true')
 
     # custom options
@@ -142,11 +146,9 @@ if __name__ == '__main__':
         try:
             import libsbml
         except ImportError:
-            print "ABORT: libSBML required for SBML parsing. Please install libSBML"
-            sys.exit()
+            sys.exit("ABORT: libSBML required for SBML parsing. Please install libSBML")
 
-        import abcsysbio_parser
-        from abcsysbio_parser import ParseAndWrite
+        from cudasim import ParseAndWrite
 
     # Check that we can import scipy if we have ODE models
     o = re.compile('ODE')
@@ -155,8 +157,7 @@ if __name__ == '__main__':
             try:
                 from scipy.integrate.odepack import odeint
             except ImportError:
-                print "ABORT: scipy required for ODE modelling. Please install scipy"
-                sys.exit()
+                sys.exit("ABORT: scipy required for ODE modelling. Please install scipy")
             break
 
     # Check that we have cuda-sim installed
@@ -164,8 +165,7 @@ if __name__ == '__main__':
         try:
             import cudasim
         except ImportError:
-            print "ABORT: cudasim required for running on CUDA GPUs. Please install cuda-sim"
-            sys.exit()
+            sys.exit("ABORT: cudasim required for running on CUDA GPUs. Please install cuda-sim")
 
     # set the random seeds
     if seed is not None:
@@ -175,24 +175,25 @@ if __name__ == '__main__':
     # Check the information is correct for simulation or inference
     modelCorrect = False
     if usesbml:
-        integrationType = []
+        integration_type = []
 
         if use_cuda or use_cudamg:
             for i in range(len(info_new.type)):
-                integrationType.append(info_new.type[i] + ' CUDA')
+                integration_type.append(info_new.type[i] + ' CUDA')
         elif use_c:
             for i in range(len(info_new.type)):
                 if info_new.type[i] == "SDE":
                     info_new.type[i] = "EulerSDE"
-                integrationType.append(info_new.type[i] + ' C')
+                integration_type.append(info_new.type[i] + ' C')
         else:
             for i in range(len(info_new.type)):
-                integrationType.append(info_new.type[i] + ' Python')
+                integration_type.append(info_new.type[i] + ' Python')
 
         try:
-            ParseAndWrite.ParseAndWrite(info_new.source, integrationType, info_new.name, inputPath="", outputPath="",
-                                        method=None)
-        except:
+            ParseAndWrite.parse_and_write(info_new.source, integration_type, info_new.name, input_path="", output_path="")
+        except AttributeError:
+            # If something goes wrong, the first method that gets called on the Parser's self.sbmlModel will throw
+            # an AttributeError
             print "\n#################\n Could not parse the provided SBML file(s). Check the following options:"
             print "\n -provided file names correct?"
             print "\n -input arguments correct?"
@@ -218,6 +219,7 @@ if __name__ == '__main__':
     models = []
     for i in range(info_new.modelnumber):
         if use_cuda:
+            from cudasim.solvers.cuda import model_cu
             new_model = model_cu.CudaModel(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                            nparameters=info_new.nparameters[i],
                                            prior=info_new.prior[i], x0prior=info_new.x0prior[i],
@@ -225,7 +227,7 @@ if __name__ == '__main__':
                                            dt=info_new.dt, beta=info_new.beta, timepoints=info_new.times,
                                            logp=info_new.logp[i])
         elif use_cudamg:
-            from abcsysbio import model_mg_cu
+            from cudasim.solvers.cuda import model_mg_cu
             new_model = model_mg_cu.CudaModel(name=info_new.name[i], nspecies=info_new.nspecies[i],
                                               nparameters=info_new.nparameters[i],
                                               prior=info_new.prior[i], x0prior=info_new.x0prior[i],
@@ -238,8 +240,8 @@ if __name__ == '__main__':
                                       nparameters=info_new.nparameters[i],
                                       prior=info_new.prior[i], x0prior=info_new.x0prior[i],
                                       source=info_new.name[i], integration=info_new.type[i], fit=info_new.fit[i],
-                                      dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relativeError=info_new.rtol,
-                                      absoluteError=info_new.atol,
+                                      dt=info_new.dt, beta=info_new.beta, initstep=1e-6, relative_error=info_new.rtol,
+                                      absolute_error=info_new.atol,
                                       logp=info_new.logp[i])
 
         else:
