@@ -243,6 +243,7 @@ def perturb_particle(params, priors, kernel, kernel_type, special_cases):
 # Auxilliary is a vector size of nparameters
 def get_parameter_kernel_pdf(params, params0, priors, kernel, auxilliary, kernel_type):
 
+    del priors  # argument kept, so that it may be used by custom kernel functions
     if kernel_type == KernelType.component_wise_uniform:
         prob = 1
         kernel_index = 0
