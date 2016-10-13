@@ -530,7 +530,6 @@ def get_all_scatter_plots(matrix, weights, populations=(1,), plot_name='AllScatt
                     ymin, ymax = plt.ylim()
 
                     ax = plt.gca()
-                    ay = plt.gca()
                     if (xmax - xmin) < 0.1 or (xmax - xmin) >= 1000:
                         x_formatter = FormatStrFormatter('%0.1e')
                     else:
