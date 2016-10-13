@@ -190,7 +190,8 @@ if __name__ == '__main__':
                 integration_type.append(info_new.type[i] + ' Python')
 
         try:
-            ParseAndWrite.parse_and_write(info_new.source, integration_type, info_new.name, input_path="", output_path="")
+            ParseAndWrite.parse_and_write(info_new.source, integration_type, info_new.name, input_path="",
+                                          output_path="")
         except AttributeError:
             # If something goes wrong, the first method that gets called on the Parser's self.sbmlModel will throw
             # an AttributeError
