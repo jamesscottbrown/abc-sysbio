@@ -119,8 +119,8 @@ def wtvar(x, weights, method="R"):
     sum_w = sum(weights)
     if method == "nist":
         x_bar_wt = sum([weights * x for weights, x in zip(weights, x)]) / sum_w  # fixed.2009.03.07, divisor added.
-        np = sum([1 if (weights != 0) else 0 for weights in weights])
-        d = sum_w * (np - 1.0) / np
+        num_particles = sum([1 if (weights != 0) else 0 for weights in weights])
+        d = sum_w * (num_particles - 1.0) / num_particles
         return sum([weights * (x - x_bar_wt) ** 2 for weights, x in zip(weights, x)]) / d
     else:
         sum_w2 = sum([weights ** 2 for weights in weights])
