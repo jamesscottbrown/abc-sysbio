@@ -152,7 +152,7 @@ def mvnd_gen(m, c):
     return res
 
 
-def mvstdnormcdf(lower, upper, corr_coef, **kwds):
+def mvstdnormcdf(lower, upper, corr_coef, **kwargs):
     """
     standardized multivariate normal cumulative distribution function
 
@@ -173,13 +173,14 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
        -np.inf or np.inf for open integration intervals
     corr_coef : float or array_like
        specifies correlation matrix in one of three ways, see notes
-    optional keyword parameters to influence integration
-        * maxpts : int, maximum number of function values allowed. This
-             parameter can be used to limit the time. A sensible
-             strategy is to start with `maxpts` = 1000*N, and then
-             increase `maxpts` if ERROR is too large.
-        * abseps : float absolute error tolerance.
-        * releps : float relative error tolerance.
+
+    kwargs : optional keyword parameters to influence integration
+            maxpts : int, maximum number of function values allowed. This
+                parameter can be used to limit the time. A sensible
+                strategy is to start with `maxpts` = 1000*N, and then
+                increase `maxpts` if ERROR is too large.
+            abseps : float absolute error tolerance.
+            releps : float relative error tolerance.
 
     Returns
     -------
@@ -242,9 +243,9 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
     else:
         raise ValueError('corrcoef has incorrect dimension')
 
-    if 'maxpts' not in kwds:
+    if 'maxpts' not in kwargs:
         if n > 2:
-            kwds['maxpts'] = 10000 * n
+            kwargs['maxpts'] = 10000 * n
 
     lowinf = np.isneginf(lower)
     uppinf = np.isposinf(upper)
@@ -254,13 +255,13 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
     np.putmask(infin, uppinf, 1)  # infin.putmask(1,uppinf)
     # this has to be last
     np.putmask(infin, lowinf * uppinf, -1)
-    error, cdfvalue, inform = scipy.stats.mvn.mvndst(lower, upper, infin, correl, **kwds)
+    error, cdfvalue, inform = scipy.stats.mvn.mvndst(lower, upper, infin, correl, **kwargs)
     if inform:
         print 'something wrong', inform, error, cdfvalue
     return cdfvalue
 
 
-def mvnormcdf(lower, upper, mu, c, **kwds):
+def mvnormcdf(lower, upper, mu, c, **kwargs):
     """
     multivariate normal cumulative distribution function
 
@@ -279,13 +280,14 @@ def mvnormcdf(lower, upper, mu, c, **kwds):
        list or array of means
     c : array_like, 2d
        specifies covariance matrix
-    optional keyword parameters to influence integration
-        * maxpts : int, maximum number of function values allowed. This
+
+    kwargs : optional keyword parameters to influence integration
+        maxpts : int, maximum number of function values allowed. This
              parameter can be used to limit the time. A sensible
              strategy is to start with `maxpts` = 1000*N, and then
              increase `maxpts` if ERROR is too large.
-        * abseps : float absolute error tolerance.
-        * releps : float relative error tolerance.
+        abseps : float absolute error tolerance.
+        releps : float relative error tolerance.
 
     Returns
     -------
@@ -312,7 +314,7 @@ def mvnormcdf(lower, upper, mu, c, **kwds):
     divrow = np.atleast_2d(stdev)
     corr = c / divrow / divrow.T
 
-    return mvstdnormcdf(lower, upper, corr, **kwds)
+    return mvstdnormcdf(lower, upper, corr, **kwargs)
 
 
 def k_nearest_neighbours(ind, s, k):
