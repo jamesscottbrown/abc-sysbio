@@ -219,7 +219,7 @@ class InputOutput:
                         pp.close()
 
     # writes trajectories and parameters from simulations
-    def write_data_simulation(self, population, results, timing, models, data):
+    def write_data_simulation(self, results, models, data):
 
         # results abcsmc_results class
         self.all_results.append(results)

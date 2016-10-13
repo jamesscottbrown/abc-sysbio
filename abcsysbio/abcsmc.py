@@ -319,7 +319,7 @@ class Abcsmc:
         results = AbcsmcResults(num_accepted, sampled, num_accepted / float(sampled), self.trajectories, self.distances,
                                 0, self.model_curr, 0, self.parameters_curr, 0)
 
-        io.write_data_simulation(0, results, 0, self.models, self.data)
+        io.write_data_simulation(results, self.models, self.data)
 
     def iterate_one_population(self, next_epsilon, prior):
         if self.debug == 2:
