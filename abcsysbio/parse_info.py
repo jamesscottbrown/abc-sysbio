@@ -148,11 +148,11 @@ def parse_fitting_information(node):
     else:
         fitting_strings = []
         for i in raw_fiting_strings:
-            # replace species with samplePoints            
-            fitting_string = re.sub('species', 'samplePoints', i)
+            # replace species with sample_points
+            fitting_string = re.sub('species', 'sample_points', i)
 
-            # find all instances of samplePoints[ ] and extract the list of species numbers
-            sp_strings = re.findall("samplePoints([0-9]+)", fitting_string)
+            # find all instances of sample_points[ ] and extract the list of species numbers
+            sp_strings = re.findall("sample_points([0-9]+)", fitting_string)
             sp_nums = [int(j) for j in sp_strings]
             sp_nums.sort()
             sp_nums.reverse()
