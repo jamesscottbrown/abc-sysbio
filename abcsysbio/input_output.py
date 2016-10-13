@@ -179,8 +179,7 @@ class InputOutput:
                         filename = self.folder + '/results_' + models[mod].name + '/Population_' + repr(
                             npop) + '/Timeseries_Population' + repr(npop)
                         #  plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=self.havedata)
-                        plot_time_series2(models[mod], pars, data, beta, filename, traj2, population,
-                                          plotdata=self.havedata)
+                        plot_time_series2(pars, data, beta, filename, traj2, plotdata=self.havedata)
 
                         filename2 = filename + "_byp.pdf"
                         pp = PdfPages(filename2)
@@ -270,7 +269,7 @@ class InputOutput:
             if len(pars) > 0:
                 filename = self.folder + '/' + models[mod].name + '_timeseries'
                 #  plotTimeSeries(models[mod],pars,data,beta,filename,plotdata=False)
-                plot_time_series2(models[mod], pars, data, beta, filename, traj2, population, plotdata=False)
+                plot_time_series2(pars, data, beta, filename, traj2, plotdata=False)
 
     # create output folders
     def create_output_folders(self, modelnames, num_outputs, pickling, simulation):

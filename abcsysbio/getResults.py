@@ -105,33 +105,27 @@ def plot_data(data, filename):
     matplotlib.pylab.clf()
 
 
-def plot_time_series2(model, pars, data, beta, filename, traj2, population, plotdata=True):
+def plot_time_series2(pars, data, beta, filename, traj2, plotdata=True):
     """
     Plot simulated trajectories from the model with accepted parameters.
         
     Parameters
     ----------
 
-    model:
-
-            model object
-
     pars:
             2D list of parameters for plotting to be done
-    
+
     data:
 
             data object
 
     beta : ?
-   
+
     filename:
 
             Name of the output file to write to.
 
     traj2
-
-    population
 
     plotdata:
 
