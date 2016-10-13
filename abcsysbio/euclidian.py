@@ -20,6 +20,8 @@ def euclidian_distance(data1, data2, parameters, model):
 
     """
 
+    del parameters, model
+
     # data1 and data2 are two numpy arrays
     if numpy.shape(data1) != numpy.shape(data2):
         print "\neuclidian_distance: data sets have different dimensions\n"
