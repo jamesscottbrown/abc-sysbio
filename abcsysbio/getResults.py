@@ -187,6 +187,11 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
 
     plt.subplot(111)
     plt.clf()
+
+    # add 2 initial dummy dimensions (nsim, beta)
+    if sims.ndim == 2:
+        sims = np.expand_dims(np.expand_dims(sims, axis=0), axis=0)[0,0,:]
+
     for i in range(nsim):
         for j in range(beta):
             points = sims[i, j, :, :]
