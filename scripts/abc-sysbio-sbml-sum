@@ -19,8 +19,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     input_files = []
-    if args.input_file_name:
-        input_files = str(args.input_file_name).split(',')
+    if args.files:
+        input_files = str(args.files).split(',')
 
     data = None
     if args.data:
