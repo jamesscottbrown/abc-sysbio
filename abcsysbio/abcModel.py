@@ -12,6 +12,7 @@ class AbcModel:
                  prior,  # array of length nparameters
                  nparameters,  # including initial conditions, etc
                  parameterNames=None,
+                 fit=None
                  ):
         self.name = name
         self.simulationFn = simulationFn
@@ -21,7 +22,7 @@ class AbcModel:
         if parameterNames is None:
             parameterNames = ['P%d' % x for x in range(self.nparameters)]
         self.parameterNames = parameterNames
-
+        self.fit           = fit
 
 
     # TODO: remove some of these args?
