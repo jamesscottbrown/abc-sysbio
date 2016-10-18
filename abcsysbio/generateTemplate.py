@@ -66,8 +66,11 @@ def generate_template(source, filename, sumname, dataname=None):
 
 ######################## number of models
 # Number of models for which details are described in this input file
-<modelnumber> " + repr(len(source)) + " </modelnumber>
+""")
 
+    out_file.write("<modelnumber> %s </modelnumber>" % repr(len(source)))
+
+    out_file.write("""
 ######################## restart
 # Restart from previous (pickled) population?
 <restart> False </restart>
