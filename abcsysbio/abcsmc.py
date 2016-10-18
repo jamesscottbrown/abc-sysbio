@@ -826,7 +826,7 @@ def transform_data_for_fitting(fitting_instruction, sample_points):
     if fitting_instruction is not None:
         transformed_points = np.zeros([len(sample_points), len(fitting_instruction)])
         for i in range(len(fitting_instruction)):
-            transformed_points[:, i] = eval(fitting_instruction[i])
+            transformed_points[:, i] = np.squeeze(eval(fitting_instruction[i]))
     else:
         transformed_points = sample_points
 
