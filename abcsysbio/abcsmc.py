@@ -527,10 +527,6 @@ class Abcsmc:
             if self.debug == 2:
                 print '\t\t\tsimulation dimensions:', sims.shape
 
-            # add 2 initial dummy dimensions (nsim, beta)
-            if sims.ndim == 2:
-                sims = np.expand_dims(np.expand_dims(sims, axis=0), axis=0)
-
             for i in range(num_simulations):
                 # store the trajectories and distances in a list of length beta
                 this_dist = []
