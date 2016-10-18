@@ -190,7 +190,7 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
 
     # add 2 initial dummy dimensions (nsim, beta)
     if sims.ndim == 2:
-        sims = np.expand_dims(np.expand_dims(sims, axis=0), axis=0)[0,0,:]
+        sims = np.expand_dims(np.expand_dims(sims, axis=0), axis=0)
 
     for i in range(nsim):
         for j in range(beta):
