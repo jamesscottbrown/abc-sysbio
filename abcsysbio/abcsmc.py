@@ -318,7 +318,8 @@ class Abcsmc:
 
                     num_accepted += 1
 
-            print "#### current num_accepted:", num_accepted
+            if self.debug == 2:
+                print "#### current num_accepted:", num_accepted
 
             if self.debug == 2:
                 print "\t****end  batch num_accepted/sampled:", num_accepted, sampled
@@ -369,7 +370,9 @@ class Abcsmc:
                     self.distances.append(copy.deepcopy(distances[i]))
 
                     naccepted += 1
-            print "#### current naccepted:", naccepted
+
+            if self.debug == 2:
+                print "#### current naccepted:", naccepted
 
             if self.debug == 2:
                 print "\t****end  batch naccepted/sampled:", naccepted, sampled
