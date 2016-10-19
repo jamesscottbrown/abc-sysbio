@@ -202,8 +202,8 @@ class Abcsmc:
             io.write_data(pop, results, end_time - start_time, self.models, self.data)
 
             if self.debug == 1:
-                print "### population ", pop + 1
-                print "\t sampling steps / acceptance rate :", self.sampled[pop], "/", self.rate[pop]
+                print "### iteration:%d, eps=%0.2f, sampled=%d, accepted=%.1f%%" % (pop + 1, epsilon[pop],
+                                                                                  self.sampled[pop], self.rate[pop]*100)
                 print "\t model marginals                  :", self.margins_prev
 
                 if len(self.dead_models) > 0:
