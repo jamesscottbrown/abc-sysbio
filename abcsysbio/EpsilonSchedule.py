@@ -34,16 +34,20 @@ class EpsilonSchedule(object):
 
     def linear_tol(self):
         """Linearly decreasing tolerance level."""
-        return np.linspace(self.tmax, self.tmin, num=self.nt)
+        tol = np.linspace(self.tmax, self.tmin, num=self.nt)
+        return np.expand_dims(tol, axis=1)
 
     def log_tol(self):
         """Log decreasing tolerance level."""
-        return np.logspace(self.tmax, self.tmin, num=self.nt)
+        tol = np.logspace(self.tmax, self.tmin, num=self.nt)
+        return np.expand_dims(tol, axis=1)
 
     def const_tol(self):
         """Constant tolerance level for every iteration."""
-        return np.ones(self.nt)*self.tmin
+        tol = np.ones(self.nt)*self.tmin
+        return np.expand_dims(tol, axis=1)
 
     def exp_tol(self):
         """Exponentially decreasing tolerance level."""
-        return np.logspace(np.log10(self.tmax), np.log10(self.tmin), num=self.nt)
+        tol = np.logspace(np.log10(self.tmax), np.log10(self.tmin), num=self.nt)
+        return np.expand_dims(tol, axis=1)
