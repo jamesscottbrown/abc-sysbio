@@ -135,7 +135,8 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
                             range_x = max_x - min_x
                             plt.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[counter], align='center', alpha=0.5)
                             plt.xlabel('parameter ' + repr(i2), size='xx-small')
-                            plt.vlines(actualValues[int(permutation[i][0])-1], 0, plt.gca().get_ylim()[1], colors='k', linestyles='--', label='')
+                            if actualValues:
+                                plt.vlines(actualValues[int(permutation[i][0])-1], 0, plt.gca().get_ylim()[1], colors='k', linestyles='--', label='')
 
                 else:
                     if not (len(x) == 0):
@@ -156,4 +157,4 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
                 plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='small')
                 plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='small')
 
-plt.hold(False)
+    plt.hold(False)
