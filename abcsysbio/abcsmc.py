@@ -1,7 +1,8 @@
 import numpy as np
 from numpy import random as rnd
 
-import copy, time
+import copy
+import time
 
 from abcsysbio import euclidian
 from abcsysbio import kernels
@@ -80,6 +81,29 @@ class Abcsmc:
                  kernelfn=kernels.get_kernel,
                  kernelpdffn=kernels.get_parameter_kernel_pdf,
                  perturbfn=kernels.perturb_particle):
+        """
+
+        Parameters
+        ----------
+        models : list of model objects
+        nparticles : number of particles
+        modelprior
+        data
+        beta
+        nbatch
+        model_kernel
+        debug
+        timing
+        distancefn
+        kernel_type
+        kernelfn
+        kernelpdffn
+        perturbfn
+
+        Returns
+        -------
+
+        """
 
         self.nmodel = len(models)
         self.models = copy.copy(models)
@@ -293,10 +317,10 @@ class Abcsmc:
         while num_accepted < self.nparticles:
             if self.debug == 2:
                 print "\t****batch"
-            sampled_models = self.sample_model_from_prior()
-            sampled_params = self.sample_parameters_from_prior(sampled_models)
+            sampled_model_indexes = self.sample_model_from_prior()
+            sampled_params = self.sample_parameters_from_prior(sampled_model_indexes)
 
-            accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models, sampled_params,
+            accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_model_indexes, sampled_params,
                                                                                 epsilon=0, do_comp=False)
 
             for i in range(self.nbatch):
@@ -305,11 +329,11 @@ class Abcsmc:
 
                 if num_accepted < self.nparticles and accepted_index[i] > 0:
 
-                    self.model_curr[num_accepted] = sampled_models[i]
+                    self.model_curr[num_accepted] = sampled_model_indexes[i]
                     if self.debug == 2:
-                        print "\t****accepted", i, accepted_index[i], sampled_models[i]
+                        print "\t****accepted", i, accepted_index[i], sampled_model_indexes[i]
 
-                    for p in range(self.models[sampled_models[i]].nparameters):
+                    for p in range(self.models[sampled_model_indexes[i]].nparameters):
                         self.parameters_curr[num_accepted].append(sampled_params[i][p])
 
                     self.b[num_accepted] = accepted_index[i]
@@ -343,13 +367,13 @@ class Abcsmc:
             if self.debug == 2:
                 print "\t****batch"
             if not prior:
-                sampled_models = self.sample_model()
-                sampled_params = self.sample_parameters(sampled_models)
+                sampled_model_indexes = self.sample_model()
+                sampled_params = self.sample_parameters(sampled_model_indexes)
             else:
-                sampled_models = self.sample_model_from_prior()
-                sampled_params = self.sample_parameters_from_prior(sampled_models)
+                sampled_model_indexes = self.sample_model_from_prior()
+                sampled_params = self.sample_parameters_from_prior(sampled_model_indexes)
 
-            accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models, sampled_params,
+            accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_model_indexes, sampled_params,
                                                                                 next_epsilon)
 
             for i in range(self.nbatch):
@@ -358,11 +382,11 @@ class Abcsmc:
 
                 if naccepted < self.nparticles and accepted_index[i] > 0:
 
-                    self.model_curr[naccepted] = sampled_models[i]
+                    self.model_curr[naccepted] = sampled_model_indexes[i]
                     if self.debug == 2:
-                        print "\t****accepted", i, accepted_index[i], sampled_models[i]
+                        print "\t****accepted", i, accepted_index[i], sampled_model_indexes[i]
 
-                    for p in range(self.models[sampled_models[i]].nparameters):
+                    for p in range(self.models[sampled_model_indexes[i]].nparameters):
                         self.parameters_curr[naccepted].append(sampled_params[i][p])
 
                     self.b[naccepted] = accepted_index[i]
@@ -418,9 +442,9 @@ class Abcsmc:
                 self.dead_models.append(j)
 
         # Compute kernels
-        for mod in range(self.nmodel):
-            this_model_index = np.arange(self.nparticles)[np.array(self.model_prev) == mod]
-            this_population = np.zeros([len(this_model_index), self.models[mod].nparameters])
+        for model_index in range(self.nmodel):
+            this_model_index = np.arange(self.nparticles)[np.array(self.model_prev) == model_index]
+            this_population = np.zeros([len(this_model_index), self.models[model_index].nparameters])
             this_weights = np.zeros(len(this_model_index))
 
             # if we have just sampled from the prior we shall initialise the kernels using all available particles
@@ -428,8 +452,8 @@ class Abcsmc:
                 for it in range(len(this_model_index)):
                     this_population[it, :] = self.parameters_prev[this_model_index[it]][:]
                     this_weights[it] = self.weights_prev[this_model_index[it]]
-                tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[mod], this_population, this_weights)
-                self.kernels[mod] = tmp_kernel[:]
+                tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[model_index], this_population, this_weights)
+                self.kernels[model_index] = tmp_kernel[:]
 
             else:
                 # only update the kernels if there are > 5 particles
@@ -437,8 +461,8 @@ class Abcsmc:
                     for it in range(len(this_model_index)):
                         this_population[it, :] = self.parameters_prev[this_model_index[it]][:]
                         this_weights[it] = self.weights_prev[this_model_index[it]]
-                    tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[mod], this_population, this_weights)
-                    self.kernels[mod] = tmp_kernel[:]
+                    tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[model_index], this_population, this_weights)
+                    self.kernels[model_index] = tmp_kernel[:]
 
         # Kernel auxilliary information
         self.kernel_aux = kernels.get_auxilliary_info(self.kernel_type, self.model_prev, self.parameters_prev,
@@ -492,13 +516,13 @@ class Abcsmc:
 
         self.sample_from_prior = False
 
-    def simulate_and_compare_to_data(self, sampled_models, sampled_params, epsilon, do_comp=True):
+    def simulate_and_compare_to_data(self, sampled_model_indexes, sampled_params, epsilon, do_comp=True):
         """
         Perform simulations
 
         Parameters
         ----------
-        sampled_models : list of sampled model numbers
+        sampled_model_indexes : list of sampled model numbers
         sampled_params : a list, each element of which is a list of sampled parameters
         epsilon : value of epsilon
         do_comp : if False, do not actually calculate distance between simulation results and experimental data, and
@@ -519,7 +543,7 @@ class Abcsmc:
         traj = [[] for _ in range(self.nbatch)]
         distances = [[] for _ in range(self.nbatch)]
 
-        models = np.array(sampled_models)
+        models = np.array(sampled_model_indexes)
 
         for model in range(self.nmodel):
 
@@ -615,13 +639,13 @@ class Abcsmc:
                         models[i] = perturbed_model
         return models[:]
 
-    def sample_parameters_from_prior(self, sampled_models):
+    def sample_parameters_from_prior(self, sampled_model_indexes):
         """
-        For each model whose index is in sampled_models, draw a sample of the corresponding parameters.
+        For each model whose index is in sampled_model_indexes, draw a sample of the corresponding parameters.
 
         Parameters
         ----------
-        sampled_models : a list of model indexes, of length self.nbatch
+        sampled_model_indexes : a list of model indexes, of length self.nbatch
 
         Returns
         -------
@@ -632,7 +656,7 @@ class Abcsmc:
         samples = []
 
         for i in range(self.nbatch):
-            model = self.models[sampled_models[i]]
+            model = self.models[sampled_model_indexes[i]]
             sample = [0] * model.nparameters
 
             for param in range(model.nparameters):
@@ -652,15 +676,15 @@ class Abcsmc:
 
         return samples
 
-    def sample_parameters(self, sampled_models):
+    def sample_parameters(self, sampled_model_indexes):
         """
-        For each model index in sampled_models, sample a set of parameters by sampling a particle from
+        For each model index in sampled_model_indexes, sample a set of parameters by sampling a particle from
         the corresponding model (with probability biased by the particle weights), and then perturbing using the
         parameter perturbation kernel; if this gives parameters with probability <=0 the process is repeated.
 
         Parameters
         ----------
-        sampled_models : a list of model indexes, of length self.nbatch
+        sampled_model_indexes : a list of model indexes, of length self.nbatch
 
 
         Returns
@@ -674,8 +698,8 @@ class Abcsmc:
         samples = []
 
         for i in range(self.nbatch):
-            model = self.models[sampled_models[i]]
-            model_num = sampled_models[i]
+            model = self.models[sampled_model_indexes[i]]
+            model_num = sampled_model_indexes[i]
 
             num_params = model.nparameters
             sample = [0] * num_params
