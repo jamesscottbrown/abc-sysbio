@@ -54,12 +54,12 @@ class AbcsmcResults:
         self.naccepted = naccepted
         self.sampled = sampled
         self.rate = rate
-        self.trajectories = copy.deepcopy(trajectories)
-        self.distances = copy.deepcopy(distances)
-        self.margins = copy.deepcopy(margins)
-        self.models = copy.deepcopy(models)
-        self.weights = copy.deepcopy(weights)
-        self.parameters = copy.deepcopy(parameters)
+        self.trajectories = np.array(trajectories)
+        self.distances = np.array(distances)
+        self.margins = np.array(margins)
+        self.models = np.array(models)
+        self.weights = np.array(weights)
+        self.parameters = np.array(parameters)
         self.epsilon = epsilon
 
 
