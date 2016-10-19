@@ -187,6 +187,7 @@ def plot_time_series(model, pars, data, beta, filename, plotdata=True):
 
     plt.subplot(111)
     plt.clf()
+
     for i in range(nsim):
         for j in range(beta):
             points = sims[i, j, :, :]

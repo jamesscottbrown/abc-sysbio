@@ -55,11 +55,11 @@ class AbcsmcResults:
         self.sampled = sampled
         self.rate = rate
         self.trajectories = copy.deepcopy(trajectories)
-        self.distances = copy.deepcopy(distances)
-        self.margins = copy.deepcopy(margins)
-        self.models = copy.deepcopy(models)
-        self.weights = copy.deepcopy(weights)
-        self.parameters = copy.deepcopy(parameters)
+        self.distances = np.array(distances)
+        self.margins = np.array(margins)
+        self.models = np.array(models)
+        self.weights = np.array(weights)
+        self.parameters = np.array(parameters)
         self.epsilon = epsilon
 
 
@@ -159,14 +159,18 @@ class Abcsmc:
         self.dead_models = []
         self.sample_from_prior = True
 
-    def run_fixed_schedule(self, epsilon, io):
+    def run_fixed_schedule(self, epsilon, io, store_all_results=False):
         all_start_time = time.time()
+        all_results = []
         for pop in range(len(epsilon)):
             start_time = time.time()
             if pop == 0 and self.sample_from_prior:
                 results = self.iterate_one_population(epsilon[pop], prior=True)
             else:
                 results = self.iterate_one_population(epsilon[pop], prior=False)
+
+            if store_all_results:
+                all_results.append(results)
             end_time = time.time()
 
             io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev,
@@ -185,9 +189,11 @@ class Abcsmc:
 
         if self.timing:
             print "#### final time:", time.time() - all_start_time
+        return all_results
 
-    def run_automated_schedule(self, final_epsilon, alpha, io):
+    def run_automated_schedule(self, final_epsilon, alpha, io, store_all_results=False):
         all_start_time = time.time()
+        all_results = []
 
         done = False
         final = False
@@ -203,6 +209,9 @@ class Abcsmc:
                 results = self.iterate_one_population(epsilon, prior=True)
             else:
                 results = self.iterate_one_population(epsilon, prior=False)
+
+            if store_all_results:
+                all_results.append(results)
             end_time = time.time()
 
             io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev,
@@ -226,6 +235,7 @@ class Abcsmc:
 
         if self.timing:
             print "#### final time:", time.time() - all_start_time
+        return all_results
 
     def compute_next_epsilon(self, results, target_epsilon, alpha):
         """
@@ -308,7 +318,8 @@ class Abcsmc:
 
                     num_accepted += 1
 
-            print "#### current num_accepted:", num_accepted
+            if self.debug == 2:
+                print "#### current num_accepted:", num_accepted
 
             if self.debug == 2:
                 print "\t****end  batch num_accepted/sampled:", num_accepted, sampled
@@ -359,7 +370,9 @@ class Abcsmc:
                     self.distances.append(copy.deepcopy(distances[i]))
 
                     naccepted += 1
-            print "#### current naccepted:", naccepted
+
+            if self.debug == 2:
+                print "#### current naccepted:", naccepted
 
             if self.debug == 2:
                 print "\t****end  batch naccepted/sampled:", naccepted, sampled
