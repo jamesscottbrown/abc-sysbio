@@ -54,7 +54,7 @@ class AbcsmcResults:
         self.naccepted = naccepted
         self.sampled = sampled
         self.rate = rate
-        self.trajectories = np.array(trajectories)
+        self.trajectories = copy.deepcopy(trajectories)
         self.distances = np.array(distances)
         self.margins = np.array(margins)
         self.models = np.array(models)
