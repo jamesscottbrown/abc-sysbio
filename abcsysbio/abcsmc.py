@@ -202,7 +202,8 @@ class Abcsmc:
             io.write_data(pop, results, end_time - start_time, self.models, self.data)
 
             if self.debug == 1:
-                print "### iteration:%d, eps=%0.2f, sampled=%d, accepted=%.1f%%" % (pop + 1, epsilon[pop],
+                epsilon_string = map(lambda x: "%0.2f" % x, epsilon[pop])
+                print "### iteration:%d, eps=%s, sampled=%d, accepted=%.1f%%" % (pop + 1, epsilon_string,
                                                                                   self.sampled[pop], self.rate[pop]*100)
                 print "\t model marginals                  :", self.margins_prev
 
