@@ -3,15 +3,12 @@
 # Centre for Bioinformatics
 # Imperial College London
 
-from generateTemplate import generate_template
-from checkInputArguments import check_input_abc
-
 __all__ = ['GillespieAlgorithm',
            'sdeint',
            'abcodesolve',
            'check_input_abc',
            'checkInputArguments',
-           'generate_template',
+           'generateTemplate',
            'relations.py',
            'euclidian',
            'getResults',
