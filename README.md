@@ -1,11 +1,16 @@
 
-This is the distribution of the Python package ``abc-sysbio``.
+This is a fork of the Python package ``abc-sysbio``.
+Compared to the [official ABC-SysBio release](http://www.theosysbio.bio.ic.ac.uk/resources/abc-sysbio/), this fork has been significantly refactored, and all of the simulation code has been moved into [my fork of cuda-sim](https://github.com/jamesscottbrown/cuda-sim) (which derives from the [last official cuda-sim release](https://sourceforge.net/projects/cuda-sim/)).
+**It is still somewhat experimental, and there may be bugs that were introduced in the refactoring and not yet been found**.
+
+
 
 ``abc-sysbio`` implements likelihood free parameter inference and model selection in dynamical systems.
 
 It is designed to work with both stochastic and deterministic models written in [Python](https://www.python.org/) or [Systems Biology Markup Language](http://sbml.org) (SBML).
 
 ``abc-sysbio`` combines three algorithms: ABC rejection sampler, ABC SMC for parameter inference and ABC SMC for model selection.
+
 
 # Contents
 
