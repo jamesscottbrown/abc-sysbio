@@ -560,7 +560,7 @@ class Abcsmc:
 
             num_simulations = len(mapping)
             if num_simulations == 0:
-                break
+                continue
 
             this_model_parameters = []
             for i in range(num_simulations):
