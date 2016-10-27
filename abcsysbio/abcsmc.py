@@ -515,6 +515,11 @@ class Abcsmc:
             for j in range(len(particle_data[4][i])):
                 self.kernels[i].append(particle_data[4][i][j])
 
+        self.dead_models = []
+        for j in range(self.nmodel):
+            if self.margins_prev[j] < 1e-6:
+                self.dead_models.append(j)
+
         self.sample_from_prior = False
 
     def simulate_and_compare_to_data(self, sampled_model_indexes, sampled_params, epsilon, do_comp=True):
