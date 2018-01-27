@@ -410,5 +410,5 @@ def compute_optcovmat(x, weights, m):
     # Divide every element by the total weight
     for d1 in range(num_dimensions):
         for d2 in range(num_dimensions):
-            c[d1, d2] = c[d2, d2] / sum(weights)
+            c[d1, d2] = c[d1, d2] / sum(weights)
     return c
