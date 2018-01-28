@@ -393,13 +393,13 @@ def compute_optcovmat(x, weights, m):
     num_samples = len(x[0])
     c = np.zeros([num_dimensions, num_dimensions], float)
 
-    # Fill in upper-half of c
+    # Fill in lower-half of c
     for sample in range(num_samples):
         for d1 in range(num_dimensions):
             for d2 in range(d1):
                 c[d1, d2] += weights[sample] * (x[d1][sample] - m[d1]) * (x[d2][sample] - m[d2])
 
-    # Fill in lower-half by symmetry
+    # Fill in upper-half by symmetry
     c = c + np.transpose(c)
 
     # Fill in diagonal
