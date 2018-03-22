@@ -262,9 +262,11 @@ if __name__ == '__main__':
         io = input_output.InputOutput(fname, info_new.restart, diagnostic, plotTimeSeries, havedata=False)
         io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
     else:
-        io = input_output.InputOutput(fname, info_new.restart, diagnostic, plotTimeSeries)
+        io = input_output.InputOutput(fname, info_new.restart, diagnostic, plotTimeSeries, havedata=plot)
         io.create_output_folders(info_new.name, info_new.particles, pickling, simulate)
-        io.plot_data(data_new)
+
+    if plot:
+            io.plot_data(data_new)
 
     # batch size
     nbatch = 10
