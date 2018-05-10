@@ -312,7 +312,7 @@ def generate_template(source, filename, sumname, dataname=None):
                 counter += 1
                 sum_file.write("P" + repr(counter) + ":\t" + parameter_id[k] + "\t" + parameter_id2[k] + "\t(" + repr(
                     parameter[k]) + ")\n")
-                out_file.write("<parameter" + repr(counter) + ">")
+                out_file.write("<parameter%s realName='%s'>" % (counter, parameter_id[k]))
                 out_file.write(" constant ")
                 out_file.write(repr(parameter[k]) + " </parameter" + repr(counter) + ">\n")
 
