@@ -123,7 +123,7 @@ def process_prior(tmp, model_num):
             sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
     elif re_prior_catg.match(tmp[0]):
         try:
-            prior_params = Prior(type=PriorType.lognormal, p=[float(x) for x in tmp[1:]])
+            prior_params = Prior(type=PriorType.categorical, p=[float(x) for x in tmp[1:]])
         except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
 
