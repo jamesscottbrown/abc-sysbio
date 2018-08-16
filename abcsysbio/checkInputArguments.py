@@ -157,7 +157,7 @@ def check_input_abc(info_new, results_dir, custom_distance, design):
                     return False, "\nA probability in prior for parameter %s in model %s is negative!\n" % \
                            (param+1, model_name[mod])
 
-                if sum(priors[mod][param]) != 0:
+                if sum(priors[mod][param].p) != 0:
                     return False, "\nProbabilities do not sum to 1 in prior for parameter %s in model %s!\n" % \
                            (param+1, model_name[mod])
 
