@@ -238,10 +238,9 @@ def perturb_particle(params, priors, kernel, kernel_type, special_cases):
 
 
         # Always handle categorical variables as a special case
-        for n in kernel[0]:
-            for i in range(0, len(priors)):
-                if priors[i].type == PriorType.categorical:
-                    params[n][i] = statistics.w_choice(priors[i].p)
+        for n in range(0, len(priors)):
+            if priors[n].type == PriorType.categorical:
+                params[n] = statistics.w_choice(priors[n].p)
 
 
 
