@@ -776,7 +776,11 @@ class Abcsmc:
                     x = statistics.get_pdf_lognormal(this_prior.mu, np.sqrt(this_prior.sigma), this_param[n])
 
                 if this_prior.type == PriorType.categorical:
-                    x = this_prior.p[int(this_param[n])]
+                    val = int(this_param[n])
+                    if val < len(this_prior.p):
+                        x = this_prior.p[val]
+                    else:
+                        x = 0
 
                 particle_prior = particle_prior * x
 
