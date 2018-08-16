@@ -153,7 +153,7 @@ def check_input_abc(info_new, results_dir, custom_distance, design):
                         repr(param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"
 
             if priors[mod][param].type == PriorType.categorical:
-                if any(p < 0 for p in priors[mod][param]):
+                if any(p < 0 for p in priors[mod][param].p):
                     return False, "\nA probability in prior for parameter %s in model %s is negative!\n" % \
                            (param+1, model_name[mod])
 
