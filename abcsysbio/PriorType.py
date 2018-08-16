@@ -6,3 +6,4 @@ class PriorType(Enum):
     normal = 1
     uniform = 2
     lognormal = 3
+    categorical = 4

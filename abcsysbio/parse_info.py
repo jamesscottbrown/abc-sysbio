@@ -12,6 +12,7 @@ re_prior_const = re.compile('constant')
 re_prior_uni = re.compile('uniform')
 re_prior_normal = re.compile('normal')
 re_prior_logn = re.compile('lognormal')
+re_prior_catg = re.compile('categorical')
 
 # implemented kernels
 re_kernel_uniform = re.compile('uniform')
@@ -120,6 +121,12 @@ def process_prior(tmp, model_num):
             prior_params = Prior(type=PriorType.lognormal, mu=float(tmp[1]), sigma=float(tmp[2]))
         except ValueError:
             sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
+    elif re_prior_catg.match(tmp[0]):
+        try:
+            prior_params = Prior(type=PriorType.lognormal, p=[float(x) for x in tmp[1:]])
+        except ValueError:
+            sys.exit("\nValue of the prior for model %s (counting from 1) has wrong format: %s" % (model_num, tmp[1]))
+
     else:
         sys.exit("\nSupplied parameter prior %s unsupported" % tmp[0])
 

@@ -678,6 +678,9 @@ class Abcsmc:
                 if model.prior[param].type == PriorType.lognormal:
                     sample[param] = rnd.lognormal(mean=model.prior[param].mu, sigma=np.sqrt(model.prior[param].sigma))
 
+                if model.prior[param].type == PriorType.categorical:
+                    sample[param] = statistics.w_choice(model.prior[param].p)
+
             samples.append(sample[:])
 
         return samples
@@ -771,6 +774,10 @@ class Abcsmc:
 
                 if this_prior.type == PriorType.lognormal:
                     x = statistics.get_pdf_lognormal(this_prior.mu, np.sqrt(this_prior.sigma), this_param[n])
+
+                if this_prior.type == PriorType.categorical:
+                    x = this_prior.p[this_param[n]]
+
                 particle_prior = particle_prior * x
 
             # self.b[k] is a variable indicating whether the simulation corresponding to particle k was accepted

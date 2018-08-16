@@ -122,7 +122,7 @@ def check_input_abc(info_new, results_dir, custom_distance, design):
     ode = re.compile('ODE')
     gillespie = re.compile('Gillespie')
 
-    prior_types = [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal]
+    prior_types = [PriorType.constant, PriorType.normal, PriorType.uniform, PriorType.lognormal, PriorType.categorical]
 
     for mod in range(len(model_name)):
 
@@ -151,6 +151,16 @@ def check_input_abc(info_new, results_dir, custom_distance, design):
                 if not (priors[mod][param].mu >= 0 or priors[mod][param].sigma >= 0):
                     return False, "\nThe mean or scale of the lognormal prior distribution of parameter " + \
                         repr(param + 1) + " in model " + model_name[mod] + " is wrong defined!\n"
+
+            if priors[mod][param].type == PriorType.categorical:
+                if any(p < 0 for p in priors[mod][param]):
+                    return False, "\nA probability in prior for parameter %s in model %s is negative!\n" % \
+                           (param+1, model_name[mod])
+
+                if sum(priors[mod][param]) != 0:
+                    return False, "\nProbabilities do not sum to 1 in prior for parameter %s in model %s!\n" % \
+                           (param+1, model_name[mod])
+
 
     # check arguments connected to pickling
     if restart:
