@@ -70,6 +70,9 @@ def get_pdf_lognormal(m, sigma, x):
     sigma : standard deviation of the associated normal
     m : mean of the associated normal
     """
+    if x <= 0:
+        return 0.0
+
     x = np.exp(-0.5 * (np.log(x) - m) * (np.log(x) - m) / (sigma * sigma))
     x = x / (x * sigma * np.sqrt(2 * np.pi))
     return x
